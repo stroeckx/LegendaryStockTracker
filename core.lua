@@ -23,6 +23,8 @@ local LstockIcon = LibStub("LibDBIcon-1.0")
 local LstockFrame = nil
 
 local itemLinks = {}
+local bagItemLinks = {}
+local bankItemLinks = {}
 local gearLinks = {}
 local legendaryLinks = {}
 local legendaryCountByRank = {}
@@ -47,16 +49,13 @@ function LegendaryStockTracker:OnInitialize()
 	});
 	LstockIcon:Register("LegendaryStockTracker", LstockLDB, self.db.profile.minimap)
     LegendaryStockTracker:RegisterChatCommand("lstock", "HandleChatCommand")
+	LegendaryStockTracker:RegisterEvent("BANKFRAME_CLOSED", "GetAllItemsInBank")
+	LegendaryStockTracker:RegisterEvent("BANKFRAME_OPENED", "GetAllItemsInBank")
 end
 
 function LegendaryStockTracker:HandleChatCommand(input)
-	itemLinks = {}
-	gearLinks = {}
-	legendaryLinks = {}
-	legendaryCountByRank = {}
-	
 	LegendaryStockTracker:GetAllItemsInBags()
-	LegendaryStockTracker:GetAllItemsInBank()
+	LegendaryStockTracker:AddAllItemsToList()
 	LegendaryStockTracker:GetGearFromItems()
 	LegendaryStockTracker:GetShadowlandsLegendariesFromGear()
 	LegendaryStockTracker:CountLegendariesByRank()
@@ -163,26 +162,41 @@ function LegendaryStockTracker:GetMainFrame(text)
 end
 
 function LegendaryStockTracker:GetAllItemsInBags()
+	bagItemLinks = {}
     for bag=0,NUM_BAG_SLOTS do
         for slot=1,GetContainerNumSlots(bag) do
 			if not (GetContainerItemID(bag,slot) == nil) then 
-				itemLinks[#itemLinks+1] = (select(7,GetContainerItemInfo(bag,slot)))
+				bagItemLinks[#bagItemLinks+1] = (select(7,GetContainerItemInfo(bag,slot)))
 			end
         end
 	end
 end
 
 function LegendaryStockTracker:GetAllItemsInBank()
-    for bag=NUM_BAG_SLOTS+1,NUM_BAG_SLOTS + NUM_BANKBAGSLOTS do
-        for slot=1,GetContainerNumSlots(bag) do
-			if not (GetContainerItemID(bag,slot) == nil) then 
-				itemLinks[#itemLinks+1] = (select(7,GetContainerItemInfo(bag,slot)))
+	if(GetContainerItemLink(NUM_BAG_SLOTS+1,1) ~= nil) then
+		bankItemLinks = {}
+		for bag=NUM_BAG_SLOTS+1,NUM_BAG_SLOTS + NUM_BANKBAGSLOTS do
+			for slot=1,GetContainerNumSlots(bag) do
+				if not (GetContainerItemID(bag,slot) == nil) then 
+					bankItemLinks[#bankItemLinks+1] = (select(7,GetContainerItemInfo(bag,slot)))
+				end
 			end
-        end
+		end
+	end
+end
+
+function LegendaryStockTracker:AddAllItemsToList()
+	itemLinks = {}
+	for i=1, #bagItemLinks do
+		itemLinks[#itemLinks+1] = bagItemLinks[i]
+	end
+	for i=1, #bankItemLinks do
+		itemLinks[#itemLinks+1] = bankItemLinks[i]
 	end
 end
 
 function LegendaryStockTracker:GetGearFromItems()
+	gearLinks = {}
 	for i=1, #itemLinks do
 		if select(6, GetItemInfo(itemLinks[i])) == "Armor" then 
 			gearLinks[#gearLinks+1] = itemLinks[i]
@@ -191,6 +205,7 @@ function LegendaryStockTracker:GetGearFromItems()
 end
 
 function LegendaryStockTracker:GetShadowlandsLegendariesFromGear()
+	legendaryLinks = {}
 	for i=1, #gearLinks do
 		if (select(3, GetItemInfo(gearLinks[i])) == 1)  then 
 			local detailedItemLevel = GetDetailedItemLevelInfo(gearLinks[i])
@@ -202,6 +217,7 @@ function LegendaryStockTracker:GetShadowlandsLegendariesFromGear()
 end
 
 function LegendaryStockTracker:CountLegendariesByRank()
+	legendaryCountByRank = {}
 	for i=1, #legendaryLinks do
 		local itemName = select(1, GetItemInfo(legendaryLinks[i]))
 		local detailedItemLevel = GetDetailedItemLevelInfo(legendaryLinks[i])
