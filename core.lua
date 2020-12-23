@@ -22,10 +22,16 @@ local LstockLDB = LibStub("LibDataBroker-1.1"):NewDataObject("LegendaryStockTrac
 local LstockIcon = LibStub("LibDBIcon-1.0")
 local LstockFrame = nil
 
+--all collections of items are stored separately for future expandability
 local itemLinks = {}
 local bagItemLinks = {}
+local bagItemCount = 0
 local bankItemLinks = {}
+local bankItemCount = 0
 local ahItemLinks = {}
+local ahItemCount = 0
+local mailboxItemLinks = {}
+local mailboxItemCount = 0
 local gearLinks = {}
 local legendaryLinks = {}
 local legendaryCountByRank = {}
@@ -53,13 +59,16 @@ function LegendaryStockTracker:OnInitialize()
 	LegendaryStockTracker:RegisterEvent("BANKFRAME_CLOSED", "GetAllItemsInBank")
 	LegendaryStockTracker:RegisterEvent("BANKFRAME_OPENED", "GetAllItemsInBank")
 	LegendaryStockTracker:RegisterEvent("OWNED_AUCTIONS_UPDATED", "GetAllItemsInAH")
+	LegendaryStockTracker:RegisterEvent("MAIL_INBOX_UPDATE", "GetAllItemsInMailbox")
+	LegendaryStockTracker:RegisterEvent("MAIL_CLOSED", "GetAllItemsInMailbox")
 end
 
 function LegendaryStockTracker:HandleChatCommand(input)
 	LegendaryStockTracker:GetAllItemsInAH()
 	LegendaryStockTracker:GetAllItemsInBags()
 	LegendaryStockTracker:GetAllItemsInBank() --if the bank is open at the time of command, update bank as well
-	--LegendaryStockTracker:GetAllItemsInAH() auctions specifically not updated on press, as we don't know if the ah is closed or the player has no auctions. relying on OWNED_AUCTIONS_UPDATED to update those.
+	--LegendaryStockTracker:GetAllItemsInAH() auctions specifically not updated on command, as we don't know if the ah is closed or the player has no auctions. relying on OWNED_AUCTIONS_UPDATED to update those.
+	--LegendaryStockTracker:GetAllItemsInMailbox() mailbox is updated when an item gets taken out, no need to update on command 
 	LegendaryStockTracker:AddAllItemsToList()
 	LegendaryStockTracker:GetGearFromItems()
 	LegendaryStockTracker:GetShadowlandsLegendariesFromGear()
@@ -176,6 +185,7 @@ function LegendaryStockTracker:GetAllItemsInBags()
         for slot=1,GetContainerNumSlots(bag) do
 			if not (GetContainerItemID(bag,slot) == nil) then 
 				bagItemLinks[#bagItemLinks+1] = (select(7,GetContainerItemInfo(bag,slot)))
+				bagItemCount = bagItemCount + 1
 			end
         end
 	end
@@ -188,6 +198,7 @@ function LegendaryStockTracker:GetAllItemsInBank()
 			for slot=1,GetContainerNumSlots(bag) do
 				if not (GetContainerItemID(bag,slot) == nil) then 
 					bankItemLinks[#bankItemLinks+1] = (select(7,GetContainerItemInfo(bag,slot)))
+					bankItemCount = bankItemCount + 1
 				end
 			end
 		end
@@ -200,6 +211,26 @@ function LegendaryStockTracker:GetAllItemsInAH()
 		local numOwnedAuctions = C_AuctionHouse.GetNumOwnedAuctions()
 		for i=1, numOwnedAuctions do
 			ahItemLinks[#ahItemLinks+1] = C_AuctionHouse.GetOwnedAuctionInfo(i).itemLink
+			ahItemCount = ahItemCount + 1
+		end
+	end
+end
+
+function LegendaryStockTracker:GetAllItemsInMailbox()
+	mailboxItemLinks = {}
+	for i=1, GetInboxNumItems() do
+		for j=1,ATTACHMENTS_MAX_RECEIVE do 
+			mailboxItemLinks[#mailboxItemLinks+1] = GetInboxItemLink(i, j)
+			mailboxItemCount = mailboxItemCount + 1
+		end
+	end
+end
+
+function LegendaryStockTracker:GetGearFromItems()
+	gearLinks = {}
+	for i=1, #itemLinks do
+		if select(6, GetItemInfo(itemLinks[i])) == "Armor" then 
+			gearLinks[#gearLinks+1] = itemLinks[i]
 		end
 	end
 end
@@ -215,16 +246,12 @@ function LegendaryStockTracker:AddAllItemsToList()
 	for i=1, #ahItemLinks do
 		itemLinks[#itemLinks+1] = ahItemLinks[i]
 	end
-end
-
-function LegendaryStockTracker:GetGearFromItems()
-	gearLinks = {}
-	for i=1, #itemLinks do
-		if select(6, GetItemInfo(itemLinks[i])) == "Armor" then 
-			gearLinks[#gearLinks+1] = itemLinks[i]
-		end
+	for i=1, #mailboxItemLinks do
+		itemLinks[#itemLinks+1] = mailboxItemLinks[i]
 	end
 end
+
+
 
 function LegendaryStockTracker:GetShadowlandsLegendariesFromGear()
 	legendaryLinks = {}
