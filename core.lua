@@ -17,6 +17,8 @@ local LstockLDB = LibStub("LibDataBroker-1.1"):NewDataObject("LegendaryStockTrac
     tt:AddLine("LegendaryStockTracker")
     tt:AddLine(" ")
     tt:AddLine("Click to show Lstock panel")
+    tt:AddLine("Items Scanned:")
+    tt:AddLine(LegendaryStockTracker:GetDataCounts())
   end
 })
 local LstockIcon = LibStub("LibDBIcon-1.0")
@@ -56,11 +58,28 @@ function LegendaryStockTracker:OnInitialize()
 	});
 	LstockIcon:Register("LegendaryStockTracker", LstockLDB, self.db.profile.minimap)
     LegendaryStockTracker:RegisterChatCommand("lstock", "HandleChatCommand")
+    LegendaryStockTracker:RegisterChatCommand("lstocktest", "Test")
 	LegendaryStockTracker:RegisterEvent("BANKFRAME_CLOSED", "GetAllItemsInBank")
 	LegendaryStockTracker:RegisterEvent("BANKFRAME_OPENED", "GetAllItemsInBank")
 	LegendaryStockTracker:RegisterEvent("OWNED_AUCTIONS_UPDATED", "GetAllItemsInAH")
 	LegendaryStockTracker:RegisterEvent("MAIL_INBOX_UPDATE", "GetAllItemsInMailbox")
 	LegendaryStockTracker:RegisterEvent("MAIL_CLOSED", "GetAllItemsInMailbox")
+	LegendaryStockTracker:GetAllItemsInBags()
+end
+
+function LegendaryStockTracker:Test()
+	local result
+	GetPriceSourceKeys(result)
+	message(result)
+end
+
+function LegendaryStockTracker:GetDataCounts()
+	local text = ""
+	text = text .. "Bags: " .. bagItemCount .. "\n"
+	text = text .. "Bank: " .. bankItemCount .. "\n"
+	text = text .. "AH: " .. ahItemCount .. "\n"
+	text = text .. "Mail: " .. mailboxItemCount .. "\n"
+	return text
 end
 
 function LegendaryStockTracker:HandleChatCommand(input)
@@ -181,6 +200,7 @@ end
 
 function LegendaryStockTracker:GetAllItemsInBags()
 	bagItemLinks = {}
+	bagItemCount = 0
     for bag=0,NUM_BAG_SLOTS do
         for slot=1,GetContainerNumSlots(bag) do
 			if not (GetContainerItemID(bag,slot) == nil) then 
@@ -194,6 +214,7 @@ end
 function LegendaryStockTracker:GetAllItemsInBank()
 	if(GetContainerItemLink(NUM_BAG_SLOTS+1,1) ~= nil) then
 		bankItemLinks = {}
+		bankItemCount = 0
 		for bag=NUM_BAG_SLOTS+1,NUM_BAG_SLOTS + NUM_BANKBAGSLOTS do
 			for slot=1,GetContainerNumSlots(bag) do
 				if not (GetContainerItemID(bag,slot) == nil) then 
@@ -208,6 +229,7 @@ end
 function LegendaryStockTracker:GetAllItemsInAH()
 	if(C_AuctionHouse.GetNumOwnedAuctions() ~= 0) then
 		ahItemLinks = {}
+		ahItemCount = 0
 		local numOwnedAuctions = C_AuctionHouse.GetNumOwnedAuctions()
 		for i=1, numOwnedAuctions do
 			ahItemLinks[#ahItemLinks+1] = C_AuctionHouse.GetOwnedAuctionInfo(i).itemLink
@@ -218,6 +240,7 @@ end
 
 function LegendaryStockTracker:GetAllItemsInMailbox()
 	mailboxItemLinks = {}
+	mailboxItemCount = 0
 	for i=1, GetInboxNumItems() do
 		for j=1,ATTACHMENTS_MAX_RECEIVE do 
 			mailboxItemLinks[#mailboxItemLinks+1] = GetInboxItemLink(i, j)
