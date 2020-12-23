@@ -25,6 +25,7 @@ local LstockFrame = nil
 local itemLinks = {}
 local bagItemLinks = {}
 local bankItemLinks = {}
+local ahItemLinks = {}
 local gearLinks = {}
 local legendaryLinks = {}
 local legendaryCountByRank = {}
@@ -51,16 +52,24 @@ function LegendaryStockTracker:OnInitialize()
     LegendaryStockTracker:RegisterChatCommand("lstock", "HandleChatCommand")
 	LegendaryStockTracker:RegisterEvent("BANKFRAME_CLOSED", "GetAllItemsInBank")
 	LegendaryStockTracker:RegisterEvent("BANKFRAME_OPENED", "GetAllItemsInBank")
+	LegendaryStockTracker:RegisterEvent("OWNED_AUCTIONS_UPDATED", "GetAllItemsInAH")
 end
 
 function LegendaryStockTracker:HandleChatCommand(input)
+	LegendaryStockTracker:GetAllItemsInAH()
 	LegendaryStockTracker:GetAllItemsInBags()
+	LegendaryStockTracker:GetAllItemsInBank() --if the bank is open at the time of command, update bank as well
+	--LegendaryStockTracker:GetAllItemsInAH() auctions specifically not updated on press, as we don't know if the ah is closed or the player has no auctions. relying on OWNED_AUCTIONS_UPDATED to update those.
 	LegendaryStockTracker:AddAllItemsToList()
 	LegendaryStockTracker:GetGearFromItems()
 	LegendaryStockTracker:GetShadowlandsLegendariesFromGear()
 	LegendaryStockTracker:CountLegendariesByRank()
 	local f = LegendaryStockTracker:GetMainFrame(LegendaryStockTracker:GenerateExportText())
 	f:Show()
+end
+
+function LegendaryStockTracker:msg()
+	message('OWNED_AUCTIONS_UPDATED')
 end
 
 function LegendaryStockTracker:OnEnable()
@@ -185,6 +194,16 @@ function LegendaryStockTracker:GetAllItemsInBank()
 	end
 end
 
+function LegendaryStockTracker:GetAllItemsInAH()
+	if(C_AuctionHouse.GetNumOwnedAuctions() ~= 0) then
+		ahItemLinks = {}
+		local numOwnedAuctions = C_AuctionHouse.GetNumOwnedAuctions()
+		for i=1, numOwnedAuctions do
+			ahItemLinks[#ahItemLinks+1] = C_AuctionHouse.GetOwnedAuctionInfo(i).itemLink
+		end
+	end
+end
+
 function LegendaryStockTracker:AddAllItemsToList()
 	itemLinks = {}
 	for i=1, #bagItemLinks do
@@ -192,6 +211,9 @@ function LegendaryStockTracker:AddAllItemsToList()
 	end
 	for i=1, #bankItemLinks do
 		itemLinks[#itemLinks+1] = bankItemLinks[i]
+	end
+	for i=1, #ahItemLinks do
+		itemLinks[#itemLinks+1] = ahItemLinks[i]
 	end
 end
 
@@ -243,9 +265,9 @@ function LegendaryStockTracker:GenerateExportText()
 		table.insert(keyTable, key) 
 	end
 	table.sort(keyTable)
-	local text = ""
+	local text = "Item name, Rank 1, Rank 2, Rank 3, Rank 4\n"
 	for i=1, #keyTable do 
-		text = text .. keyTable[i] .. ": " .. legendaryCountByRank[keyTable[i]][1] .. "," .. legendaryCountByRank[keyTable[i]][2] .. "," .. legendaryCountByRank[keyTable[i]][3] .. "," .. legendaryCountByRank[keyTable[i]][4] .. "\n"
+		text = text .. keyTable[i] .. "," .. legendaryCountByRank[keyTable[i]][1] .. "," .. legendaryCountByRank[keyTable[i]][2] .. "," .. legendaryCountByRank[keyTable[i]][3] .. "," .. legendaryCountByRank[keyTable[i]][4] .. "\n"
 	end
 	return text
 end
