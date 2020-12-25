@@ -5,7 +5,7 @@ local LstockLDB = LibStub("LibDataBroker-1.1"):NewDataObject("LegendaryStockTrac
   type = "data source",
   text = "LegendaryStockTracker",
   label = "LegendaryStockTracker",
-  icon = "Interface\\AddOns\\LegendaryStockTracker\\logo",
+  icon = "Interface\\AddOns\\LegendaryStockTracker\\LST_logo",
   OnClick = function()
     if LstockFrame and LstockFrame:IsShown() then
       LstockFrame:Hide()
@@ -14,6 +14,7 @@ local LstockLDB = LibStub("LibDataBroker-1.1"):NewDataObject("LegendaryStockTrac
     end
   end,
   OnTooltipShow = function(tt)
+	LegendaryStockTracker:GetAllItemsInBags()
     tt:AddLine("LegendaryStockTracker")
     tt:AddLine(" ")
     tt:AddLine("Click to show Lstock panel")
@@ -64,13 +65,10 @@ function LegendaryStockTracker:OnInitialize()
 	LegendaryStockTracker:RegisterEvent("OWNED_AUCTIONS_UPDATED", "GetAllItemsInAH")
 	LegendaryStockTracker:RegisterEvent("MAIL_INBOX_UPDATE", "GetAllItemsInMailbox")
 	LegendaryStockTracker:RegisterEvent("MAIL_CLOSED", "GetAllItemsInMailbox")
-	LegendaryStockTracker:GetAllItemsInBags()
 end
 
 function LegendaryStockTracker:Test()
-	local result
-	GetPriceSourceKeys(result)
-	message(result)
+	message("test")
 end
 
 function LegendaryStockTracker:GetDataCounts()
