@@ -12,7 +12,6 @@ libs\AceAddon-3.0\AceAddon-3.0.xml
 libs\AceConsole-3.0\AceConsole-3.0.xml
 libs\AceEvent-3.0\AceEvent-3.0.xml
 libs\AceDB-3.0\AceDB-3.0.xml
-libs\LibRealmInfo\LibRealmInfo.lua
 libs\LibDataBroker-1.1\LibDataBroker-1.1.lua
 Libs\LibDBIcon-1.0\lib.xml
 #@end-no-lib-strip@
