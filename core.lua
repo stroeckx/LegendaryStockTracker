@@ -188,7 +188,6 @@ function LegendaryStockTracker:GetMainFrame(text)
         frameConfig.width = f:GetWidth()
         frameConfig.height = f:GetHeight()
     end)
-
     LstockFrame = f
   end
   LstockEditBox:SetText(text)
