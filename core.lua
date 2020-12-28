@@ -15,13 +15,14 @@ local LstockLDB = LibStub("LibDataBroker-1.1"):NewDataObject("LegendaryStockTrac
   end,
   OnTooltipShow = function(tt)
 	LegendaryStockTracker:GetAllItemsInBags()
-    tt:AddLine("LegendaryStockTracker")
+    tt:AddLine("Legendary Stock Tracker")
     tt:AddLine(" ")
-    tt:AddLine("Click to show Lstock panel")
+    tt:AddLine("Click or type /lstock to show export panel")
     tt:AddLine("Items Scanned:")
     tt:AddLine(LegendaryStockTracker:GetDataCounts())
   end
 })
+
 local LstockIcon = LibStub("LibDBIcon-1.0")
 local LstockFrame = nil
 
@@ -35,9 +36,62 @@ local ahItemLinks = {}
 local ahItemCount = 0
 local mailboxItemLinks = {}
 local mailboxItemCount = 0
+local GuildBankItemLinks = {}
+local GuildBankItemCount = 0
 local gearLinks = {}
 local legendaryLinks = {}
 local legendaryCountByRank = {}
+local TSMPriceDataByRank = {}
+local LoadUnownedLegendaries = true
+local Rank1BonusIDs = "::2:1487:6716"
+local Rank2BonusIDs = "::2:1507:6717"
+local Rank3BonusIDs = "::2:1522:6718"
+local Rank4BonusIDs = "::2:1532:6758"
+local LegendaryIDsByName = 
+{
+	["Shadowghast Armguards"] =  171419,
+	["Shadowghast Breastplate"] =  171412,
+	["Shadowghast Gauntlets"] =  171414,
+	["Shadowghast Greaves"] =  171416,
+	["Shadowghast Helm"] =  171415,
+	["Shadowghast Pauldrons"] =  171417,
+	["Shadowghast Sabatons"] =  171413,
+	["Shadowghast Waistguard"] =  171418,
+	
+	["Shadowghast Necklace"] =  178927,
+	["Shadowghast Ring"] =  178926,
+	
+	["Grim-Veiled Belt"] =  173248,
+	["Grim-Veiled Bracers"] =  173249,
+	["Grim-Veiled Cape"] =  173242,
+	["Grim-Veiled Hood"] =  173245,
+	["Grim-Veiled Mittens"] =  173244,
+	["Grim-Veiled Pants"] =  173246,
+	["Grim-Veiled Robe"] =  173241,
+	["Grim-Veiled Sandals"] =  173243,
+	["Grim-Veiled Spaulders"] =  173247,
+	
+	["Umbrahide Armguards"] =  172321,
+	["Umbrahide Gauntlets"] =  172316,
+	["Umbrahide Helm"] =  172317,
+	["Umbrahide Leggings"] =  172318,
+	["Umbrahide Pauldrons"] =  172319,
+	["Umbrahide Treads"] =  172315,
+	["Umbrahide Vest"] =  172314,
+	["Umbrahide Waistguard"] =  172320,
+	
+	["Boneshatter Armguards"] =  172329,
+	["Boneshatter Gauntlets"] =  172324,
+	["Boneshatter Greaves"] =  172326,
+	["Boneshatter Helm"] =  172325,
+	["Boneshatter Pauldrons"] =  172327,
+	["Boneshatter Treads"] =  172323,
+	["Boneshatter Vest"] =  172322,
+	["Boneshatter Waistguard"] =  172328
+}
+local GUILD_BANK_SLOTS_PER_TAB = 98
+local IsTSMLoaded = false;
+
 
 function LegendaryStockTracker:OnInitialize()
 	-- init databroker
@@ -57,6 +111,7 @@ function LegendaryStockTracker:OnInitialize()
 		  },
 		},
 	});
+	
 	LstockIcon:Register("LegendaryStockTracker", LstockLDB, self.db.profile.minimap)
     LegendaryStockTracker:RegisterChatCommand("lstock", "HandleChatCommand")
     LegendaryStockTracker:RegisterChatCommand("lstocktest", "Test")
@@ -65,10 +120,16 @@ function LegendaryStockTracker:OnInitialize()
 	LegendaryStockTracker:RegisterEvent("OWNED_AUCTIONS_UPDATED", "GetAllItemsInAH")
 	LegendaryStockTracker:RegisterEvent("MAIL_INBOX_UPDATE", "GetAllItemsInMailbox")
 	LegendaryStockTracker:RegisterEvent("MAIL_CLOSED", "GetAllItemsInMailbox")
+	LegendaryStockTracker:RegisterEvent("GUILDBANKFRAME_CLOSED", "GetAllItemsInGuildBank")
+	LegendaryStockTracker:RegisterEvent("GUILDBANKFRAME_OPENED", "GetAllItemsInGuildBank")
+	LegendaryStockTracker:CheckIfTSMIsRunning()
 end
 
 function LegendaryStockTracker:Test()
-	message("test")
+	local tsmstring = "i:171419::2:1532:6758"
+	local test = ""
+	test = test .. tostring(IsTSMLoaded) .. "\n"
+	message(test)
 end
 
 function LegendaryStockTracker:GetDataCounts()
@@ -77,25 +138,24 @@ function LegendaryStockTracker:GetDataCounts()
 	text = text .. "Bank: " .. bankItemCount .. "\n"
 	text = text .. "AH: " .. ahItemCount .. "\n"
 	text = text .. "Mail: " .. mailboxItemCount .. "\n"
+	text = text .. "Guild: " .. GuildBankItemCount .. "\n"
 	return text
 end
 
 function LegendaryStockTracker:HandleChatCommand(input)
+	LegendaryStockTracker:CheckIfTSMIsRunning()
 	LegendaryStockTracker:GetAllItemsInAH()
 	LegendaryStockTracker:GetAllItemsInBags()
 	LegendaryStockTracker:GetAllItemsInBank() --if the bank is open at the time of command, update bank as well
 	--LegendaryStockTracker:GetAllItemsInAH() auctions specifically not updated on command, as we don't know if the ah is closed or the player has no auctions. relying on OWNED_AUCTIONS_UPDATED to update those.
-	--LegendaryStockTracker:GetAllItemsInMailbox() mailbox is updated when an item gets taken out, no need to update on command 
+	--LegendaryStockTracker:GetAllItemsInMailbox() mailbox is updated anytime the mailbox is updated, no need to update on command 
+	LegendaryStockTracker:GetAllItemsInGuildBank()
 	LegendaryStockTracker:AddAllItemsToList()
 	LegendaryStockTracker:GetGearFromItems()
 	LegendaryStockTracker:GetShadowlandsLegendariesFromGear()
 	LegendaryStockTracker:CountLegendariesByRank()
 	local f = LegendaryStockTracker:GetMainFrame(LegendaryStockTracker:GenerateExportText())
 	f:Show()
-end
-
-function LegendaryStockTracker:msg()
-	message('OWNED_AUCTIONS_UPDATED')
 end
 
 function LegendaryStockTracker:OnEnable()
@@ -212,12 +272,20 @@ function LegendaryStockTracker:GetAllItemsInBank()
 	if(GetContainerItemLink(NUM_BAG_SLOTS+1,1) ~= nil) then
 		bankItemLinks = {}
 		bankItemCount = 0
+		--go through all bank bag slots
 		for bag=NUM_BAG_SLOTS+1,NUM_BAG_SLOTS + NUM_BANKBAGSLOTS do
 			for slot=1,GetContainerNumSlots(bag) do
 				if not (GetContainerItemID(bag,slot) == nil) then 
 					bankItemLinks[#bankItemLinks+1] = (select(7,GetContainerItemInfo(bag,slot)))
 					bankItemCount = bankItemCount + 1
 				end
+			end
+		end
+		--go through default 28 bank spaces
+		for slot=1,GetContainerNumSlots(-1) do
+			if not (GetContainerItemID(-1,slot) == nil) then 
+				bankItemLinks[#bankItemLinks+1] = (select(7,GetContainerItemInfo(-1,slot)))
+				bankItemCount = bankItemCount + 1
 			end
 		end
 	end
@@ -240,8 +308,26 @@ function LegendaryStockTracker:GetAllItemsInMailbox()
 	mailboxItemCount = 0
 	for i=1, GetInboxNumItems() do
 		for j=1,ATTACHMENTS_MAX_RECEIVE do 
-			mailboxItemLinks[#mailboxItemLinks+1] = GetInboxItemLink(i, j)
-			mailboxItemCount = mailboxItemCount + 1
+			if(GetInboxItemLink(i, j) ~= nil) then
+				mailboxItemLinks[#mailboxItemLinks+1] = GetInboxItemLink(i, j)
+				mailboxItemCount = mailboxItemCount + 1
+			end
+		end
+	end
+end
+
+function LegendaryStockTracker:GetAllItemsInGuildBank()
+	local guildBankTabCount = GetNumGuildBankTabs()
+	if(guildBankTabCount > 0 and GetGuildBankTabInfo(1) ~= nil) then
+		GuildBankItemLinks = {}
+		GuildBankItemCount = 0
+		for tab=1,guildBankTabCount do
+			for slot=1,GUILD_BANK_SLOTS_PER_TAB do
+				if not (GetGuildBankItemInfo(tab,slot) == nil) then 
+					GuildBankItemLinks[#GuildBankItemLinks+1] = GetGuildBankItemLink(tab,slot)
+					GuildBankItemCount = GuildBankItemCount + 1
+				end
+			end
 		end
 	end
 end
@@ -269,9 +355,10 @@ function LegendaryStockTracker:AddAllItemsToList()
 	for i=1, #mailboxItemLinks do
 		itemLinks[#itemLinks+1] = mailboxItemLinks[i]
 	end
+	for i=1, #GuildBankItemLinks do
+		itemLinks[#itemLinks+1] = GuildBankItemLinks[i]
+	end
 end
-
-
 
 function LegendaryStockTracker:GetShadowlandsLegendariesFromGear()
 	legendaryLinks = {}
@@ -287,34 +374,77 @@ end
 
 function LegendaryStockTracker:CountLegendariesByRank()
 	legendaryCountByRank = {}
+	TSMPriceDataByRank = {}
 	for i=1, #legendaryLinks do
 		local itemName = select(1, GetItemInfo(legendaryLinks[i]))
 		local detailedItemLevel = GetDetailedItemLevelInfo(legendaryLinks[i])
 		LegendaryStockTracker:AddItemToLegendaryTableIfNotPresent(itemName)
-		local itemEntry = legendaryCountByRank[itemName]
+		local ItemCounts = legendaryCountByRank[itemName]
 		if detailedItemLevel == 190
-			then itemEntry[1] = itemEntry[1] + 1
+			then 
+				ItemCounts[1] = ItemCounts[1] + 1
+				if(LoadUnownedLegendaries == false) then
+					LegendaryStockTracker:UpdateTsmPrices(itemName, 1)
+				end
 		elseif detailedItemLevel == 210
-			then itemEntry[2] = itemEntry[2] + 1
+			then 
+				ItemCounts[2] = ItemCounts[2] + 1
+				if(LoadUnownedLegendaries == false) then
+					LegendaryStockTracker:UpdateTsmPrices(itemName, 2)
+				end
 		elseif detailedItemLevel == 225
-			then itemEntry[3] = itemEntry[3] + 1
+			then 
+				ItemCounts[3] = ItemCounts[3] + 1
+				if(LoadUnownedLegendaries == false) then
+					LegendaryStockTracker:UpdateTsmPrices(itemName, 3)
+				end
 		elseif detailedItemLevel == 235
-			then itemEntry[4] = itemEntry[4] + 1
+			then 
+				ItemCounts[4] = ItemCounts[4] + 1
+				if(LoadUnownedLegendaries == false) then
+					LegendaryStockTracker:UpdateTsmPrices(itemName, 4)
+				end
 		--add future ranks here
 		end
-		legendaryCountByRank[itemName] = itemEntry
+		legendaryCountByRank[itemName] = ItemCounts
 	end
 end
 
 function LegendaryStockTracker:GenerateExportText()
-	local keyTable = {}
-	for key, val in pairs(legendaryCountByRank) do 
-		table.insert(keyTable, key) 
+	local NameTable = {}
+	if(LoadUnownedLegendaries == false) then
+		for name, count in pairs(legendaryCountByRank) do 
+			table.insert(NameTable, name) 
+		end
+		table.sort(NameTable)
+	else
+		TSMPriceDataByRank = {}
+		for name, id in pairs(LegendaryIDsByName) do 
+			NameTable[#NameTable + 1] = name;
+			LegendaryStockTracker:UpdateTsmPriceForAllRanks(name)
+		end
+		table.sort(NameTable)	
 	end
-	table.sort(keyTable)
-	local text = "Item name, Rank 1, Rank 2, Rank 3, Rank 4\n"
-	for i=1, #keyTable do 
-		text = text .. keyTable[i] .. "," .. legendaryCountByRank[keyTable[i]][1] .. "," .. legendaryCountByRank[keyTable[i]][2] .. "," .. legendaryCountByRank[keyTable[i]][3] .. "," .. legendaryCountByRank[keyTable[i]][4] .. "\n"
+
+	local text = ""
+	if(IsTSMLoaded == false) then
+		text = "Item name, Rank 1, Rank 2, Rank 3,  Rank 4\n"
+		for i=1, #NameTable do 
+			text = text .. NameTable[i] .. "," 
+			.. LegendaryStockTracker:GetStockCount(NameTable[i], 1) .. "," 
+			.. LegendaryStockTracker:GetStockCount(NameTable[i], 2) .. "," 
+			.. LegendaryStockTracker:GetStockCount(NameTable[i], 3) .. "," 
+			.. LegendaryStockTracker:GetStockCount(NameTable[i], 4) .. "\n" 
+		end
+	else
+		text = "Item name, Rank 1, Profit Rank 1, Rank 2, Profit Rank 2, Rank 3, Profit Rank 3, Rank 4, Profit Rank 4\n"
+		for i=1, #NameTable do 
+			text = text .. NameTable[i] .. "," 
+			.. LegendaryStockTracker:GetStockCount(NameTable[i], 1) .. "," .. LegendaryStockTracker:GetMinBuyoutMinusAuctionOpMin(NameTable[i], 1) .. ","
+			.. LegendaryStockTracker:GetStockCount(NameTable[i], 2) .. "," .. LegendaryStockTracker:GetMinBuyoutMinusAuctionOpMin(NameTable[i], 2) .. ","
+			.. LegendaryStockTracker:GetStockCount(NameTable[i], 3) .. "," .. LegendaryStockTracker:GetMinBuyoutMinusAuctionOpMin(NameTable[i], 3) .. ","
+			.. LegendaryStockTracker:GetStockCount(NameTable[i], 4) .. "," .. LegendaryStockTracker:GetMinBuyoutMinusAuctionOpMin(NameTable[i], 4) .. "\n"
+		end
 	end
 	return text
 end
@@ -323,4 +453,72 @@ function LegendaryStockTracker:AddItemToLegendaryTableIfNotPresent(itemName)
 	if (legendaryCountByRank[itemName] == nil) then
 		legendaryCountByRank[itemName] = {0,0,0,0,0,0,0,0,0,0} --leaving room for up to 10 legendary ranks
 	end
+end
+
+function LegendaryStockTracker:AddEmptyTsmPriceDataEntryIfNotPresent(itemName)
+	if (TSMPriceDataByRank[itemName] == nil) then
+		TSMPriceDataByRank[itemName] = {{0,0,0,0,0},{0,0,0,0,0},{0,0,0,0,0},{0,0,0,0,0},{0,0,0,0,0},{0,0,0,0,0},{0,0,0,0,0},{0,0,0,0,0},{0,0,0,0,0},{0,0,0,0,0}} --leaving room for up to 10 legendary ranks
+	end
+end
+
+function LegendaryStockTracker:GetMinBuyoutMinusAuctionOpMin(name, rank)
+	local string = ""
+	string = tostring(TSMPriceDataByRank[name][rank][1] - TSMPriceDataByRank[name][rank][2])
+	if(string ~= "0") then
+		string = string:sub(1, #string - 4)
+	end
+	return string;
+end
+
+function LegendaryStockTracker:UpdateTsmPriceForAllRanks(itemName)
+	LegendaryStockTracker:UpdateTsmPrices(itemName, 1)
+	LegendaryStockTracker:UpdateTsmPrices(itemName, 2)
+	LegendaryStockTracker:UpdateTsmPrices(itemName, 3)
+	LegendaryStockTracker:UpdateTsmPrices(itemName, 4)
+end
+
+function LegendaryStockTracker:UpdateTsmPrices(itemName, rank)
+	LegendaryStockTracker:AddEmptyTsmPriceDataEntryIfNotPresent(itemName)
+	local ItemPrices = TSMPriceDataByRank[itemName]
+	if(IsTSMLoaded ~= true) then
+		ItemPrices[rank][1] = 0
+		ItemPrices[rank][2] = 0
+		return nil
+	end
+	local tsmString = "i:" .. LegendaryIDsByName[itemName]
+	if(rank == 1) then
+		tsmString = tsmString .. Rank1BonusIDs
+	elseif(rank == 2) then
+		tsmString = tsmString .. Rank2BonusIDs
+	elseif(rank == 3) then
+		tsmString = tsmString .. Rank3BonusIDs
+	elseif(rank == 4) then
+		tsmString = tsmString .. Rank4BonusIDs
+	end
+	tsmstring = TSM_API.ToItemString(tsmString)
+	ItemPrices[rank][1] = TSM_API.GetCustomPriceValue("DBMinBuyout", tsmString)
+	ItemPrices[rank][2] = TSM_API.GetCustomPriceValue("AuctioningOpMin", tsmString)
+	if(ItemPrices[rank][1] == nil) then
+		ItemPrices[rank][1] = TSM_API.GetCustomPriceValue("AuctioningOpNormal", tsmString)
+	end
+	if(ItemPrices[rank][1] == nil or ItemPrices[rank][2] == nil) then
+		ItemPrices[rank][1] = 0
+		ItemPrices[rank][2] = 0
+	end
+
+	TSMPriceDataByRank[itemName] = ItemPrices
+end
+
+function LegendaryStockTracker:GetStockCount(itemName, rank)
+	local count = 0
+	if (legendaryCountByRank[itemName] ~= nil) then 
+		if (legendaryCountByRank[itemName][rank] ~= nil) then 
+			count = legendaryCountByRank[itemName][rank] 
+		end
+	end
+	return count
+end
+
+function LegendaryStockTracker:CheckIfTSMIsRunning()
+	IsTSMLoaded = select(1,IsAddOnLoaded("TradeSkillMaster"))
 end
