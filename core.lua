@@ -115,6 +115,7 @@ function LegendaryStockTracker:OnInitialize()
 	LstockIcon:Register("LegendaryStockTracker", LstockLDB, self.db.profile.minimap)
     LegendaryStockTracker:RegisterChatCommand("lstock", "HandleChatCommand")
     LegendaryStockTracker:RegisterChatCommand("lstocktest", "Test")
+    LegendaryStockTracker:RegisterChatCommand("lstockscan", "ScanAhPrices")
 	LegendaryStockTracker:RegisterEvent("BANKFRAME_CLOSED", "GetAllItemsInBank")
 	LegendaryStockTracker:RegisterEvent("BANKFRAME_OPENED", "GetAllItemsInBank")
 	LegendaryStockTracker:RegisterEvent("OWNED_AUCTIONS_UPDATED", "GetAllItemsInAH")
@@ -122,6 +123,7 @@ function LegendaryStockTracker:OnInitialize()
 	LegendaryStockTracker:RegisterEvent("MAIL_CLOSED", "GetAllItemsInMailbox")
 	LegendaryStockTracker:RegisterEvent("GUILDBANKFRAME_CLOSED", "GetAllItemsInGuildBank")
 	LegendaryStockTracker:RegisterEvent("GUILDBANKFRAME_OPENED", "GetAllItemsInGuildBank")
+	LegendaryStockTracker:RegisterEvent("AUCTION_HOUSE_BROWSE_RESULTS_UPDATED", "OnItemAdded")
 	LegendaryStockTracker:CheckIfTSMIsRunning()
 end
 
@@ -525,3 +527,19 @@ end
 function LegendaryStockTracker:CheckIfTSMIsRunning()
 	IsTSMLoaded = select(1,IsAddOnLoaded("TradeSkillMaster"))
 end
+
+function LegendaryStockTracker:OnItemAdded(self, event, itemKey)
+end
+
+function LegendaryStockTracker:ScanAhPrices(item)
+	if AuctionHouseFrame and AuctionHouseFrame:IsShown() then
+		local itemKeys = {}
+		itemKeys[1] = C_AuctionHouse.MakeItemKey(171419,190,nil)
+		itemKeys[2] = C_AuctionHouse.MakeItemKey(171419,210,nil)
+		itemKeys[3] = C_AuctionHouse.MakeItemKey(171419,225,nil)
+		itemKeys[4] = C_AuctionHouse.MakeItemKey(171419,235,nil)
+		C_AuctionHouse.SearchForItemKeys(itemKeys, {})
+
+	end
+end
+
