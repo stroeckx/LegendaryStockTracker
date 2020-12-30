@@ -297,8 +297,11 @@ function LegendaryStockTracker:GetAllItemsInAH()
 		ahItemCount = 0
 		local numOwnedAuctions = C_AuctionHouse.GetNumOwnedAuctions()
 		for i=1, numOwnedAuctions do
-			ahItemLinks[#ahItemLinks+1] = C_AuctionHouse.GetOwnedAuctionInfo(i).itemLink
-			ahItemCount = ahItemCount + 1
+			local auctionInfo = C_AuctionHouse.GetOwnedAuctionInfo(i)
+			if(auctionInfo.status == 0) then 
+				ahItemLinks[#ahItemLinks+1] = auctionInfo.itemLink
+				ahItemCount = ahItemCount + 1
+			end
 		end
 	end
 end
