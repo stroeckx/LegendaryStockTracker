@@ -92,6 +92,7 @@ local LegendaryIDsByName =
 local GUILD_BANK_SLOTS_PER_TAB = 98
 local IsTSMLoaded = false;
 
+local activeTab = nil
 
 function LegendaryStockTracker:OnInitialize()
 	-- init databroker
@@ -157,17 +158,188 @@ function LegendaryStockTracker:HandleChatCommand(input)
 	LegendaryStockTracker:GetGearFromItems()
 	LegendaryStockTracker:GetShadowlandsLegendariesFromGear()
 	LegendaryStockTracker:CountLegendariesByRank()
-	local f = LegendaryStockTracker:GetMainFrame(LegendaryStockTracker:GenerateExportText())
+	local f = LegendaryStockTracker:AddMainFrame(UIParent)
+	LstockEditBox:SetText(LegendaryStockTracker:GenerateExportText())
+	LstockEditBox:HighlightText()
+	--LegendaryStockTracker:createFrameSheet(LstockFrame)
 	f:Show()
 end
 
 function LegendaryStockTracker:ShowTestFrame()
-	local f = LegendaryStockTracker:AddFrame()
+	local f = LegendaryStockTracker:AddMainFrame(UIParent)
 	f:Show()
 end
 
-function LegendaryStockTracker:AddFrame()
+function LegendaryStockTracker:AddMainFrame(parent)
+	local mainFrameHeight = 400 
+	local mainFrameWidth = 600 
+	if not LstockMainFrame then
+		local temp = "Interface\\AddOns\\LegendaryStockTracker\\Assets\\Plain.tga"
+		local Backdrop = {
+			bgFile = temp,
+			--edgeFile = temp,
+			tile = false, tileSize = 0, edgeSize = 1,
+			insets = {left = 1, right = 1, top = 1, bottom = 1},
+		}
+		local frameConfig = self.db.profile.frame
+		local f = CreateFrame("Frame","LSTMainFrame",parent, BackdropTemplateMixin and "BackdropTemplate")
+		LstockMainFrame = f
+		f:SetBackdrop(Backdrop)
+		f:SetBackdropColor(0.03,0.03,0.03,0.9)
+		f:SetSize(mainFrameWidth,mainFrameHeight)
+		--f:SetFrameStrata("HIGH")
+		f:SetToplevel(true)
+		f:SetClampedToScreen(true)
+		f:SetPoint(
+		frameConfig.point,
+		frameConfig.relativeFrame,
+		frameConfig.relativePoint,
+		frameConfig.ofsx,
+		frameConfig.ofsy
+		)
+		LegendaryStockTracker:SetFrameMovable(f)
+
+		local tabWidth = 150
+		local tabHeight = 24
+		local contentWidth = mainFrameWidth - tabWidth - 10
+		local contentHeight = mainFrameHeight - 30
+		local contentWidthOffset = 5
+		local contentHeightOffset = -25
+
+		local tabList = CreateFrame("Frame","LSTTabList",f)
+		tabList:SetSize(tabWidth, mainFrameHeight)
+		tabList:SetPoint("TOPLEFT", LstockMainFrame, "TOPLEFT",0,-5)
+
+		local contentFrame = CreateFrame("Frame","LSTContentFrame",f, BackdropTemplateMixin and "BackdropTemplate")
+		--contentFrame:SetBackdrop(Backdrop)
+		--contentFrame:SetBackdropColor(0.03,0.03,0.03,0.9)
+		contentFrame:SetSize(contentWidth + 10,mainFrameHeight)
+		contentFrame:SetPoint("TOPLEFT", LstockMainFrame, "TOPLEFT",tabWidth,0)
+
+		--divider lines
+		local line = tabList:CreateLine()
+		line:SetThickness(1)
+		line:SetColorTexture(0.6,0.6,0.6,1)
+		line:SetStartPoint("TOPRIGHT",0,4)
+		line:SetEndPoint("BOTTOMRIGHT",0,6)
+
+		line= contentFrame:CreateLine()
+		line:SetThickness(1)
+		line:SetColorTexture(0.6,0.6,0.6,1)
+		line:SetStartPoint("TOPLEFT",0,-20)
+		line:SetEndPoint("TOPRIGHT",0,-20)
+
+		--Export Frame
+		local exportFrame = LegendaryStockTracker:CreateOptionsContentFrame("LSTExportFrame", contentFrame, contentWidth, contentHeight, contentWidthOffset, contentHeightOffset, Backdrop)
+		--exportFrame:SetBackdropColor(0.75,0,0,0.9)
+		-- scroll frame
+		local sf = CreateFrame("ScrollFrame", "LstockScrollFrame", exportFrame, BackdropTemplateMixin and "UIPanelScrollFrameTemplate")
+		sf:SetPoint("LEFT")
+		sf:SetPoint("RIGHT", -22, 0)
+		sf:SetPoint("TOP")
+		sf:SetPoint("BOTTOM")
 	
+		-- edit box
+		local eb = CreateFrame("EditBox", "LstockEditBox", LstockScrollFrame)
+		eb:SetSize(sf:GetSize())
+		eb:SetMultiLine(true)
+		eb:SetAutoFocus(true)
+		eb:SetFontObject("ChatFontNormal")
+		eb:SetScript("OnEscapePressed", function() f:Hide() end)
+		sf:SetScrollChild(eb)
+		
+		local settingsFrame = LegendaryStockTracker:CreateOptionsContentFrame("LSTsettingsFrame", contentFrame, contentWidth, contentHeight, contentWidthOffset, contentHeightOffset, Backdrop)
+		--settingsFrame:SetBackdropColor(0,0.75,0,0.9)
+
+		local tableFrame = LegendaryStockTracker:CreateOptionsContentFrame("LSTtableFrame", contentFrame, contentWidth, contentHeight, contentWidthOffset, contentHeightOffset, Backdrop)
+		--tableFrame:SetBackdropColor(0,0,0.75,0.9)
+
+		
+
+		local tab = LegendaryStockTracker:AddTab(tabList, tabWidth, 24, 1, exportFrame, "Export")
+		LegendaryStockTracker:AddTab(tabList, tabWidth, 24, 2, settingsFrame, "Settings")
+		LegendaryStockTracker:AddTab(tabList, tabWidth, 24, 3, tableFrame, "Table")
+		LegendaryStockTracker:TabOnClick(tab)
+
+		local closeButton = CreateFrame("Button", "LSTMainFrameCloseButton", f)
+		closeButton:SetSize(20,20)
+		closeButton:SetText("X")
+		closeButton:SetPoint("TOPRIGHT", f, "TOPRIGHT")
+		closeButton:SetNormalFontObject("GameFontHighlight")
+		--closeButton:SetNormalFontObject("GameFontNormal")
+		closeButton:SetHighlightFontObject("GameFontHighlight")
+		closeButton:SetDisabledFontObject("GameFontDisable")
+		closeButton:SetScript("OnClick", function()
+			LstockMainFrame:Hide()
+		end)
+	end
+	return LstockMainFrame
+end
+
+function LegendaryStockTracker:SetFrameMovable(f)
+	local frameConfig = self.db.profile.frame
+	f:EnableMouse(true)
+	f:SetMovable(true)
+	f:SetScript("OnMouseDown", function(self, button)
+		if button == "LeftButton" then
+		self:StartMoving()
+		end
+	end)
+	f:SetScript("OnMouseUp", function(self, button)
+	self:StopMovingOrSizing()
+	-- save position between sessions
+	point, relativeFrame, relativeTo, ofsx, ofsy = self:GetPoint()
+	frameConfig.point = point
+	frameConfig.relativeFrame = relativeFrame
+	frameConfig.relativePoint = relativeTo
+	frameConfig.ofsx = ofsx
+	frameConfig.ofsy = ofsy
+	end)
+end
+
+function LegendaryStockTracker:TabOnClick(self)
+	if(activeTab ~= nil) then
+		activeTab.content:Hide()
+	end
+	activeTab = self
+	self.content:Show()
+end
+
+function LegendaryStockTracker:AddTab(parent, width, height, index, content, text)
+
+	local b = CreateFrame("Button", "Tab" .. index, parent)
+	b:SetSize(width,24)
+	b:SetText(text)
+	b:SetPoint("TOPLEFT", parent, "TOPLEFT", 0, -(index - 1) * height)
+	b.HighlightTexture = b:CreateTexture()
+	b.HighlightTexture:SetColorTexture(1,1,1,.3)
+	b.HighlightTexture:SetPoint("TOPLEFT")
+	b.HighlightTexture:SetPoint("BOTTOMRIGHT")
+	b:SetHighlightTexture(b.HighlightTexture)
+	b.PushedTexture = b:CreateTexture()
+	b.PushedTexture:SetColorTexture(.9,.8,.1,.3)
+	b.PushedTexture:SetPoint("TOPLEFT")
+	b.PushedTexture:SetPoint("BOTTOMRIGHT")
+	b:SetPushedTexture(b.PushedTexture)
+	--b:SetNormalFontObject("GameFontNormal")
+	b:SetNormalFontObject("GameFontHighlight")
+	b:SetHighlightFontObject("GameFontHighlight")
+	b:SetDisabledFontObject("GameFontDisable")
+	b:SetScript("OnClick", function(self)
+		LegendaryStockTracker:TabOnClick(self)
+	end)
+	b.content = content
+	b.content:Hide()
+	return b
+end
+
+function LegendaryStockTracker:CreateOptionsContentFrame(name, parent, width, height, offsetX, offsetY, backdrop)
+	local f = CreateFrame("Frame",name,parent, BackdropTemplateMixin and "BackdropTemplate")
+	--f:SetBackdrop(backdrop)
+	--f:SetBackdropColor(0.03,0.03,0.03,0.9)
+	f:SetSize(width,height)
+	f:SetPoint("TOPLEFT", parent, "TOPLEFT",offsetX,offsetY)
+	return f
 end
 
 function LegendaryStockTracker:OnEnable()
@@ -176,123 +348,6 @@ end
 
 function LegendaryStockTracker:OnDisable()
 
-end
-
-function LegendaryStockTracker:TabOnClick(self)
-
-end
-
-function LegendaryStockTracker:GetMainFrame(text)
-  -- Frame code largely adapted from https://www.wowinterface.com/forums/showpost.php?p=323901&postcount=2
-  if not LstockFrame then
-    -- Main Frame
-    local frameConfig = self.db.profile.frame
-	local f = CreateFrame("Frame", "LstockFrame", UIParent, "DialogBoxFrame")
-	
-    f:ClearAllPoints()
-    -- load position from local DB
-    f:SetPoint(
-      frameConfig.point,
-      frameConfig.relativeFrame,
-      frameConfig.relativePoint,
-      frameConfig.ofsx,
-      frameConfig.ofsy
-    )
-    f:SetSize(frameConfig.width, frameConfig.height)
-    --[[f:SetBackdrop({
-      --bgFile = "Interface\\DialogFrame\\UI-DialogBox-Background-Dark",
-      bgFile = "Interface\\FrameGeneral\\UI-Background-Marble",
-      edgeFile = "Interface\\Tooltips\\UI-Tooltip-Border",
-	  tile = true,
-	  tileSize = 256,
-	  edgeSize = 16,
-      insets = { left = 4, right = 4, top = 4, bottom = 4 },
-    })]]--
-    f:SetMovable(true)
-    f:SetClampedToScreen(true)
-    f:SetScript("OnMouseDown", function(self, button)
-      if button == "LeftButton" then
-        self:StartMoving()
-      end
-    end)
-    f:SetScript("OnMouseUp", function(self, button)
-      self:StopMovingOrSizing()
-      -- save position between sessions
-      point, relativeFrame, relativeTo, ofsx, ofsy = self:GetPoint()
-      frameConfig.point = point
-      frameConfig.relativeFrame = relativeFrame
-      frameConfig.relativePoint = relativeTo
-      frameConfig.ofsx = ofsx
-      frameConfig.ofsy = ofsy
-	end)
-	
-	f.numTabs = 2
-	for i=1, 1 do
-		print(i)
-		
-		f.Tab1 = CreateFrame("Button", f:GetName() .. "Tab" .. i, f, "CharacterFrameTabButtonTemplate")
-		f.Tab1:SetID(i)
-		f.Tab1:SetSize(40, 16)
-		f.Tab1:SetText(i)
-		f.Tab1:SetScript("OnClick", TabOnClick)
-		f.Tab1:SetPoint("TOPLEFT", LstockFrame, "BOTTOMLEFT", 5, 7)
-	end
-	--PanelTemplates_SetNumTabs(f, 1)
-	--PanelTemplates_SetTab(f, 1)
-	--LegendaryStockTracker:Tab_OnClick(f:GetName() .. "Tab" .. 1)
-
-
-
-    -- scroll frame
-    local sf = CreateFrame("ScrollFrame", "LstockScrollFrame", f, "UIPanelScrollFrameTemplate")
-    sf:SetPoint("LEFT", 16, 0)
-    sf:SetPoint("RIGHT", -32, 0)
-    sf:SetPoint("TOP", 0, -32)
-    sf:SetPoint("BOTTOM", LstockFrameButton, "TOP", 0, 0)
-
-    -- edit box
-    local eb = CreateFrame("EditBox", "LstockEditBox", LstockScrollFrame)
-    eb:SetSize(sf:GetSize())
-    eb:SetMultiLine(true)
-    eb:SetAutoFocus(true)
-    eb:SetFontObject("ChatFontNormal")
-    eb:SetScript("OnEscapePressed", function() f:Hide() end)
-    sf:SetScrollChild(eb)
-
-    -- resizing
-    f:SetResizable(true)
-    f:SetMinResize(150, 100)
-    local rb = CreateFrame("Button", "LstockResizeButton", f)
-    rb:SetPoint("BOTTOMRIGHT", -6, 7)
-    rb:SetSize(16, 16)
-
-    rb:SetNormalTexture("Interface\\ChatFrame\\UI-ChatIM-SizeGrabber-Up")
-    rb:SetHighlightTexture("Interface\\ChatFrame\\UI-ChatIM-SizeGrabber-Highlight")
-    rb:SetPushedTexture("Interface\\ChatFrame\\UI-ChatIM-SizeGrabber-Down")
-
-    rb:SetScript("OnMouseDown", function(self, button)
-        if button == "LeftButton" then
-            f:StartSizing("BOTTOMRIGHT")
-            self:GetHighlightTexture():Hide() -- more noticeable
-        end
-    end)
-    rb:SetScript("OnMouseUp", function(self, button)
-        f:StopMovingOrSizing()
-        self:GetHighlightTexture():Show()
-        eb:SetWidth(sf:GetWidth())
-
-        -- save size between sessions
-        frameConfig.width = f:GetWidth()
-        frameConfig.height = f:GetHeight()
-    end)
-    LstockFrame = f
-  end
-  --LstockEditBox:SetText(text)
-
-  LegendaryStockTracker:createFrameSheet(LstockFrame)
-
-  LstockEditBox:HighlightText()
-  return LstockFrame
 end
 
 function LegendaryStockTracker:GetAllItemsInBags()
