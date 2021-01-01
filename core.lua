@@ -114,6 +114,7 @@ function LegendaryStockTracker:OnInitialize()
 	
 	LstockIcon:Register("LegendaryStockTracker", LstockLDB, self.db.profile.minimap)
     LegendaryStockTracker:RegisterChatCommand("lstock", "HandleChatCommand")
+    LegendaryStockTracker:RegisterChatCommand("lst", "ShowTestFrame")
     LegendaryStockTracker:RegisterChatCommand("lstocktest", "Test")
     LegendaryStockTracker:RegisterChatCommand("lstockscan", "ScanAhPrices")
 	LegendaryStockTracker:RegisterEvent("BANKFRAME_CLOSED", "GetAllItemsInBank")
@@ -160,6 +161,15 @@ function LegendaryStockTracker:HandleChatCommand(input)
 	f:Show()
 end
 
+function LegendaryStockTracker:ShowTestFrame()
+	local f = LegendaryStockTracker:AddFrame()
+	f:Show()
+end
+
+function LegendaryStockTracker:AddFrame()
+	
+end
+
 function LegendaryStockTracker:OnEnable()
 
 end
@@ -168,12 +178,17 @@ function LegendaryStockTracker:OnDisable()
 
 end
 
+function LegendaryStockTracker:TabOnClick(self)
+
+end
+
 function LegendaryStockTracker:GetMainFrame(text)
   -- Frame code largely adapted from https://www.wowinterface.com/forums/showpost.php?p=323901&postcount=2
   if not LstockFrame then
     -- Main Frame
     local frameConfig = self.db.profile.frame
-    local f = CreateFrame("Frame", "LstockFrame", UIParent, "DialogBoxFrame")
+	local f = CreateFrame("Frame", "LstockFrame", UIParent, "DialogBoxFrame")
+	
     f:ClearAllPoints()
     -- load position from local DB
     f:SetPoint(
@@ -184,12 +199,15 @@ function LegendaryStockTracker:GetMainFrame(text)
       frameConfig.ofsy
     )
     f:SetSize(frameConfig.width, frameConfig.height)
-    f:SetBackdrop({
-      bgFile = "Interface\\DialogFrame\\UI-DialogBox-Background",
-      edgeFile = "Interface\\PVPFrame\\UI-Character-PVP-Highlight",
-      edgeSize = 16,
-      insets = { left = 8, right = 8, top = 8, bottom = 8 },
-    })
+    --[[f:SetBackdrop({
+      --bgFile = "Interface\\DialogFrame\\UI-DialogBox-Background-Dark",
+      bgFile = "Interface\\FrameGeneral\\UI-Background-Marble",
+      edgeFile = "Interface\\Tooltips\\UI-Tooltip-Border",
+	  tile = true,
+	  tileSize = 256,
+	  edgeSize = 16,
+      insets = { left = 4, right = 4, top = 4, bottom = 4 },
+    })]]--
     f:SetMovable(true)
     f:SetClampedToScreen(true)
     f:SetScript("OnMouseDown", function(self, button)
@@ -206,7 +224,24 @@ function LegendaryStockTracker:GetMainFrame(text)
       frameConfig.relativePoint = relativeTo
       frameConfig.ofsx = ofsx
       frameConfig.ofsy = ofsy
-    end)
+	end)
+	
+	f.numTabs = 2
+	for i=1, 1 do
+		print(i)
+		
+		f.Tab1 = CreateFrame("Button", f:GetName() .. "Tab" .. i, f, "CharacterFrameTabButtonTemplate")
+		f.Tab1:SetID(i)
+		f.Tab1:SetSize(40, 16)
+		f.Tab1:SetText(i)
+		f.Tab1:SetScript("OnClick", TabOnClick)
+		f.Tab1:SetPoint("TOPLEFT", LstockFrame, "BOTTOMLEFT", 5, 7)
+	end
+	--PanelTemplates_SetNumTabs(f, 1)
+	--PanelTemplates_SetTab(f, 1)
+	--LegendaryStockTracker:Tab_OnClick(f:GetName() .. "Tab" .. 1)
+
+
 
     -- scroll frame
     local sf = CreateFrame("ScrollFrame", "LstockScrollFrame", f, "UIPanelScrollFrameTemplate")
@@ -539,7 +574,6 @@ function LegendaryStockTracker:ScanAhPrices(item)
 		itemKeys[3] = C_AuctionHouse.MakeItemKey(171419,225,nil)
 		itemKeys[4] = C_AuctionHouse.MakeItemKey(171419,235,nil)
 		C_AuctionHouse.SearchForItemKeys(itemKeys, {})
-
 	end
 end
 
