@@ -111,7 +111,7 @@ function LegendaryStockTracker:OnInitialize()
 		  },
 		},
 	});
-	
+
 	LstockIcon:Register("LegendaryStockTracker", LstockLDB, self.db.profile.minimap)
     LegendaryStockTracker:RegisterChatCommand("lstock", "HandleChatCommand")
     LegendaryStockTracker:RegisterChatCommand("lst", "ShowTestFrame")
@@ -287,7 +287,10 @@ function LegendaryStockTracker:GetMainFrame(text)
     end)
     LstockFrame = f
   end
-  LstockEditBox:SetText(text)
+  --LstockEditBox:SetText(text)
+
+  LegendaryStockTracker:createFrameSheet(LstockFrame)
+
   LstockEditBox:HighlightText()
   return LstockFrame
 end
@@ -451,20 +454,7 @@ function LegendaryStockTracker:CountLegendariesByRank()
 end
 
 function LegendaryStockTracker:GenerateExportText()
-	local NameTable = {}
-	if(LoadUnownedLegendaries == false) then
-		for name, count in pairs(legendaryCountByRank) do 
-			table.insert(NameTable, name) 
-		end
-		table.sort(NameTable)
-	else
-		TSMPriceDataByRank = {}
-		for name, id in pairs(LegendaryIDsByName) do 
-			NameTable[#NameTable + 1] = name;
-			LegendaryStockTracker:UpdateTsmPriceForAllRanks(name)
-		end
-		table.sort(NameTable)	
-	end
+	NameTable = createNameTable()
 
 	local text = ""
 	if(IsTSMLoaded == false) then
@@ -487,6 +477,119 @@ function LegendaryStockTracker:GenerateExportText()
 		end
 	end
 	return text
+end
+
+function createNameTable()
+	local NameTable = {}
+	if(LoadUnownedLegendaries == false) then
+		for name, count in pairs(legendaryCountByRank) do 
+			table.insert(NameTable, name) 
+		end
+		table.sort(NameTable)
+	else
+		TSMPriceDataByRank = {}
+		for name, id in pairs(LegendaryIDsByName) do 
+			NameTable[#NameTable + 1] = name;
+			LegendaryStockTracker:UpdateTsmPriceForAllRanks(name)
+		end
+		table.sort(NameTable)	
+	end
+	return NameTable
+end
+
+function LegendaryStockTracker:createFrameSheet(frame)
+	NameTable = createNameTable()
+
+	local xStartValue = 15
+	local xPosition = xStartValue
+	local yPosition = -15
+	local YDIFF = 15
+	local XDIFF = 15
+
+	if(IsTSMLoaded == false) then
+		local titles = {createTableTitle(frame, "Item name"), createTableTitle(frame, "Rank 1"), createTableTitle(frame, "Rank 2"), createTableTitle(frame, "Rank 3"), createTableTitle(frame, "Rank 4")}
+		local sheet  = {}
+		table.insert(sheet, titles)
+		local maxWidth = {0,0,0,0,0}
+		for i=1, #NameTable do 
+			row = {createTableElement(frame, NameTable[i]),
+				createTableElement(frame, LegendaryStockTracker:GetStockCount(NameTable[i], 1)), createTableElement(frame, LegendaryStockTracker:GetStockCount(NameTable[i], 2)),
+				createTableElement(frame, LegendaryStockTracker:GetStockCount(NameTable[i], 3)), createTableElement(frame, LegendaryStockTracker:GetStockCount(NameTable[i], 4))}
+			table.insert(sheet, row)
+		end
+
+		for i=1, #sheet do 
+			for j=1, #sheet[i] do
+				compareTableValue(frame, maxWidth, j, sheet[i][j][2])
+			end
+		end
+		for i=1, #sheet do
+			for j=1, #sheet[i] do
+				setElementPosition(sheet[i][j][1], xPosition, yPosition)
+				xPosition = xPosition + XDIFF + maxWidth[j]
+			end
+			xPosition = xStartValue
+			yPosition = yPosition - YDIFF
+		end
+	else
+		local titles = {createTableTitle(frame, "Item name"), createTableTitle(frame, "Rank 1"), createTableTitle(frame, "Profit Rank 1"), createTableTitle(frame, "Rank 2"),
+			createTableTitle(frame, "Profit Rank 2"), createTableTitle(frame, "Rank 3"), createTableTitle(frame, "Profit Rank 3"), createTableTitle(frame, "Rank 4"), createTableTitle(frame, "Profit Rank 4")}
+		local sheet  = {}
+		table.insert(sheet, titles)
+		local maxWidth = {0,0,0,0,0,0,0,0,0}
+		for i=1, #NameTable do 
+			row = {createTableElement(frame, NameTable[i]),
+				createTableElement(frame, LegendaryStockTracker:GetStockCount(NameTable[i], 1)), createTableElement(frame, LegendaryStockTracker:GetMinBuyoutMinusAuctionOpMin(NameTable[i], 1)),
+				createTableElement(frame, LegendaryStockTracker:GetStockCount(NameTable[i], 2)), createTableElement(frame, LegendaryStockTracker:GetMinBuyoutMinusAuctionOpMin(NameTable[i], 2)),
+				createTableElement(frame, LegendaryStockTracker:GetStockCount(NameTable[i], 3)), createTableElement(frame, LegendaryStockTracker:GetMinBuyoutMinusAuctionOpMin(NameTable[i], 3)),
+				createTableElement(frame, LegendaryStockTracker:GetStockCount(NameTable[i], 4)), createTableElement(frame, LegendaryStockTracker:GetMinBuyoutMinusAuctionOpMin(NameTable[i], 4))}
+			table.insert(sheet, row)		
+		end
+		for i=1, #sheet do 
+			for j=1, #sheet[i] do
+				compareTableValue(frame, maxWidth, j, sheet[i][j][2])
+			end
+		end
+		for i=1, #sheet do
+			for j=1, #sheet[i] do
+				setElementPosition(sheet[i][j][1], xPosition, yPosition)
+				xPosition = xPosition + XDIFF + maxWidth[j]
+			end
+			xPosition = xStartValue
+			yPosition = yPosition - YDIFF
+		end
+	end
+end
+
+function setElementPosition(element, x, y)
+	element:SetPoint("LEFT", x, 0)
+	element:SetPoint("TOP", 0, y)
+end
+
+function createTableElement(frame, text, yOffset)
+	local fontString = frame:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
+	fontString:SetJustifyH("LEFT")
+	fontString:SetJustifyV("MIDDLE")
+	fontString:SetPoint("LEFT", 15, 0)
+	fontString:SetPoint("TOP", 0, -15)
+	fontString:SetText(text)
+	return {fontString, fontString:GetStringWidth(text)}
+end
+
+function createTableTitle(frame, text)
+	local fontString = frame:CreateFontString(nil, "OVERLAY", "GameFontGreen")
+	fontString:SetJustifyH("CENTER")
+	fontString:SetJustifyV("MIDDLE")
+	fontString:SetPoint("LEFT", 15, 0)
+	fontString:SetPoint("TOP", 0, -15)
+	fontString:SetText(text)
+	return {fontString, fontString:GetStringWidth(text)}
+end
+
+function compareTableValue(frame, table, index, toCompare)
+	if (toCompare > table[index]) then
+		table[index] = toCompare
+	end
 end
 
 function LegendaryStockTracker:AddItemToLegendaryTableIfNotPresent(itemName)
