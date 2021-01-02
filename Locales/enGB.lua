@@ -1,5 +1,5 @@
 --localization file for english/United States
-local L = LibStub("AceLocale-3.0"):NewLocale("LegendaryStockTracker", "enUS", true)
+local L = LibStub("AceLocale-3.0"):NewLocale("LegendaryStockTracker", "enGB")
 if not L then return end 
 
 -- Blacksmithing Legendaries

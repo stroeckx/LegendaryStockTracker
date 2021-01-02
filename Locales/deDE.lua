@@ -1,8 +1,8 @@
 --localization file for german/Germany
 local L = LibStub("AceLocale-3.0"):NewLocale("LegendaryStockTracker", "deDE")
+if not L then return end 
 
 -- Blacksmithing Legendaries
-
 L["Shadowghast Armguards"] =  "Schattenschreckarmschützer"
 L["Shadowghast Breastplate"] =  "Schattenschreckbrustplatte"
 L["Shadowghast Gauntlets"] =  "Schattenschreckstulpen"
@@ -13,12 +13,10 @@ L["Shadowghast Sabatons"] =  "Schattenschrecksabatons"
 L["Shadowghast Waistguard"] =  "Schattenschrecktaillenschutz"
 
 -- Jewelcrafting Legendaries
-
 L["Shadowghast Necklace"] =  "Schattenschreckhalskette"
 L["Shadowghast Ring"] =  "Schattenschreckring"
 
 -- Tailoring Legendaries
-
 L["Grim-Veiled Belt"] =  "Gramschleiergürtel"
 L["Grim-Veiled Bracers"] =  "Gramschleierarmschienen"
 L["Grim-Veiled Cape"] =  "Gramschleiercape"
@@ -30,7 +28,6 @@ L["Grim-Veiled Sandals"] =  "Gramschleiersandalen"
 L["Grim-Veiled Spaulders"] =  "Gramschleierschiftung"
 
 -- Leatherworking (Leather) Legendaries
-
 L["Umbrahide Armguards"] =  "Umbralederarmschützer"
 L["Umbrahide Gauntlets"] =  "Umbralederstulpen"
 L["Umbrahide Helm"] =  "Umbralederhelm"
@@ -41,7 +38,6 @@ L["Umbrahide Vest"] =  "Umbralederweste"
 L["Umbrahide Waistguard"] =  "Umbraledertaillenschutz"
 
 -- Leatherworking (Mail) Legendaries
-
 L["Boneshatter Armguards"] =  "Knochenschmetternde Armschützer"
 L["Boneshatter Gauntlets"] =  "Knochenschmetternde Stulpen"
 L["Boneshatter Greaves"] =  "Knochenschmetternde Beinschützer"
@@ -52,7 +48,6 @@ L["Boneshatter Vest"] =  "Knochenschmetternde Weste"
 L["Boneshatter Waistguard"] =  "Knochenschmetternder Taillenschutz"
 
 -- UI-Elements
-
 L["Export"] =  "Exportieren"
 L["Settings"] =  "Einstellungen"
 L["Table"] =  "Tabelle"
