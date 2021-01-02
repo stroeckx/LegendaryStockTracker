@@ -1,4 +1,5 @@
 LegendaryStockTracker = LibStub("AceAddon-3.0"):NewAddon("LegendaryStockTracker", "AceConsole-3.0", "AceEvent-3.0")
+local L = LibStub("AceLocale-3.0"):GetLocale("LegendaryStockTracker")
 
 -- Set up DataBroker for minimap button
 local LstockLDB = LibStub("LibDataBroker-1.1"):NewDataObject("LegendaryStockTracker", {
@@ -49,45 +50,45 @@ local Rank3BonusIDs = "::2:1522:6718"
 local Rank4BonusIDs = "::2:1532:6758"
 local LegendaryIDsByName = 
 {
-	["Shadowghast Armguards"] =  171419,
-	["Shadowghast Breastplate"] =  171412,
-	["Shadowghast Gauntlets"] =  171414,
-	["Shadowghast Greaves"] =  171416,
-	["Shadowghast Helm"] =  171415,
-	["Shadowghast Pauldrons"] =  171417,
-	["Shadowghast Sabatons"] =  171413,
-	["Shadowghast Waistguard"] =  171418,
+	[L["Shadowghast Armguards"]] =  171419,
+	[L["Shadowghast Breastplate"]] =  171412,
+	[L["Shadowghast Gauntlets"]] =  171414,
+	[L["Shadowghast Greaves"]] =  171416,
+	[L["Shadowghast Helm"]] =  171415,
+	[L["Shadowghast Pauldrons"]] =  171417,
+	[L["Shadowghast Sabatons"]] =  171413,
+	[L["Shadowghast Waistguard"]] =  171418,
 	
-	["Shadowghast Necklace"] =  178927,
-	["Shadowghast Ring"] =  178926,
+	[L["Shadowghast Necklace"]] =  178927,
+	[L["Shadowghast Ring"]] =  178926,
 	
-	["Grim-Veiled Belt"] =  173248,
-	["Grim-Veiled Bracers"] =  173249,
-	["Grim-Veiled Cape"] =  173242,
-	["Grim-Veiled Hood"] =  173245,
-	["Grim-Veiled Mittens"] =  173244,
-	["Grim-Veiled Pants"] =  173246,
-	["Grim-Veiled Robe"] =  173241,
-	["Grim-Veiled Sandals"] =  173243,
-	["Grim-Veiled Spaulders"] =  173247,
+	[L["Grim-Veiled Belt"]] =  173248,
+	[L["Grim-Veiled Bracers"]] =  173249,
+	[L["Grim-Veiled Cape"]] =  173242,
+	[L["Grim-Veiled Hood"]] =  173245,
+	[L["Grim-Veiled Mittens"]] =  173244,
+	[L["Grim-Veiled Pants"]] =  173246,
+	[L["Grim-Veiled Robe"]] =  173241,
+	[L["Grim-Veiled Sandals"]] =  173243,
+	[L["Grim-Veiled Spaulders"]] =  173247,
 	
-	["Umbrahide Armguards"] =  172321,
-	["Umbrahide Gauntlets"] =  172316,
-	["Umbrahide Helm"] =  172317,
-	["Umbrahide Leggings"] =  172318,
-	["Umbrahide Pauldrons"] =  172319,
-	["Umbrahide Treads"] =  172315,
-	["Umbrahide Vest"] =  172314,
-	["Umbrahide Waistguard"] =  172320,
+	[L["Umbrahide Armguards"]] =  172321,
+	[L["Umbrahide Gauntlets"]] =  172316,
+	[L["Umbrahide Helm"]] =  172317,
+	[L["Umbrahide Leggings"]] =  172318,
+	[L["Umbrahide Pauldrons"]] =  172319,
+	[L["Umbrahide Treads"]] =  172315,
+	[L["Umbrahide Vest"]] =  172314,
+	[L["Umbrahide Waistguard"]] =  172320,
 	
-	["Boneshatter Armguards"] =  172329,
-	["Boneshatter Gauntlets"] =  172324,
-	["Boneshatter Greaves"] =  172326,
-	["Boneshatter Helm"] =  172325,
-	["Boneshatter Pauldrons"] =  172327,
-	["Boneshatter Treads"] =  172323,
-	["Boneshatter Vest"] =  172322,
-	["Boneshatter Waistguard"] =  172328
+	[L["Boneshatter Armguards"]] =  172329,
+	[L["Boneshatter Gauntlets"]] =  172324,
+	[L["Boneshatter Greaves"]] =  172326,
+	[L["Boneshatter Helm"]] =  172325,
+	[L["Boneshatter Pauldrons"]] =  172327,
+	[L["Boneshatter Treads"]] =  172323,
+	[L["Boneshatter Vest"]] =  172322,
+	[L["Boneshatter Waistguard"]] =  172328
 }
 local GUILD_BANK_SLOTS_PER_TAB = 98
 local IsTSMLoaded = false;
@@ -256,9 +257,9 @@ function LegendaryStockTracker:AddMainFrame(parent)
 
 		
 
-		local tab = LegendaryStockTracker:AddTab(tabList, tabWidth, 24, 1, exportFrame, "Export")
-		LegendaryStockTracker:AddTab(tabList, tabWidth, 24, 2, settingsFrame, "Settings")
-		LegendaryStockTracker:AddTab(tabList, tabWidth, 24, 3, tableFrame, "Table")
+		local tab = LegendaryStockTracker:AddTab(tabList, tabWidth, 24, 1, exportFrame, L["Export"])
+		LegendaryStockTracker:AddTab(tabList, tabWidth, 24, 2, settingsFrame, L["Settings"])
+		LegendaryStockTracker:AddTab(tabList, tabWidth, 24, 3, tableFrame, L["Table"])
 		LegendaryStockTracker:TabOnClick(tab)
 
 		local closeButton = CreateFrame("Button", "LSTMainFrameCloseButton", f)
@@ -433,7 +434,7 @@ end
 function LegendaryStockTracker:GetGearFromItems()
 	gearLinks = {}
 	for i=1, #itemLinks do
-		if select(6, GetItemInfo(itemLinks[i])) == "Armor" then 
+		if select(12, GetItemInfo(itemLinks[i])) == 4 then 
 			gearLinks[#gearLinks+1] = itemLinks[i]
 		end
 	end
