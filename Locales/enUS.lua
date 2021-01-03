@@ -65,7 +65,7 @@ L["Include AH"] = "Include AH"
 L["Include Mail"] = "Include Mail"
 L["Include Guild Bank"] = "Include Guild Bank"
 
--- DataBroker
+-- Minimap Icon
 L["Click or type /lst to show the main panel"] =  "Click or type /lst to show the main panel"
 L["Items Scanned:"] = "Items Scanned:"
 L["Bags: "] = "Bags: "

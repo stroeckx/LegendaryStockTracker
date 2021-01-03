@@ -55,7 +55,7 @@ L["Table"] =  "Table"
 -- Export Frame
 L["Paste this data into your copy of the spreadsheet"] = "Paste this data into your copy of the spreadsheet"
 
---Settings Frame
+-- Settings Frame
 L["Show all legendaries"] = "Show all legendaries"
 L["Show profit (requires TSM operations)"] = "Show profit (requires TSM operations)"
 L["Sources to include:"] = "Sources to include:"
@@ -65,7 +65,7 @@ L["Include AH"] = "Include AH"
 L["Include Mail"] = "Include Mail"
 L["Include Guild Bank"] = "Include Guild Bank"
 
--- DataBroker
+-- Minimap Icon
 L["Click or type /lst to show the main panel"] =  "Click or type /lst to show the main panel"
 L["Items Scanned:"] = "Items Scanned:"
 L["Bags: "] = "Bags: "
@@ -74,6 +74,6 @@ L["AH: "] = "AH: "
 L["Mail: "] = "Mail: "
 L["Guild: "] = "Guild: "
 
---Data Export
+-- Data Export
 L["Item name, Rank 1, Rank 2, Rank 3,  Rank 4\n"] = "Item name, Rank 1, Rank 2, Rank 3,  Rank 4\n"
 L["Item name, Rank 1, Profit Rank 1, Rank 2, Profit Rank 2, Rank 3, Profit Rank 3, Rank 4, Profit Rank 4\n"] = "Item name, Rank 1, Profit Rank 1, Rank 2, Profit Rank 2, Rank 3, Profit Rank 3, Rank 4, Profit Rank 4\n"

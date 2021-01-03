@@ -65,7 +65,7 @@ L["Include AH"] = "Auktionshaus berücksichtigen"
 L["Include Mail"] = "Briefkasten berücksichtigen"
 L["Include Guild Bank"] = "Gildenbank berücksichtigen"
 
--- DataBroker
+-- Minimap Icon
 L["Click or type /lst to show the main panel"] =  "Klicken Sie oder geben Sie /lst ein, um das Hauptfenster anzuzeigen"
 L["Items Scanned:"] = "Gegenstände gescannt:"
 L["Bags: "] = "Taschen: "
