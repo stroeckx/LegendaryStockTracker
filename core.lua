@@ -18,8 +18,8 @@ local LstockLDB = LibStub("LibDataBroker-1.1"):NewDataObject("LegendaryStockTrac
 	LegendaryStockTracker:GetAllItemsInBags()
     tt:AddLine("Legendary Stock Tracker")
     tt:AddLine(" ")
-    tt:AddLine("Click or type /lst to show the main panel")
-    tt:AddLine("Items Scanned:")
+    tt:AddLine(L["Click or type /lst to show the main panel"])
+    tt:AddLine(L["Items Scanned:"])
     tt:AddLine(LegendaryStockTracker:GetDataCounts())
   end
 })
@@ -147,11 +147,11 @@ end
 
 function LegendaryStockTracker:GetDataCounts()
 	local text = ""
-	text = text .. "Bags: " .. bagItemCount .. "\n"
-	text = text .. "Bank: " .. bankItemCount .. "\n"
-	text = text .. "AH: " .. ahItemCount .. "\n"
-	text = text .. "Mail: " .. mailboxItemCount .. "\n"
-	text = text .. "Guild: " .. GuildBankItemCount .. "\n"
+	text = text .. L["Bags: "] .. bagItemCount .. "\n"
+	text = text .. L["Bank: "] .. bankItemCount .. "\n"
+	text = text .. L["AH: "] .. ahItemCount .. "\n"
+	text = text .. L["Mail: "] .. mailboxItemCount .. "\n"
+	text = text .. L["Guild: "] .. GuildBankItemCount .. "\n"
 	return text
 end
 
@@ -254,7 +254,7 @@ function LegendaryStockTracker:GetMainFrame(parent)
 		--Export Frame
 		local exportFrame = LegendaryStockTracker:CreateOptionsContentFrame("LSTExportFrame", contentFrame, contentWidth, contentHeight, contentWidthOffset, contentHeightOffset, Backdrop)
 		--exportFrame:SetBackdropColor(0.75,0,0,0.9)
-		exportFrame.title:SetText("Paste this data into your copy of the spreadsheet")
+		exportFrame.title:SetText(L["Paste this data into your copy of the spreadsheet"])
 		exportFrame:SetScript("OnShow", function()
 			LegendaryStockTracker:UpdateExportText()
 		end)
@@ -277,21 +277,21 @@ function LegendaryStockTracker:GetMainFrame(parent)
 		
 		local settingsFrame = LegendaryStockTracker:CreateOptionsContentFrame("LSTsettingsFrame", contentFrame, contentWidth, contentHeight, contentWidthOffset, contentHeightOffset, Backdrop)
 		--settingsFrame:SetBackdropColor(0,0.75,0,0.9)
-		settingsFrame.title:SetText("Settings")
+		settingsFrame.title:SetText(L["Settings"])
 
 		local heightOffset = 0
-		heightOffset = LegendaryStockTracker:AddOptionCheckbox("ShowUnownedItemsCheckButton", settingsFrame, "loadUnownedLegendaries", "Show all legendaries", heightOffset)
-		heightOffset = LegendaryStockTracker:AddOptionCheckbox("ShowPricingCheckButton", settingsFrame, "showPricing", "Show profit (requires TSM operations)", heightOffset)
+		heightOffset = LegendaryStockTracker:AddOptionCheckbox("ShowUnownedItemsCheckButton", settingsFrame, "loadUnownedLegendaries", L["Show all legendaries"], heightOffset)
+		heightOffset = LegendaryStockTracker:AddOptionCheckbox("ShowPricingCheckButton", settingsFrame, "showPricing", L["Show profit (requires TSM operations)"], heightOffset)
 		heightOffset = heightOffset - 100
 		local text = settingsFrame:CreateFontString(nil,"ARTWORK", "GameFontHighlight") 
 		text:SetPoint("TOPLEFT", settingsFrame, "TOPLEFT", 0, heightOffset)
-		text:SetText("Sources to include:")
+		text:SetText(L["Sources to include:"])
 		heightOffset = heightOffset - 15
-		heightOffset = LegendaryStockTracker:AddOptionCheckbox("IncludeBagsCheckButton", settingsFrame, "includeBags", "Include Bags", heightOffset)
-		heightOffset = LegendaryStockTracker:AddOptionCheckbox("IncludeBankCheckButton", settingsFrame, "includeBank", "Include Bank", heightOffset)
-		heightOffset = LegendaryStockTracker:AddOptionCheckbox("IncludeAHCheckButton", settingsFrame, "includeAH", "Include AH", heightOffset)
-		heightOffset = LegendaryStockTracker:AddOptionCheckbox("IncludeMailCheckButton", settingsFrame, "includeMail", "Include Mail", heightOffset)
-		heightOffset = LegendaryStockTracker:AddOptionCheckbox("IncludeGuildCheckButton", settingsFrame, "IncludeGuild", "Include Guild Bank", heightOffset)
+		heightOffset = LegendaryStockTracker:AddOptionCheckbox("IncludeBagsCheckButton", settingsFrame, "includeBags", L["Include Bags"], heightOffset)
+		heightOffset = LegendaryStockTracker:AddOptionCheckbox("IncludeBankCheckButton", settingsFrame, "includeBank", L["Include Bank"], heightOffset)
+		heightOffset = LegendaryStockTracker:AddOptionCheckbox("IncludeAHCheckButton", settingsFrame, "includeAH", L["Include AH"], heightOffset)
+		heightOffset = LegendaryStockTracker:AddOptionCheckbox("IncludeMailCheckButton", settingsFrame, "includeMail", L["Include Mail"], heightOffset)
+		heightOffset = LegendaryStockTracker:AddOptionCheckbox("IncludeGuildCheckButton", settingsFrame, "IncludeGuild", L["Include Guild Bank"], heightOffset)
 
 		--local tableFrame = LegendaryStockTracker:CreateOptionsContentFrame("LSTtableFrame", contentFrame, contentWidth, contentHeight, contentWidthOffset, contentHeightOffset, Backdrop)
 		--tableFrame:SetBackdropColor(0,0,0.75,0.9)
@@ -585,7 +585,7 @@ function LegendaryStockTracker:GenerateExportText()
 
 	local text = ""
 	if(IsTSMLoaded == false or self.db.profile.settings.showPricing == false) then
-		text = "Item name, Rank 1, Rank 2, Rank 3,  Rank 4\n"
+		text = L["Item name, Rank 1, Rank 2, Rank 3,  Rank 4\n"]
 		for i=1, #NameTable do 
 			text = text .. NameTable[i] .. "," 
 			.. LegendaryStockTracker:GetStockCount(NameTable[i], 1) .. "," 
@@ -594,7 +594,7 @@ function LegendaryStockTracker:GenerateExportText()
 			.. LegendaryStockTracker:GetStockCount(NameTable[i], 4) .. "\n" 
 		end
 	else
-		text = "Item name, Rank 1, Profit Rank 1, Rank 2, Profit Rank 2, Rank 3, Profit Rank 3, Rank 4, Profit Rank 4\n"
+		text = L["Item name, Rank 1, Profit Rank 1, Rank 2, Profit Rank 2, Rank 3, Profit Rank 3, Rank 4, Profit Rank 4\n"]
 		for i=1, #NameTable do 
 			text = text .. NameTable[i] .. "," 
 			.. LegendaryStockTracker:GetStockCount(NameTable[i], 1) .. "," .. LegendaryStockTracker:GetMinBuyoutMinusAuctionOpMin(NameTable[i], 1) .. ","

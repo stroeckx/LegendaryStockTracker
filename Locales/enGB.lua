@@ -51,3 +51,29 @@ L["Boneshatter Waistguard"] =  "Boneshatter Waistguard"
 L["Export"] =  "Export"
 L["Settings"] =  "Settings"
 L["Table"] =  "Table"
+
+-- Export Frame
+L["Paste this data into your copy of the spreadsheet"] = "Paste this data into your copy of the spreadsheet"
+
+--Settings Frame
+L["Show all legendaries"] = "Show all legendaries"
+L["Show profit (requires TSM operations)"] = "Show profit (requires TSM operations)"
+L["Sources to include:"] = "Sources to include:"
+L["Include Bags"] = "Include Bags"
+L["Include Bank"] = "Include Bank"
+L["Include AH"] = "Include AH"
+L["Include Mail"] = "Include Mail"
+L["Include Guild Bank"] = "Include Guild Bank"
+
+-- DataBroker
+L["Click or type /lst to show the main panel"] =  "Click or type /lst to show the main panel"
+L["Items Scanned:"] = "Items Scanned:"
+L["Bags: "] = "Bags: "
+L["Bank: "] = "Bank: "
+L["AH: "] = "AH: "
+L["Mail: "] = "Mail: "
+L["Guild: "] = "Guild: "
+
+--Data Export
+L["Item name, Rank 1, Rank 2, Rank 3,  Rank 4\n"] = "Item name, Rank 1, Rank 2, Rank 3,  Rank 4\n"
+L["Item name, Rank 1, Profit Rank 1, Rank 2, Profit Rank 2, Rank 3, Profit Rank 3, Rank 4, Profit Rank 4\n"] = "Item name, Rank 1, Profit Rank 1, Rank 2, Profit Rank 2, Rank 3, Profit Rank 3, Rank 4, Profit Rank 4\n"
