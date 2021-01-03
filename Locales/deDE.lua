@@ -51,3 +51,29 @@ L["Boneshatter Waistguard"] =  "Knochenschmetternder Taillenschutz"
 L["Export"] =  "Exportieren"
 L["Settings"] =  "Einstellungen"
 L["Table"] =  "Tabelle"
+
+-- Export Frame
+L["Paste this data into your copy of the spreadsheet"] = "Füge diese Daten in deine Kopie des Tabellenblatts ein"
+
+--Settings Frame
+L["Show all legendaries"] = "Zeige alle Legendaries"
+L["Show profit (requires TSM operations)"] = "Gewinn anzeigen (erfordert TSM-Operationen)"
+L["Sources to include:"] = "Einzuschließende Quellen: (Gegenstandsreihenfolge anders)"
+L["Include Bags"] = "Taschen berücksichtigen"
+L["Include Bank"] = "Bank berücksichtigen"
+L["Include AH"] = "Auktionshaus berücksichtigen"
+L["Include Mail"] = "Briefkasten berücksichtigen"
+L["Include Guild Bank"] = "Gildenbank berücksichtigen"
+
+-- DataBroker
+L["Click or type /lst to show the main panel"] =  "Klicken Sie oder geben Sie /lst ein, um das Hauptfenster anzuzeigen"
+L["Items Scanned:"] = "Gegenstände gescannt:"
+L["Bags: "] = "Taschen: "
+L["Bank: "] = "Bank: "
+L["AH: "] = "AH: "
+L["Mail: "] = "Post: "
+L["Guild: "] = "Gilde: "
+
+--Data Export
+L["Item name, Rank 1, Rank 2, Rank 3,  Rank 4\n"] = "Gegenstandsname, Rang 1, Rang 2, Rang 3, Rang 4\n"
+L["Item name, Rank 1, Profit Rank 1, Rank 2, Profit Rank 2, Rank 3, Profit Rank 3, Rank 4, Profit Rank 4\n"] = "Gegenstandsname, Rang 1, Gewinn Rang 1, Rang 2, Gewinn Rang 2, Rang 3, Gewinn Rang 3, Rang 4, Gewinn Rang 4\n"
