@@ -58,6 +58,8 @@ L["Paste this data into your copy of the spreadsheet"] = "Paste this data into y
 -- Settings Frame
 L["Show all legendaries"] = "Show all legendaries"
 L["Show profit (requires TSM operations)"] = "Show profit (requires TSM operations)"
+L["Min profit before restocking"] = "Min profit before restocking"
+L["Restock amount"] = "Restock amount"
 L["Sources to include:"] = "Sources to include:"
 L["Include Bags"] = "Include Bags"
 L["Include Bank"] = "Include Bank"
@@ -77,3 +79,18 @@ L["Guild: "] = "Guild: "
 -- Data Export
 L["Item name, Rank 1, Rank 2, Rank 3,  Rank 4\n"] = "Item name, Rank 1, Rank 2, Rank 3,  Rank 4\n"
 L["Item name, Rank 1, Profit Rank 1, Rank 2, Profit Rank 2, Rank 3, Profit Rank 3, Rank 4, Profit Rank 4\n"] = "Item name, Rank 1, Profit Rank 1, Rank 2, Profit Rank 2, Rank 3, Profit Rank 3, Rank 4, Profit Rank 4\n"
+
+-- Table view
+L["Item name"] = "Item name"
+L["Rank 1"] = "Rank 1"
+L["Rank 2"] = "Rank 2"
+L["Rank 3"] = "Rank 3"
+L["Rank 4"] = "Rank 4"
+L["R1"] = "R1"
+L["R2"] = "R2"
+L["R3"] = "R3"
+L["R4"] = "R4"
+L["Profit R1"] = "Profit R1"
+L["Profit R2"] = "Profit R2"
+L["Profit R3"] = "Profit R3"
+L["Profit R4"] = "Profit R4"

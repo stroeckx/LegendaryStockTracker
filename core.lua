@@ -8,8 +8,8 @@ local LstockLDB = LibStub("LibDataBroker-1.1"):NewDataObject("LegendaryStockTrac
   label = "LegendaryStockTracker",
   icon = "Interface\\AddOns\\LegendaryStockTracker\\LST_logo",
   OnClick = function()
-    if LstockFrame and LstockFrame:IsShown() then
-      LstockFrame:Hide()
+    if LstockMainFrame and LstockMainFrame:IsShown() then
+      LstockMainFrame:Hide()
     else
       LegendaryStockTracker:HandleChatCommand("")
     end
@@ -24,8 +24,10 @@ local LstockLDB = LibStub("LibDataBroker-1.1"):NewDataObject("LegendaryStockTrac
   end
 })
 
+local db = nil
 local LstockIcon = LibStub("LibDBIcon-1.0")
-local LstockFrame = nil
+local LstockMainFrame = nil
+local LSTTableScrollChild = nil
 
 --all collections of items are stored separately for future expandability
 local itemLinks = {}
@@ -91,12 +93,13 @@ local LegendaryIDsByName =
 }
 local GUILD_BANK_SLOTS_PER_TAB = 98
 local IsTSMLoaded = false;
+local fontStringPool = nil
 
 local activeTab = nil
 
 function LegendaryStockTracker:OnInitialize()
 	-- init databroker
-	self.db = LibStub("AceDB-3.0"):New("LegendaryStockTrackerDB", {
+	db = LibStub("AceDB-3.0"):New("LegendaryStockTrackerDB", {
 		profile = {
 			minimap = {
 				hide = false,
@@ -118,11 +121,13 @@ function LegendaryStockTracker:OnInitialize()
 				includeAH = true,
 				includeMail = true,
 				IncludeGuild = true,
+				minProfit = 5000,
+				restockAmount = 3,
 			}
 		},
 	});
 
-	LstockIcon:Register("LegendaryStockTracker", LstockLDB, self.db.profile.minimap)
+	LstockIcon:Register("LegendaryStockTracker", LstockLDB, db.profile.minimap)
     LegendaryStockTracker:RegisterChatCommand("lstock", "HandleChatCommand")
     LegendaryStockTracker:RegisterChatCommand("lst", "HandleChatCommand")
     LegendaryStockTracker:RegisterChatCommand("lstocktest", "Test")
@@ -139,10 +144,10 @@ function LegendaryStockTracker:OnInitialize()
 end
 
 function LegendaryStockTracker:Test()
-	local tsmstring = "i:171419::2:1532:6758"
 	local test = ""
-	test = test .. tostring(IsTSMLoaded) .. "\n"
-	message(test)
+	test = db.profile.settings.minProfit
+	print(test)
+	--message(test)
 end
 
 function LegendaryStockTracker:GetDataCounts()
@@ -156,18 +161,25 @@ function LegendaryStockTracker:GetDataCounts()
 end
 
 function LegendaryStockTracker:HandleChatCommand(input)
-
 	local f = LegendaryStockTracker:GetMainFrame(UIParent)
-	--LegendaryStockTracker:createFrameSheet(LstockFrame)
+	LegendaryStockTracker:UpdateExportText()
+	LegendaryStockTracker:UpdateTable()
 	f:Show()
 end
 
 function LegendaryStockTracker:UpdateExportText()
 	LegendaryStockTracker:UpdateAllAvailableItemSources()
 	LegendaryStockTracker:GetLegendariesFromItems()
-	LegendaryStockTracker:GetMainFrame(UIParent)
+	--LegendaryStockTracker:GetMainFrame(UIParent)
 	LstockEditBox:SetText(LegendaryStockTracker:GenerateExportText())
 	LstockEditBox:HighlightText()
+end
+
+function LegendaryStockTracker:UpdateTable()
+	LegendaryStockTracker:UpdateAllAvailableItemSources()
+	LegendaryStockTracker:GetLegendariesFromItems()
+	LegendaryStockTracker:CreateFrameSheet(LSTTableScrollChild)
+	--LegendaryStockTracker:CreateFrameSheet(LstockMainFrame)
 end
 
 function LegendaryStockTracker:UpdateAllAvailableItemSources()
@@ -193,17 +205,16 @@ function LegendaryStockTracker:ShowTestFrame()
 end
 
 function LegendaryStockTracker:GetMainFrame(parent)
-	local mainFrameHeight = 400 
-	local mainFrameWidth = 600 
+	local mainFrameHeight = 575 
+	local mainFrameWidth = 665 
 	if not LstockMainFrame then
-		local temp = "Interface\\AddOns\\LegendaryStockTracker\\Assets\\Plain.tga"
 		local Backdrop = {
-			bgFile = temp,
+			bgFile = "Interface\\AddOns\\LegendaryStockTracker\\Assets\\Plain.tga",
 			--edgeFile = temp,
 			tile = false, tileSize = 0, edgeSize = 1,
 			insets = {left = 1, right = 1, top = 1, bottom = 1},
 		}
-		local frameConfig = self.db.profile.frame
+		local frameConfig = db.profile.frame
 		local f = CreateFrame("Frame","LSTMainFrame",parent, BackdropTemplateMixin and "BackdropTemplate")
 		LstockMainFrame = f
 		f:SetBackdrop(Backdrop)
@@ -219,6 +230,7 @@ function LegendaryStockTracker:GetMainFrame(parent)
 		frameConfig.ofsx,
 		frameConfig.ofsy
 		)
+		tinsert(UISpecialFrames, f:GetName())
 		LegendaryStockTracker:SetFrameMovable(f)
 
 		local tabWidth = 150
@@ -275,13 +287,17 @@ function LegendaryStockTracker:GetMainFrame(parent)
 		eb:SetScript("OnEscapePressed", function() f:Hide() end)
 		sf:SetScrollChild(eb)
 		
+		--settings frame
 		local settingsFrame = LegendaryStockTracker:CreateOptionsContentFrame("LSTsettingsFrame", contentFrame, contentWidth, contentHeight, contentWidthOffset, contentHeightOffset, Backdrop)
 		--settingsFrame:SetBackdropColor(0,0.75,0,0.9)
 		settingsFrame.title:SetText(L["Settings"])
 
+		--settings options
 		local heightOffset = 0
 		heightOffset = LegendaryStockTracker:AddOptionCheckbox("ShowUnownedItemsCheckButton", settingsFrame, "loadUnownedLegendaries", L["Show all legendaries"], heightOffset)
 		heightOffset = LegendaryStockTracker:AddOptionCheckbox("ShowPricingCheckButton", settingsFrame, "showPricing", L["Show profit (requires TSM operations)"], heightOffset)
+		heightOffset = LegendaryStockTracker:AddOptionEditbox("MinProfitEditBox", settingsFrame, "minProfit", L["Min profit before restocking"], heightOffset, 35)
+		heightOffset = LegendaryStockTracker:AddOptionEditbox("RestockAmountEditBox", settingsFrame, "restockAmount", L["Restock amount"], heightOffset, 20)
 		heightOffset = heightOffset - 100
 		local text = settingsFrame:CreateFontString(nil,"ARTWORK", "GameFontHighlight") 
 		text:SetPoint("TOPLEFT", settingsFrame, "TOPLEFT", 0, heightOffset)
@@ -293,13 +309,27 @@ function LegendaryStockTracker:GetMainFrame(parent)
 		heightOffset = LegendaryStockTracker:AddOptionCheckbox("IncludeMailCheckButton", settingsFrame, "includeMail", L["Include Mail"], heightOffset)
 		heightOffset = LegendaryStockTracker:AddOptionCheckbox("IncludeGuildCheckButton", settingsFrame, "IncludeGuild", L["Include Guild Bank"], heightOffset)
 
-		--local tableFrame = LegendaryStockTracker:CreateOptionsContentFrame("LSTtableFrame", contentFrame, contentWidth, contentHeight, contentWidthOffset, contentHeightOffset, Backdrop)
+		--table frame
+		local tableFrame = LegendaryStockTracker:CreateOptionsContentFrame("LSTtableFrame", contentFrame, contentWidth, contentHeight, contentWidthOffset, contentHeightOffset, Backdrop)
 		--tableFrame:SetBackdropColor(0,0,0.75,0.9)
-		--tableFrame.title:SetText("Coming soon!")
+		tableFrame.title:SetText("")
+		tableFrame:SetScript("OnShow", function()
+			LegendaryStockTracker:UpdateTable()
+		end)
+		tableFrame.scrollframe = tableFrame.scrollframe or CreateFrame("ScrollFrame", "LSTTableScrollFrame", tableFrame, BackdropTemplateMixin and "UIPanelScrollFrameTemplate");
+		tableFrame.scrollframe:SetPoint("LEFT")
+		tableFrame.scrollframe:SetPoint("RIGHT", -22, 0)
+		tableFrame.scrollframe:SetPoint("TOP")
+		tableFrame.scrollframe:SetPoint("BOTTOM")
 
-		local tab = LegendaryStockTracker:AddTab(tabList, tabWidth, 24, 1, exportFrame, L["Export"])
+		LSTTableScrollChild = tableFrame.scrollframe.scrollchild or CreateFrame("Frame", "LSTtableScrollChild", tableFrame.scrollframe);
+		LSTTableScrollChild:SetSize(tableFrame.scrollframe:GetSize())
+		tableFrame.scrollframe:SetScrollChild(LSTTableScrollChild)
+
+		--create tabs
+		LegendaryStockTracker:AddTab(tabList, tabWidth, 24, 3, exportFrame, L["Export"])
 		LegendaryStockTracker:AddTab(tabList, tabWidth, 24, 2, settingsFrame, L["Settings"])
-		--LegendaryStockTracker:AddTab(tabList, tabWidth, 24, 3, tableFrame, L["Table"])
+		local tab = LegendaryStockTracker:AddTab(tabList, tabWidth, 24, 1, tableFrame, L["Table"])
 		LegendaryStockTracker:TabOnClick(tab)
 
 		local closeButton = CreateFrame("Button", "LSTMainFrameCloseButton", f)
@@ -307,7 +337,6 @@ function LegendaryStockTracker:GetMainFrame(parent)
 		closeButton:SetText("X")
 		closeButton:SetPoint("TOPRIGHT", f, "TOPRIGHT")
 		closeButton:SetNormalFontObject("GameFontHighlight")
-		--closeButton:SetNormalFontObject("GameFontNormal")
 		closeButton:SetHighlightFontObject("GameFontHighlight")
 		closeButton:SetDisabledFontObject("GameFontDisable")
 		closeButton:SetScript("OnClick", function()
@@ -318,7 +347,7 @@ function LegendaryStockTracker:GetMainFrame(parent)
 end
 
 function LegendaryStockTracker:SetFrameMovable(f)
-	local frameConfig = self.db.profile.frame
+	local frameConfig = db.profile.frame
 	f:EnableMouse(true)
 	f:SetMovable(true)
 	f:SetScript("OnMouseDown", function(self, button)
@@ -390,18 +419,50 @@ function LegendaryStockTracker:AddOptionCheckbox(name, parent, setting, descript
 	cb:SetSize(20,20)
 	cb:SetPoint("TOPLEFT", parent, "TOPLEFT", 0, heightOffset)
 	cb.setting = setting
-	cb:SetChecked(self.db.profile.settings[cb.setting])
+	cb:SetChecked(db.profile.settings[cb.setting])
 	cb:SetScript("OnClick", function(cb)
 		if cb:GetChecked() then
-			self.db.profile.settings[cb.setting] = true
+			db.profile.settings[cb.setting] = true
 		else
-			self.db.profile.settings[cb.setting] = false
+			db.profile.settings[cb.setting] = false
 		end
 	end)
 	local text = cb:CreateFontString(nil,"ARTWORK", "GameFontHighlight") 
 	text:SetPoint("LEFT", cb, "RIGHT", 0, 1)
 	text:SetText(description)
 	return heightOffset - 20
+end
+
+function LegendaryStockTracker:AddOptionEditbox(name, parent, setting, description, heightOffset, width)
+	local Backdrop = {
+		bgFile = "Interface\\AddOns\\LegendaryStockTracker\\Assets\\Plain.tga",
+		edgeFile = "Interface/Buttons/WHITE8X8",
+		tile = false, tileSize = 0, edgeSize = 1,
+		insets = {left = 1, right = 1, top = 1, bottom = 1},
+	}
+
+	local eb = CreateFrame("EditBox", name, parent, BackdropTemplateMixin and "BackdropTemplate")
+	eb:SetBackdrop(Backdrop)
+	eb:SetBackdropColor(0.25,0.25,0.25,0.9)
+	eb:SetBackdropBorderColor(0,0,0,1)
+	eb:SetSize(width,22)
+	eb:SetPoint("TOPLEFT", parent, "TOPLEFT", 0, heightOffset)
+	eb:SetFontObject("GameFontNormal")
+	eb:SetTextColor(1,1,1,1)
+	eb.setting = setting
+	eb:SetText(db.profile.settings[eb.setting])
+	eb:SetScript("OnTextChanged", function(self)
+		db.profile.settings[eb.setting] = self:GetText()
+	end)
+
+	eb:SetScript("OnEscapePressed", function()
+		eb:ClearFocus()
+	end)
+
+	local text = eb:CreateFontString(nil,"ARTWORK", "GameFontHighlight") 
+	text:SetPoint("LEFT", eb, "RIGHT", 3, -1)
+	text:SetText(description)
+	return heightOffset - 25
 end
 
 function LegendaryStockTracker:OnEnable()
@@ -503,27 +564,27 @@ end
 
 function LegendaryStockTracker:AddAllItemsToList()
 	itemLinks = {}
-	if(self.db.profile.settings.includeBags) then
+	if(db.profile.settings.includeBags) then
 		for i=1, #bagItemLinks do
 			itemLinks[#itemLinks+1] = bagItemLinks[i]
 		end
 	end
-	if(self.db.profile.settings.includeBank) then
+	if(db.profile.settings.includeBank) then
 		for i=1, #bankItemLinks do
 			itemLinks[#itemLinks+1] = bankItemLinks[i]
 		end
 	end
-	if(self.db.profile.settings.includeAH) then
+	if(db.profile.settings.includeAH) then
 		for i=1, #ahItemLinks do
 			itemLinks[#itemLinks+1] = ahItemLinks[i]
 		end
 	end
-	if(self.db.profile.settings.includeMail) then
+	if(db.profile.settings.includeMail) then
 		for i=1, #mailboxItemLinks do
 			itemLinks[#itemLinks+1] = mailboxItemLinks[i]
 		end
 	end
-	if(self.db.profile.settings.IncludeGuild) then
+	if(db.profile.settings.IncludeGuild) then
 		for i=1, #GuildBankItemLinks do
 			itemLinks[#itemLinks+1] = GuildBankItemLinks[i]
 		end
@@ -553,25 +614,25 @@ function LegendaryStockTracker:CountLegendariesByRank()
 		if detailedItemLevel == 190
 			then 
 				ItemCounts[1] = ItemCounts[1] + 1
-				if(self.db.profile.settings.loadUnownedLegendaries == false) then
+				if(db.profile.settings.loadUnownedLegendaries == false) then
 					LegendaryStockTracker:UpdateTsmPrices(itemName, 1)
 				end
 		elseif detailedItemLevel == 210
 			then 
 				ItemCounts[2] = ItemCounts[2] + 1
-				if(self.db.profile.settings.loadUnownedLegendaries == false) then
+				if(db.profile.settings.loadUnownedLegendaries == false) then
 					LegendaryStockTracker:UpdateTsmPrices(itemName, 2)
 				end
 		elseif detailedItemLevel == 225
 			then 
 				ItemCounts[3] = ItemCounts[3] + 1
-				if(self.db.profile.settings.loadUnownedLegendaries == false) then
+				if(db.profile.settings.loadUnownedLegendaries == false) then
 					LegendaryStockTracker:UpdateTsmPrices(itemName, 3)
 				end
 		elseif detailedItemLevel == 235
 			then 
 				ItemCounts[4] = ItemCounts[4] + 1
-				if(self.db.profile.settings.loadUnownedLegendaries == false) then
+				if(db.profile.settings.loadUnownedLegendaries == false) then
 					LegendaryStockTracker:UpdateTsmPrices(itemName, 4)
 				end
 		--add future ranks here
@@ -584,7 +645,7 @@ function LegendaryStockTracker:GenerateExportText()
 	NameTable = LegendaryStockTracker:createNameTable()
 
 	local text = ""
-	if(IsTSMLoaded == false or self.db.profile.settings.showPricing == false) then
+	if(IsTSMLoaded == false or db.profile.settings.showPricing == false) then
 		text = L["Item name, Rank 1, Rank 2, Rank 3,  Rank 4\n"]
 		for i=1, #NameTable do 
 			text = text .. NameTable[i] .. "," 
@@ -608,7 +669,7 @@ end
 
 function LegendaryStockTracker:createNameTable()
 	local NameTable = {}
-	if(self.db.profile.settings.loadUnownedLegendaries == false) then
+	if(db.profile.settings.loadUnownedLegendaries == false) then
 		for name, count in pairs(legendaryCountByRank) do 
 			table.insert(NameTable, name) 
 		end
@@ -624,99 +685,141 @@ function LegendaryStockTracker:createNameTable()
 	return NameTable
 end
 
-function LegendaryStockTracker:createFrameSheet(frame)
+function LegendaryStockTracker:CreateFrameSheet(frame)
 	NameTable = LegendaryStockTracker:createNameTable()
-
-	local xStartValue = 15
+	local sheet  = {}
+	local maxWidth = {}
+	local xStartValue = 0
 	local xPosition = xStartValue
-	local yPosition = -15
+	local yPosition = 0
 	local YDIFF = 15
 	local XDIFF = 15
+	if(fontStringPool == nil) then
+		fontStringPool = CreateFontStringPool(frame, "OVERLAY", nil, "GameFontNormal", FontStringPool_Hide)
+	else
+		fontStringPool:ReleaseAll()
+	end
 
-	if(IsTSMLoaded == false) then
-		local titles = {createTableTitle(frame, "Item name"), createTableTitle(frame, "Rank 1"), createTableTitle(frame, "Rank 2"), createTableTitle(frame, "Rank 3"), createTableTitle(frame, "Rank 4")}
-		local sheet  = {}
+	if(IsTSMLoaded == false or db.profile.settings.showPricing == false) then
+		local titles = {LegendaryStockTracker:CreateTableTitle(frame, L["Item name"]), LegendaryStockTracker:CreateTableTitle(frame, L["Rank 1"]), LegendaryStockTracker:CreateTableTitle(frame, L["Rank 2"]), LegendaryStockTracker:CreateTableTitle(frame, L["Rank 3"]), LegendaryStockTracker:CreateTableTitle(frame, L["Rank 4"])}
 		table.insert(sheet, titles)
-		local maxWidth = {0,0,0,0,0}
+		maxWidth = {0,0,0,0,0}
 		for i=1, #NameTable do 
-			row = {createTableElement(frame, NameTable[i]),
-				createTableElement(frame, LegendaryStockTracker:GetStockCount(NameTable[i], 1)), createTableElement(frame, LegendaryStockTracker:GetStockCount(NameTable[i], 2)),
-				createTableElement(frame, LegendaryStockTracker:GetStockCount(NameTable[i], 3)), createTableElement(frame, LegendaryStockTracker:GetStockCount(NameTable[i], 4))}
+			row = 
+			{
+				LegendaryStockTracker:CreateTableElement(frame, NameTable[i],  1, 1, 1, 1),
+				LegendaryStockTracker:CreateTableElement(frame, LegendaryStockTracker:GetStockCount(NameTable[i], 1), LegendaryStockTracker:GetTableStockFont(LegendaryStockTracker:GetStockCount(NameTable[i], 1))), 
+				LegendaryStockTracker:CreateTableElement(frame, LegendaryStockTracker:GetStockCount(NameTable[i], 2), LegendaryStockTracker:GetTableStockFont(LegendaryStockTracker:GetStockCount(NameTable[i], 2))), 
+				LegendaryStockTracker:CreateTableElement(frame, LegendaryStockTracker:GetStockCount(NameTable[i], 3), LegendaryStockTracker:GetTableStockFont(LegendaryStockTracker:GetStockCount(NameTable[i], 3))), 
+				LegendaryStockTracker:CreateTableElement(frame, LegendaryStockTracker:GetStockCount(NameTable[i], 4), LegendaryStockTracker:GetTableStockFont(LegendaryStockTracker:GetStockCount(NameTable[i], 4)))
+			}
 			table.insert(sheet, row)
 		end
-
-		for i=1, #sheet do 
-			for j=1, #sheet[i] do
-				compareTableValue(frame, maxWidth, j, sheet[i][j][2])
-			end
-		end
-		for i=1, #sheet do
-			for j=1, #sheet[i] do
-				setElementPosition(sheet[i][j][1], xPosition, yPosition)
-				xPosition = xPosition + XDIFF + maxWidth[j]
-			end
-			xPosition = xStartValue
-			yPosition = yPosition - YDIFF
-		end
 	else
-		local titles = {createTableTitle(frame, "Item name"), createTableTitle(frame, "Rank 1"), createTableTitle(frame, "Profit Rank 1"), createTableTitle(frame, "Rank 2"),
-			createTableTitle(frame, "Profit Rank 2"), createTableTitle(frame, "Rank 3"), createTableTitle(frame, "Profit Rank 3"), createTableTitle(frame, "Rank 4"), createTableTitle(frame, "Profit Rank 4")}
-		local sheet  = {}
+		local titles = {LegendaryStockTracker:CreateTableTitle(frame, L["Item name"]), LegendaryStockTracker:CreateTableTitle(frame, L["R1"]), LegendaryStockTracker:CreateTableTitle(frame, L["Profit R1"]), LegendaryStockTracker:CreateTableTitle(frame, L["R2"]),
+			LegendaryStockTracker:CreateTableTitle(frame, L["Profit R2"]), LegendaryStockTracker:CreateTableTitle(frame, L["R3"]), LegendaryStockTracker:CreateTableTitle(frame, L["Profit R3"]), LegendaryStockTracker:CreateTableTitle(frame, L["R4"]), LegendaryStockTracker:CreateTableTitle(frame, "Profit R4")}
 		table.insert(sheet, titles)
-		local maxWidth = {0,0,0,0,0,0,0,0,0}
+		maxWidth = {0,0,0,0,0,0,0,0,0}
 		for i=1, #NameTable do 
-			row = {createTableElement(frame, NameTable[i]),
-				createTableElement(frame, LegendaryStockTracker:GetStockCount(NameTable[i], 1)), createTableElement(frame, LegendaryStockTracker:GetMinBuyoutMinusAuctionOpMin(NameTable[i], 1)),
-				createTableElement(frame, LegendaryStockTracker:GetStockCount(NameTable[i], 2)), createTableElement(frame, LegendaryStockTracker:GetMinBuyoutMinusAuctionOpMin(NameTable[i], 2)),
-				createTableElement(frame, LegendaryStockTracker:GetStockCount(NameTable[i], 3)), createTableElement(frame, LegendaryStockTracker:GetMinBuyoutMinusAuctionOpMin(NameTable[i], 3)),
-				createTableElement(frame, LegendaryStockTracker:GetStockCount(NameTable[i], 4)), createTableElement(frame, LegendaryStockTracker:GetMinBuyoutMinusAuctionOpMin(NameTable[i], 4))}
+			row = 
+			{
+				LegendaryStockTracker:CreateTableElement(frame, NameTable[i], 1, 1, 1, 1),
+				LegendaryStockTracker:CreateTableElement(frame, LegendaryStockTracker:GetStockCount(NameTable[i], 1), LegendaryStockTracker:GetTableStockFont(LegendaryStockTracker:GetStockCount(NameTable[i], 1), LegendaryStockTracker:GetMinBuyoutMinusAuctionOpMin(NameTable[i], 1))), LegendaryStockTracker:CreateTableElement(frame, LegendaryStockTracker:GetMinBuyoutMinusAuctionOpMin(NameTable[i], 1), LegendaryStockTracker:GetTablePriceFont(LegendaryStockTracker:GetMinBuyoutMinusAuctionOpMin(NameTable[i], 1))),
+				LegendaryStockTracker:CreateTableElement(frame, LegendaryStockTracker:GetStockCount(NameTable[i], 2), LegendaryStockTracker:GetTableStockFont(LegendaryStockTracker:GetStockCount(NameTable[i], 2), LegendaryStockTracker:GetMinBuyoutMinusAuctionOpMin(NameTable[i], 2))), LegendaryStockTracker:CreateTableElement(frame, LegendaryStockTracker:GetMinBuyoutMinusAuctionOpMin(NameTable[i], 2), LegendaryStockTracker:GetTablePriceFont(LegendaryStockTracker:GetMinBuyoutMinusAuctionOpMin(NameTable[i], 2))),
+				LegendaryStockTracker:CreateTableElement(frame, LegendaryStockTracker:GetStockCount(NameTable[i], 3), LegendaryStockTracker:GetTableStockFont(LegendaryStockTracker:GetStockCount(NameTable[i], 3), LegendaryStockTracker:GetMinBuyoutMinusAuctionOpMin(NameTable[i], 3))), LegendaryStockTracker:CreateTableElement(frame, LegendaryStockTracker:GetMinBuyoutMinusAuctionOpMin(NameTable[i], 3), LegendaryStockTracker:GetTablePriceFont(LegendaryStockTracker:GetMinBuyoutMinusAuctionOpMin(NameTable[i], 3))),
+				LegendaryStockTracker:CreateTableElement(frame, LegendaryStockTracker:GetStockCount(NameTable[i], 4), LegendaryStockTracker:GetTableStockFont(LegendaryStockTracker:GetStockCount(NameTable[i], 4), LegendaryStockTracker:GetMinBuyoutMinusAuctionOpMin(NameTable[i], 4))), LegendaryStockTracker:CreateTableElement(frame, LegendaryStockTracker:GetMinBuyoutMinusAuctionOpMin(NameTable[i], 4), LegendaryStockTracker:GetTablePriceFont(LegendaryStockTracker:GetMinBuyoutMinusAuctionOpMin(NameTable[i], 4)))
+			}
 			table.insert(sheet, row)		
 		end
-		for i=1, #sheet do 
-			for j=1, #sheet[i] do
-				compareTableValue(frame, maxWidth, j, sheet[i][j][2])
-			end
+	end
+
+	for i=1, #sheet do 
+		for j=1, #sheet[i] do
+			LegendaryStockTracker:CompareTableValue(frame, maxWidth, j, sheet[i][j][2])
 		end
-		for i=1, #sheet do
-			for j=1, #sheet[i] do
-				setElementPosition(sheet[i][j][1], xPosition, yPosition)
-				xPosition = xPosition + XDIFF + maxWidth[j]
-			end
-			xPosition = xStartValue
-			yPosition = yPosition - YDIFF
+	end
+	for i=1, #sheet do
+		for j=1, #sheet[i] do
+			LegendaryStockTracker:SetElementPosition(sheet[i][j][1], xPosition, yPosition)
+			xPosition = xPosition + XDIFF + maxWidth[j]
 		end
+		xPosition = xStartValue
+		yPosition = yPosition - YDIFF
+		--LegendaryStockTracker:AddTableLine(frame, yPosition)
 	end
 end
 
-function setElementPosition(element, x, y)
+function LegendaryStockTracker:GetTablePriceFont(stringValue)
+	if(tonumber(db.profile.settings.minProfit) > 0 and tonumber(stringValue) > tonumber(db.profile.settings.minProfit)) then
+		return 0.15, 1, 0.15, 1
+	elseif(tonumber(stringValue) < 0) then
+		return 1, 0.15, 0.15, 1
+	else 
+		return 1, 1, 1, 1
+	end
+end
+
+function LegendaryStockTracker:GetTableStockFont(value, price)
+	if(value < tonumber(db.profile.settings.restockAmount)) then
+		if(db.profile.settings.showPricing == true and price ~= nil) then
+			if(tonumber(price) > tonumber(db.profile.settings.minProfit)) then 
+				return 0, 0.5, 1, 1
+			else 
+				return 1, 1, 1, 1
+			end
+		else
+			return 0, 0.75, 1, 1
+		end
+	else 
+		return 1, 1, 1, 1
+	end
+end
+
+function LegendaryStockTracker:SetElementPosition(element, x, y)
 	element:SetPoint("LEFT", x, 0)
 	element:SetPoint("TOP", 0, y)
 end
 
-function createTableElement(frame, text, yOffset)
-	local fontString = frame:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
+function LegendaryStockTracker:CreateTableElement(frame, text, r, g, b, a)
+	local fontString = fontStringPool:Acquire()
+	fontString:SetParent(frame)
+	fontString:SetTextColor(r,g,b,a)
 	fontString:SetJustifyH("LEFT")
 	fontString:SetJustifyV("MIDDLE")
 	fontString:SetPoint("LEFT", 15, 0)
 	fontString:SetPoint("TOP", 0, -15)
 	fontString:SetText(text)
+	fontString:Show()
 	return {fontString, fontString:GetStringWidth(text)}
 end
 
-function createTableTitle(frame, text)
-	local fontString = frame:CreateFontString(nil, "OVERLAY", "GameFontGreen")
+function LegendaryStockTracker:CreateTableTitle(frame, text)
+	local fontString = fontStringPool:Acquire()
+	fontString:SetParent(frame)
+	fontString:SetTextColor(1,0.9,0,1)
+	--fontString:SetFontObject("GameFontNormal")
 	fontString:SetJustifyH("CENTER")
 	fontString:SetJustifyV("MIDDLE")
 	fontString:SetPoint("LEFT", 15, 0)
 	fontString:SetPoint("TOP", 0, -15)
 	fontString:SetText(text)
+	fontString:Show()
 	return {fontString, fontString:GetStringWidth(text)}
 end
 
-function compareTableValue(frame, table, index, toCompare)
+function LegendaryStockTracker:CompareTableValue(frame, table, index, toCompare)
 	if (toCompare > table[index]) then
 		table[index] = toCompare
 	end
+end
+
+function LegendaryStockTracker:AddTableLine(frame, yPosition)
+	print(yPosition)
+	local line = frame:CreateLine()
+	line:SetThickness(1)
+	line:SetColorTexture(0.6,0.6,0.6,1)
+	line:SetStartPoint("TOPLEFT", -3, yPosition + 2)
+	line:SetEndPoint("TOPRIGHT", 3, yPosition + 2)
 end
 
 function LegendaryStockTracker:AddItemToLegendaryTableIfNotPresent(itemName)
@@ -799,11 +902,10 @@ end
 function LegendaryStockTracker:ScanAhPrices(item)
 	if AuctionHouseFrame and AuctionHouseFrame:IsShown() then
 		local itemKeys = {}
-		itemKeys[1] = C_AuctionHouse.MakeItemKey(171419,190,nil)
-		itemKeys[2] = C_AuctionHouse.MakeItemKey(171419,210,nil)
-		itemKeys[3] = C_AuctionHouse.MakeItemKey(171419,225,nil)
-		itemKeys[4] = C_AuctionHouse.MakeItemKey(171419,235,nil)
+		itemKeys[1] = C_AuctionHouse.MakeItemKey(171419, 190, nil)
+		itemKeys[2] = C_AuctionHouse.MakeItemKey(171419, 210, nil)
+		itemKeys[3] = C_AuctionHouse.MakeItemKey(171419, 225, nil)
+		itemKeys[4] = C_AuctionHouse.MakeItemKey(171419, 235, nil)
 		C_AuctionHouse.SearchForItemKeys(itemKeys, {})
 	end
 end
-

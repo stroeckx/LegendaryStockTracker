@@ -58,6 +58,8 @@ L["Paste this data into your copy of the spreadsheet"] = "Füge diese Daten in d
 --Settings Frame
 L["Show all legendaries"] = "Zeige alle Legendaries"
 L["Show profit (requires TSM operations)"] = "Gewinn anzeigen (erfordert TSM-Operationen)"
+L["Min profit before restocking"] = "Minimaler Gewinn vor dem Auffüllen"
+L["Restock amount"] = "Menge auffüllen"
 L["Sources to include:"] = "Einzuschließende Quellen: (Gegenstandsreihenfolge anders)"
 L["Include Bags"] = "Taschen berücksichtigen"
 L["Include Bank"] = "Bank berücksichtigen"
@@ -77,3 +79,18 @@ L["Guild: "] = "Gilde: "
 --Data Export
 L["Item name, Rank 1, Rank 2, Rank 3,  Rank 4\n"] = "Gegenstandsname, Rang 1, Rang 2, Rang 3, Rang 4\n"
 L["Item name, Rank 1, Profit Rank 1, Rank 2, Profit Rank 2, Rank 3, Profit Rank 3, Rank 4, Profit Rank 4\n"] = "Gegenstandsname, Rang 1, Gewinn Rang 1, Rang 2, Gewinn Rang 2, Rang 3, Gewinn Rang 3, Rang 4, Gewinn Rang 4\n"
+
+-- Table view
+L["Item name"] = "Gegenstandsname"
+L["Rank 1"] = "Rang 1"
+L["Rank 2"] = "Rang 2"
+L["Rank 3"] = "Rang 3"
+L["Rank 4"] = "Rang 4"
+L["R1"] = "R1"
+L["R2"] = "R2"
+L["R3"] = "R3"
+L["R4"] = "R4"
+L["Profit R1"] = "Gewinn R1"
+L["Profit R2"] = "Gewinn R2"
+L["Profit R3"] = "Gewinn R3"
+L["Profit R4"] = "Gewinn R4"
