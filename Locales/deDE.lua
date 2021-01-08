@@ -51,6 +51,8 @@ L["Boneshatter Waistguard"] =  "Knochenschmetternder Taillenschutz"
 L["Export"] =  "Exportieren"
 L["Settings"] =  "Einstellungen"
 L["Table"] =  "Tabelle"
+L["Restock"] =  "Restock"
+L["Rank"] =  "Rang"
 
 -- Export Frame
 L["Paste this data into your copy of the spreadsheet"] = "Füge diese Daten in deine Kopie des Tabellenblatts ein"
@@ -94,3 +96,7 @@ L["Profit R1"] = "Gewinn R1"
 L["Profit R2"] = "Gewinn R2"
 L["Profit R3"] = "Gewinn R3"
 L["Profit R4"] = "Gewinn R4"
+
+-- Restock
+L["Item"] = "Gegenstand"
+L["Amount"] = "Menge"

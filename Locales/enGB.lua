@@ -51,6 +51,8 @@ L["Boneshatter Waistguard"] =  "Boneshatter Waistguard"
 L["Export"] =  "Export"
 L["Settings"] =  "Settings"
 L["Table"] =  "Table"
+L["Restock"] =  "Restock"
+L["Rank"] =  "Rank"
 
 -- Export Frame
 L["Paste this data into your copy of the spreadsheet"] = "Paste this data into your copy of the spreadsheet"
@@ -94,3 +96,7 @@ L["Profit R1"] = "Profit R1"
 L["Profit R2"] = "Profit R2"
 L["Profit R3"] = "Profit R3"
 L["Profit R4"] = "Profit R4"
+
+-- Restock
+L["Item"] = "Item"
+L["Amount"] = "Amount"

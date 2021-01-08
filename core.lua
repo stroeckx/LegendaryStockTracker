@@ -28,6 +28,7 @@ local db = nil
 local LstockIcon = LibStub("LibDBIcon-1.0")
 local LstockMainFrame = nil
 local LSTTableScrollChild = nil
+local LSTRestockScrollChild = nil
 
 --all collections of items are stored separately for future expandability
 local itemLinks = {}
@@ -94,8 +95,11 @@ local LegendaryIDsByName =
 local GUILD_BANK_SLOTS_PER_TAB = 98
 local IsTSMLoaded = false;
 local fontStringPool = nil
+local RestockList = {}
+local numRanks = 4
 
 local activeTab = nil
+local exportTab = nil
 
 function LegendaryStockTracker:OnInitialize()
 	-- init databroker
@@ -145,9 +149,21 @@ end
 
 function LegendaryStockTracker:Test()
 	local test = ""
-	test = db.profile.settings.minProfit
-	print(test)
-	--message(test)
+	for itemName,rank in pairs(TSMPriceDataByRank) do
+		local string = itemName .. ": \n" 
+		print(itemName .. ": ")
+		for i=1, #rank do
+			print("rank " .. i .. ": " .. rank[i][1] .. "," .. rank[i][2])
+			string = string .. "rank " .. i .. ": " .. rank[i][1] .. "," .. rank[i][2] .. "\n"
+		end
+		string = string .. "\n"
+		test = test .. string
+	end
+	local f = LegendaryStockTracker:GetMainFrame(UIParent)
+	LegendaryStockTracker:TabOnClick(exportTab)
+	LstockEditBox:SetText(test)
+	LstockEditBox:HighlightText()
+	f:Show()
 end
 
 function LegendaryStockTracker:GetDataCounts()
@@ -178,8 +194,14 @@ end
 function LegendaryStockTracker:UpdateTable()
 	LegendaryStockTracker:UpdateAllAvailableItemSources()
 	LegendaryStockTracker:GetLegendariesFromItems()
-	LegendaryStockTracker:CreateFrameSheet(LSTTableScrollChild)
+	LegendaryStockTracker:CreateTableSheet(LSTTableScrollChild)
 	--LegendaryStockTracker:CreateFrameSheet(LstockMainFrame)
+end
+
+function LegendaryStockTracker:UpdateRestock()
+	LegendaryStockTracker:UpdateAllAvailableItemSources()
+	LegendaryStockTracker:GetLegendariesFromItems()
+	LegendaryStockTracker:CreateRestockSheet(LSTRestockScrollChild)
 end
 
 function LegendaryStockTracker:UpdateAllAvailableItemSources()
@@ -296,8 +318,8 @@ function LegendaryStockTracker:GetMainFrame(parent)
 		local heightOffset = 0
 		heightOffset = LegendaryStockTracker:AddOptionCheckbox("ShowUnownedItemsCheckButton", settingsFrame, "loadUnownedLegendaries", L["Show all legendaries"], heightOffset)
 		heightOffset = LegendaryStockTracker:AddOptionCheckbox("ShowPricingCheckButton", settingsFrame, "showPricing", L["Show profit (requires TSM operations)"], heightOffset)
-		heightOffset = LegendaryStockTracker:AddOptionEditbox("MinProfitEditBox", settingsFrame, "minProfit", L["Min profit before restocking"], heightOffset, 35)
-		heightOffset = LegendaryStockTracker:AddOptionEditbox("RestockAmountEditBox", settingsFrame, "restockAmount", L["Restock amount"], heightOffset, 20)
+		heightOffset = LegendaryStockTracker:AddOptionEditbox("MinProfitEditBox", settingsFrame, "minProfit", L["Min profit before restocking"], heightOffset, 45)
+		heightOffset = LegendaryStockTracker:AddOptionEditbox("RestockAmountEditBox", settingsFrame, "restockAmount", L["Restock amount"], heightOffset, 25)
 		heightOffset = heightOffset - 100
 		local text = settingsFrame:CreateFontString(nil,"ARTWORK", "GameFontHighlight") 
 		text:SetPoint("TOPLEFT", settingsFrame, "TOPLEFT", 0, heightOffset)
@@ -312,7 +334,7 @@ function LegendaryStockTracker:GetMainFrame(parent)
 		--table frame
 		local tableFrame = LegendaryStockTracker:CreateOptionsContentFrame("LSTtableFrame", contentFrame, contentWidth, contentHeight, contentWidthOffset, contentHeightOffset, Backdrop)
 		--tableFrame:SetBackdropColor(0,0,0.75,0.9)
-		tableFrame.title:SetText("")
+		tableFrame.title:SetText(L["Table"])
 		tableFrame:SetScript("OnShow", function()
 			LegendaryStockTracker:UpdateTable()
 		end)
@@ -326,10 +348,27 @@ function LegendaryStockTracker:GetMainFrame(parent)
 		LSTTableScrollChild:SetSize(tableFrame.scrollframe:GetSize())
 		tableFrame.scrollframe:SetScrollChild(LSTTableScrollChild)
 
+		--Restock frame
+		local restockFrame = LegendaryStockTracker:CreateOptionsContentFrame("LSTRestockFrame", contentFrame, contentWidth, contentHeight, contentWidthOffset, contentHeightOffset, Backdrop)
+		restockFrame.title:SetText(L["Restock"])
+		restockFrame:SetScript("OnShow", function()
+			LegendaryStockTracker:UpdateRestock()
+		end)
+		restockFrame.scrollframe = restockFrame.scrollframe or CreateFrame("ScrollFrame", "LSTRestockScrollFrame", restockFrame, BackdropTemplateMixin and "UIPanelScrollFrameTemplate");
+		restockFrame.scrollframe:SetPoint("LEFT")
+		restockFrame.scrollframe:SetPoint("RIGHT", -22, 0)
+		restockFrame.scrollframe:SetPoint("TOP")
+		restockFrame.scrollframe:SetPoint("BOTTOM")
+
+		LSTRestockScrollChild = restockFrame.scrollframe.scrollchild or CreateFrame("Frame", "LSTRestockScrollChild", restockFrame.scrollframe);
+		LSTRestockScrollChild:SetSize(restockFrame.scrollframe:GetSize())
+		restockFrame.scrollframe:SetScrollChild(LSTRestockScrollChild)
+
 		--create tabs
-		LegendaryStockTracker:AddTab(tabList, tabWidth, 24, 3, exportFrame, L["Export"])
+		exportTab = LegendaryStockTracker:AddTab(tabList, tabWidth, 24, 3, exportFrame, L["Export"])
 		LegendaryStockTracker:AddTab(tabList, tabWidth, 24, 2, settingsFrame, L["Settings"])
 		local tab = LegendaryStockTracker:AddTab(tabList, tabWidth, 24, 1, tableFrame, L["Table"])
+		LegendaryStockTracker:AddTab(tabList, tabWidth, 24, 4, restockFrame, L["Restock"])
 		LegendaryStockTracker:TabOnClick(tab)
 
 		local closeButton = CreateFrame("Button", "LSTMainFrameCloseButton", f)
@@ -641,8 +680,27 @@ function LegendaryStockTracker:CountLegendariesByRank()
 	end
 end
 
+function LegendaryStockTracker:UpdateRestockList()
+	RestockList = {}
+	local nameTable = LegendaryStockTracker:createNameTable()
+	for item=1, #nameTable do
+		for rank=1, numRanks do
+			if LegendaryStockTracker:GetStockCount(nameTable[item], rank) < tonumber(db.profile.settings.restockAmount) then 
+				
+				if(IsTSMLoaded == false or db.profile.settings.showPricing == false) then
+					table.insert(RestockList, {nameTable[item], rank, db.profile.settings.restockAmount - LegendaryStockTracker:GetStockCount(nameTable[item], rank)})
+				else
+					if tonumber(LegendaryStockTracker:GetMinBuyoutMinusAuctionOpMin(nameTable[item], rank)) > tonumber(db.profile.settings.minProfit) then
+						table.insert(RestockList, {nameTable[item], rank, db.profile.settings.restockAmount - LegendaryStockTracker:GetStockCount(nameTable[item], rank)})
+					end
+				end
+			end
+		end
+	end
+end
+
 function LegendaryStockTracker:GenerateExportText()
-	NameTable = LegendaryStockTracker:createNameTable()
+	local NameTable = LegendaryStockTracker:createNameTable()
 
 	local text = ""
 	if(IsTSMLoaded == false or db.profile.settings.showPricing == false) then
@@ -685,21 +743,37 @@ function LegendaryStockTracker:createNameTable()
 	return NameTable
 end
 
-function LegendaryStockTracker:CreateFrameSheet(frame)
-	NameTable = LegendaryStockTracker:createNameTable()
-	local sheet  = {}
-	local maxWidth = {}
-	local xStartValue = 0
-	local xPosition = xStartValue
-	local yPosition = 0
-	local YDIFF = 15
-	local XDIFF = 15
+function LegendaryStockTracker:CreateRestockSheet(frame)
+	LegendaryStockTracker:UpdateRestockList()
+	local NameTable = LegendaryStockTracker:createNameTable()
 	if(fontStringPool == nil) then
 		fontStringPool = CreateFontStringPool(frame, "OVERLAY", nil, "GameFontNormal", FontStringPool_Hide)
 	else
 		fontStringPool:ReleaseAll()
 	end
+	local sheet = {}
+	local titles = {LegendaryStockTracker:CreateTableTitle(frame, L["Item"]), LegendaryStockTracker:CreateTableTitle(frame, L["Amount"])}
+	table.insert(sheet, titles)
+	for i=1, #RestockList do 
+		row = 
+		{
+			LegendaryStockTracker:CreateTableElement(frame, RestockList[i][1] .. " - " .. L["Rank"] .. " " .. RestockList[i][2],  1, 1, 1, 1),
+			LegendaryStockTracker:CreateTableElement(frame, RestockList[i][3],  1, 1, 1, 1)
+		}
+		table.insert(sheet, row)
+	end
 
+	LegendaryStockTracker:CreateFrameSheet(frame, sheet, 2)
+end
+
+function LegendaryStockTracker:CreateTableSheet(frame)
+	local NameTable = LegendaryStockTracker:createNameTable()
+	if(fontStringPool == nil) then
+		fontStringPool = CreateFontStringPool(frame, "OVERLAY", nil, "GameFontNormal", FontStringPool_Hide)
+	else
+		fontStringPool:ReleaseAll()
+	end
+	local sheet = {}
 	if(IsTSMLoaded == false or db.profile.settings.showPricing == false) then
 		local titles = {LegendaryStockTracker:CreateTableTitle(frame, L["Item name"]), LegendaryStockTracker:CreateTableTitle(frame, L["Rank 1"]), LegendaryStockTracker:CreateTableTitle(frame, L["Rank 2"]), LegendaryStockTracker:CreateTableTitle(frame, L["Rank 3"]), LegendaryStockTracker:CreateTableTitle(frame, L["Rank 4"])}
 		table.insert(sheet, titles)
@@ -732,15 +806,30 @@ function LegendaryStockTracker:CreateFrameSheet(frame)
 			table.insert(sheet, row)		
 		end
 	end
+	LegendaryStockTracker:CreateFrameSheet(frame, sheet, #maxWidth)
+end
 
-	for i=1, #sheet do 
-		for j=1, #sheet[i] do
-			LegendaryStockTracker:CompareTableValue(frame, maxWidth, j, sheet[i][j][2])
+function LegendaryStockTracker:CreateFrameSheet(frame, table, numColumns)
+	local sheet  = {}
+	local maxWidth = {}
+	local xStartValue = 0
+	local xPosition = xStartValue
+	local yPosition = 0
+	local YDIFF = 15
+	local XDIFF = 15
+	maxWidth = {}
+	for i=1, numColumns do
+		maxWidth[i] = 0
+	end
+
+	for i=1, #table do 
+		for j=1, #table[i] do
+			LegendaryStockTracker:CompareTableValue(frame, maxWidth, j, table[i][j][2])
 		end
 	end
-	for i=1, #sheet do
-		for j=1, #sheet[i] do
-			LegendaryStockTracker:SetElementPosition(sheet[i][j][1], xPosition, yPosition)
+	for i=1, #table do
+		for j=1, #table[i] do
+			LegendaryStockTracker:SetElementPosition(table[i][j][1], xPosition, yPosition)
 			xPosition = xPosition + XDIFF + maxWidth[j]
 		end
 		xPosition = xStartValue
