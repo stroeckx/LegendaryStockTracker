@@ -1016,7 +1016,7 @@ function LegendaryStockTracker:ConvertTsmPriceToGold(value)
 	if(string ~= "0") then
 		string = string:sub(1, #string - 4)
 	end
-	if(tonumber(string) <= 0) then
+	if(tonumber(string) == nil or tonumber(string) <= 0) then
 		return 0
 	end
 	return tonumber(string)
