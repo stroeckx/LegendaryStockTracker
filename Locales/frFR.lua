@@ -53,6 +53,7 @@ L["Settings"] =  "Paramètres"
 L["Table"] =  "Table"
 L["Restock"] =  "Restock"
 L["Rank"] =  "Rank"
+L["Profit"] =  "Profit"
 
 -- Export Frame
 L["Paste this data into your copy of the spreadsheet"] = "Coller les données dans votre copie du tableur"
@@ -60,6 +61,7 @@ L["Paste this data into your copy of the spreadsheet"] = "Coller les données da
 -- Settings Frame
 L["Show all legendaries"] = "Montrer tous les légendaires"
 L["Show profit (requires TSM operations)"] = "Montrer les profits (données TSM utilisées)"
+L["Include Cached items"] = "Inclure les objets mis en cache"
 L["Min profit before restocking"] = "Bénéfice minimum avant le réapprovisionnement"
 L["Restock amount"] = "Montant de réapprovisionnement"
 L["Min restock amount"] = "Min montant de réapprovisionnement"

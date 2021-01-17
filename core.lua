@@ -110,6 +110,9 @@ local tabHeight = 24
 local contentWidthOffset = 5
 local contentHeightOffset = -25
 
+local playerName = ""
+local guildName = ""
+
 function LegendaryStockTracker:OnInitialize()
 	-- init databroker
 	db = LibStub("AceDB-3.0"):New("LegendaryStockTrackerDB", {
@@ -137,17 +140,43 @@ function LegendaryStockTracker:OnInitialize()
 				minProfit = 5000,
 				restockAmount = 3,
 				minrestockAmount = 2,
+				includeCachedData = true,
 			}
 		},
+		factionrealm = {
+			characters = {
+				['*'] = {
+					characterName = "",
+					classNameBase = "",
+					bagItemLinks = {},
+					bagItemCount = 0,
+					bankItemLinks = {},
+					bankItemCount = 0,
+					ahItemLinks = {},
+					ahItemCount = 0,
+					mailboxItemLinks = {},
+					mailboxItemCount = 0,
+				}
+			},
+			guilds = {
+				['*'] = {
+					guildName = "",
+					GuildBankItemLinks = {},
+					GuildBankItemCount = 0
+				}
+			},
+		}
 	});
 
 	LstockIcon:Register("LegendaryStockTracker", LstockLDB, db.profile.minimap)
+	--chat commands
     LegendaryStockTracker:RegisterChatCommand("lstock", "HandleChatCommand")
     LegendaryStockTracker:RegisterChatCommand("lst", "HandleChatCommand")
     LegendaryStockTracker:RegisterChatCommand("LST", "HandleChatCommand")
     LegendaryStockTracker:RegisterChatCommand("lstocktest", "Test")
     LegendaryStockTracker:RegisterChatCommand("lstSetSize", "SetMainFrameSize")
-    LegendaryStockTracker:RegisterChatCommand("lstockscan", "ScanAhPrices")
+	LegendaryStockTracker:RegisterChatCommand("lstockscan", "ScanAhPrices")
+	--events
 	LegendaryStockTracker:RegisterEvent("BANKFRAME_CLOSED", "GetAllItemsInBank")
 	LegendaryStockTracker:RegisterEvent("BANKFRAME_OPENED", "GetAllItemsInBank")
 	LegendaryStockTracker:RegisterEvent("OWNED_AUCTIONS_UPDATED", "GetAllItemsInAH")
@@ -156,43 +185,81 @@ function LegendaryStockTracker:OnInitialize()
 	LegendaryStockTracker:RegisterEvent("GUILDBANKFRAME_CLOSED", "GetAllItemsInGuildBank")
 	LegendaryStockTracker:RegisterEvent("GUILDBANKFRAME_OPENED", "GetAllItemsInGuildBank")
 	LegendaryStockTracker:RegisterEvent("AUCTION_HOUSE_BROWSE_RESULTS_UPDATED", "OnItemAdded")
+
 	LegendaryStockTracker:CheckIfTSMIsRunning()
+	playerName = UnitName("player")
+	--guildName = select(1,GetGuildInfo("player")); --doesn't work on login, only on reloads
+	db.factionrealm.characters[playerName].characterName = playerName;
+	db.factionrealm.characters[playerName].classNameBase = select(1,UnitClassBase("player"));
+	LegendaryStockTracker:GetAllItemsInBags();
 end
 
 function LegendaryStockTracker:Test()
-	local test = ""
-	for itemName,rank in pairs(TSMPriceDataByRank) do
-		local string = itemName .. ": \n" 
-		print(itemName .. ": ")
-		for i=1, #rank do
-			print("rank " .. i .. ": " .. rank[i][1] .. "," .. rank[i][2])
-			string = string .. "rank " .. i .. ": " .. rank[i][1] .. "," .. rank[i][2] .. "\n"
-		end
-		string = string .. "\n"
-		test = test .. string
+	for key,val in pairs(db.factionrealm.characters) do
+		print(key);
 	end
-	local f = LegendaryStockTracker:GetMainFrame(UIParent)
-	LegendaryStockTracker:TabOnClick(exportTab)
-	LSTEditBox:SetText(test)
-	LSTEditBox:HighlightText()
-	f:Show()
 end
 
 function LegendaryStockTracker:SetMainFrameSize(value1, value2)
-	db.profile.frame.width = value1
-	db.profile.frame.height = value2
-	local f = LegendaryStockTracker:GetMainFrame()
-	f:SetSize(tonumber(value1), tonumber(value2))
+	--db.profile.frame.width = value1
+	--db.profile.frame.height = value2
+	--local f = LegendaryStockTracker:GetMainFrame()
+	--f:SetSize(tonumber(value1), tonumber(value2))
 end
 
 function LegendaryStockTracker:GetDataCounts()
 	local text = ""
-	text = text .. L["Bags: "] .. bagItemCount .. "\n"
-	text = text .. L["Bank: "] .. bankItemCount .. "\n"
-	text = text .. L["AH: "] .. ahItemCount .. "\n"
-	text = text .. L["Mail: "] .. mailboxItemCount .. "\n"
-	text = text .. L["Guild: "] .. GuildBankItemCount .. "\n"
+	if(db.profile.settings.includeCachedData) then
+		text = text .. L["Bags: "] .. LegendaryStockTracker:GetItemCounts("bagItemCount") .. "\n"
+		text = text .. L["Bank: "] .. LegendaryStockTracker:GetItemCounts("bankItemCount") .. "\n"
+		text = text .. L["AH: "] .. LegendaryStockTracker:GetItemCounts("ahItemCount") .. "\n"
+		text = text .. L["Mail: "] .. LegendaryStockTracker:GetItemCounts("mailboxItemCount") .. "\n"
+		local sum = 0
+		local count = 0
+		local altString = " ("
+		for key,val in pairs(db.factionrealm.guilds) do
+			sum = sum + db.factionrealm.guilds[key]["GuildBankItemCount"];
+			altString = altString .. db.factionrealm.guilds[key]["GuildBankItemCount"] .. " ";
+			count = count + 1;
+		end
+		altString = altString:sub(1, #altString - 1);
+		altString = altString .. ")";
+		if(count == 0) then
+			altString = "";
+		end
+
+		text = text .. L["Guild: "] .. sum .. altString .. "\n"
+	else
+		text = text .. L["Bags: "] .. bagItemCount .. "\n"
+		text = text .. L["Bank: "] .. bankItemCount .. "\n"
+		text = text .. L["AH: "] .. ahItemCount .. "\n"
+		text = text .. L["Mail: "] .. mailboxItemCount .. "\n"
+		text = text .. L["Guild: "] .. GuildBankItemCount .. "\n"
+	end
 	return text
+end
+
+function LegendaryStockTracker:GetItemCounts(itemCountParameterName)
+	local sum = 0
+	local altString = " ("
+	local count = 0
+	local classColorEsc = ""
+	for key,val in pairs(db.factionrealm.characters) do
+		sum = sum + db.factionrealm.characters[key][itemCountParameterName];
+		if(db.factionrealm.characters[key].classNameBase ~= nil and db.factionrealm.characters[key].classNameBase ~= "") then
+			classColorEsc = "|c" .. C_ClassColor.GetClassColor(db.factionrealm.characters[key].classNameBase):GenerateHexColor();
+		else
+			classColorEsc = "";
+		end
+		altString = altString .. classColorEsc .. db.factionrealm.characters[key][itemCountParameterName] .. "|r ";
+		count = count + 1;
+	end
+	altString = altString:sub(1, #altString - 1);
+	altString = altString .. ")";
+	if(count == 0) then
+		altString = "";
+	end
+	return sum .. altString;
 end
 
 function LegendaryStockTracker:HandleChatCommand(input)
@@ -229,7 +296,7 @@ function LegendaryStockTracker:UpdateAllAvailableItemSources()
 	LegendaryStockTracker:GetAllItemsInBank() --if the bank is open at the time of command, update bank as well
 	--LegendaryStockTracker:GetAllItemsInAH() auctions specifically not updated on command, as we don't know if the ah is closed or the player has no auctions. relying on OWNED_AUCTIONS_UPDATED to update those.
 	--LegendaryStockTracker:GetAllItemsInMailbox() mailbox is updated anytime the mailbox is updated, no need to update on command 
-	LegendaryStockTracker:GetAllItemsInGuildBank()
+	--LegendaryStockTracker:GetAllItemsInGuildBank()
 end
 
 function LegendaryStockTracker:GetLegendariesFromItems()
@@ -359,6 +426,7 @@ function LegendaryStockTracker:GetMainFrame(parent)
 		local heightOffset = 0
 		heightOffset = LegendaryStockTracker:AddOptionCheckbox("ShowUnownedItemsCheckButton", settingsFrame, "loadUnownedLegendaries", L["Show all legendaries"], heightOffset)
 		heightOffset = LegendaryStockTracker:AddOptionCheckbox("ShowPricingCheckButton", settingsFrame, "showPricing", L["Show profit (requires TSM operations)"], heightOffset)
+		heightOffset = LegendaryStockTracker:AddOptionCheckbox("includeCacheCheckButton", settingsFrame, "includeCachedData", L["Include Cached items"], heightOffset)
 		heightOffset = LegendaryStockTracker:AddOptionEditbox("MinProfitEditBox", settingsFrame, "minProfit", L["Min profit before restocking"], heightOffset, 45)
 		heightOffset = LegendaryStockTracker:AddOptionEditbox("RestockAmountEditBox", settingsFrame, "restockAmount", L["Restock amount"], heightOffset, 25)
 		heightOffset = LegendaryStockTracker:AddOptionEditbox("MinRestockAmountEditBox", settingsFrame, "minrestockAmount", L["Min restock amount"], heightOffset, 25)
@@ -560,11 +628,15 @@ end
 function LegendaryStockTracker:GetAllItemsInBags()
 	bagItemLinks = {}
 	bagItemCount = 0
+	db.factionrealm.characters[playerName].bagItemLinks = {}
+	db.factionrealm.characters[playerName].bagItemCount = 0
     for bag=0,NUM_BAG_SLOTS do
         for slot=1,GetContainerNumSlots(bag) do
 			if not (GetContainerItemID(bag,slot) == nil) then 
-				bagItemLinks[#bagItemLinks+1] = (select(7,GetContainerItemInfo(bag,slot)))
-				bagItemCount = bagItemCount + 1
+				bagItemLinks[#bagItemLinks+1] = (select(7,GetContainerItemInfo(bag,slot)));
+				bagItemCount = bagItemCount + 1;
+				db.factionrealm.characters[playerName].bagItemLinks[#db.factionrealm.characters[playerName].bagItemLinks + 1] = (select(7,GetContainerItemInfo(bag,slot)));
+				db.factionrealm.characters[playerName].bagItemCount = db.factionrealm.characters[playerName].bagItemCount + 1;
 			end
         end
 	end
@@ -574,20 +646,26 @@ function LegendaryStockTracker:GetAllItemsInBank()
 	if(GetContainerItemLink(NUM_BAG_SLOTS+1,1) ~= nil) then
 		bankItemLinks = {}
 		bankItemCount = 0
+		db.factionrealm.characters[playerName].bankItemLinks = {}
+		db.factionrealm.characters[playerName].bankItemCount = 0
 		--go through all bank bag slots
 		for bag=NUM_BAG_SLOTS+1,NUM_BAG_SLOTS + NUM_BANKBAGSLOTS do
 			for slot=1,GetContainerNumSlots(bag) do
 				if not (GetContainerItemID(bag,slot) == nil) then 
-					bankItemLinks[#bankItemLinks+1] = (select(7,GetContainerItemInfo(bag,slot)))
-					bankItemCount = bankItemCount + 1
+					bankItemLinks[#bankItemLinks+1] = (select(7,GetContainerItemInfo(bag,slot)));
+					bankItemCount = bankItemCount + 1;
+					db.factionrealm.characters[playerName].bankItemLinks[#db.factionrealm.characters[playerName].bankItemLinks + 1] = (select(7,GetContainerItemInfo(bag,slot)));
+					db.factionrealm.characters[playerName].bankItemCount = db.factionrealm.characters[playerName].bankItemCount + 1;
 				end
 			end
 		end
 		--go through default 28 bank spaces
 		for slot=1,GetContainerNumSlots(-1) do
 			if not (GetContainerItemID(-1,slot) == nil) then 
-				bankItemLinks[#bankItemLinks+1] = (select(7,GetContainerItemInfo(-1,slot)))
-				bankItemCount = bankItemCount + 1
+				bankItemLinks[#bankItemLinks+1] = (select(7,GetContainerItemInfo(-1,slot)));
+				bankItemCount = bankItemCount + 1;
+				db.factionrealm.characters[playerName].bankItemLinks[#db.factionrealm.characters[playerName].bankItemLinks + 1] = (select(7,GetContainerItemInfo(-1,slot)));
+				db.factionrealm.characters[playerName].bankItemCount = db.factionrealm.characters[playerName].bankItemCount + 1;
 			end
 		end
 	end
@@ -597,12 +675,16 @@ function LegendaryStockTracker:GetAllItemsInAH()
 	if(C_AuctionHouse.GetNumOwnedAuctions() ~= 0) then
 		ahItemLinks = {}
 		ahItemCount = 0
+		db.factionrealm.characters[playerName].ahItemLinks = {}
+		db.factionrealm.characters[playerName].ahItemCount = 0
 		local numOwnedAuctions = C_AuctionHouse.GetNumOwnedAuctions()
 		for i=1, numOwnedAuctions do
 			local auctionInfo = C_AuctionHouse.GetOwnedAuctionInfo(i)
 			if(auctionInfo.status == 0) then 
-				ahItemLinks[#ahItemLinks+1] = auctionInfo.itemLink
-				ahItemCount = ahItemCount + 1
+				ahItemLinks[#ahItemLinks+1] = auctionInfo.itemLink;
+				ahItemCount = ahItemCount + 1;
+				db.factionrealm.characters[playerName].ahItemLinks[#db.factionrealm.characters[playerName].ahItemLinks + 1] = auctionInfo.itemLink;
+				db.factionrealm.characters[playerName].ahItemCount = db.factionrealm.characters[playerName].ahItemCount + 1;
 			end
 		end
 	end
@@ -611,11 +693,15 @@ end
 function LegendaryStockTracker:GetAllItemsInMailbox()
 	mailboxItemLinks = {}
 	mailboxItemCount = 0
+	db.factionrealm.characters[playerName].mailboxItemLinks = {}
+	db.factionrealm.characters[playerName].mailboxItemCount = 0
 	for i=1, GetInboxNumItems() do
 		for j=1,ATTACHMENTS_MAX_RECEIVE do 
 			if(GetInboxItemLink(i, j) ~= nil) then
-				mailboxItemLinks[#mailboxItemLinks+1] = GetInboxItemLink(i, j)
-				mailboxItemCount = mailboxItemCount + 1
+				mailboxItemLinks[#mailboxItemLinks+1] = GetInboxItemLink(i, j);
+				mailboxItemCount = mailboxItemCount + 1;
+				db.factionrealm.characters[playerName].mailboxItemLinks[#db.factionrealm.characters[playerName].mailboxItemLinks + 1] = GetInboxItemLink(i, j);
+				db.factionrealm.characters[playerName].mailboxItemCount = db.factionrealm.characters[playerName].mailboxItemCount + 1;
 			end
 		end
 	end
@@ -623,14 +709,19 @@ end
 
 function LegendaryStockTracker:GetAllItemsInGuildBank()
 	local guildBankTabCount = GetNumGuildBankTabs()
+	guildName = select(1,GetGuildInfo("player"));
 	if(guildBankTabCount > 0 and GetGuildBankTabInfo(1) ~= nil) then
 		GuildBankItemLinks = {}
 		GuildBankItemCount = 0
+		db.factionrealm.guilds[guildName].GuildBankItemLinks = {}
+		db.factionrealm.guilds[guildName].GuildBankItemCount = 0
 		for tab=1,guildBankTabCount do
 			for slot=1,GUILD_BANK_SLOTS_PER_TAB do
 				if not (GetGuildBankItemInfo(tab,slot) == nil) then 
-					GuildBankItemLinks[#GuildBankItemLinks+1] = GetGuildBankItemLink(tab,slot)
-					GuildBankItemCount = GuildBankItemCount + 1
+					GuildBankItemLinks[#GuildBankItemLinks+1] = GetGuildBankItemLink(tab,slot);
+					GuildBankItemCount = GuildBankItemCount + 1;
+					db.factionrealm.guilds[guildName].GuildBankItemLinks[#db.factionrealm.guilds[guildName].GuildBankItemLinks + 1] = GetGuildBankItemLink(tab,slot);
+					db.factionrealm.guilds[guildName].GuildBankItemCount = db.factionrealm.guilds[guildName].GuildBankItemCount + 1;
 				end
 			end
 		end
@@ -649,28 +740,60 @@ end
 function LegendaryStockTracker:AddAllItemsToList()
 	itemLinks = {}
 	if(db.profile.settings.includeBags) then
-		for i=1, #bagItemLinks do
-			itemLinks[#itemLinks+1] = bagItemLinks[i]
+		if(db.profile.settings.includeCachedData) then
+			LegendaryStockTracker:AddItemsToList("bagItemLinks")
+		else
+			for i=1, #bagItemLinks do
+				itemLinks[#itemLinks+1] = bagItemLinks[i]
+			end
 		end
 	end
 	if(db.profile.settings.includeBank) then
-		for i=1, #bankItemLinks do
-			itemLinks[#itemLinks+1] = bankItemLinks[i]
+		if(db.profile.settings.includeCachedData) then
+			LegendaryStockTracker:AddItemsToList("bankItemLinks")
+		else
+			for i=1, #bankItemLinks do
+				itemLinks[#itemLinks+1] = bankItemLinks[i]
+			end
 		end
 	end
 	if(db.profile.settings.includeAH) then
-		for i=1, #ahItemLinks do
-			itemLinks[#itemLinks+1] = ahItemLinks[i]
+		if(db.profile.settings.includeCachedData) then
+			LegendaryStockTracker:AddItemsToList("ahItemLinks")
+		else
+			for i=1, #ahItemLinks do
+				itemLinks[#itemLinks+1] = ahItemLinks[i]
+			end
 		end
 	end
 	if(db.profile.settings.includeMail) then
-		for i=1, #mailboxItemLinks do
-			itemLinks[#itemLinks+1] = mailboxItemLinks[i]
+		if(db.profile.settings.includeCachedData) then
+			LegendaryStockTracker:AddItemsToList("mailboxItemLinks")
+		else
+			for i=1, #mailboxItemLinks do
+				itemLinks[#itemLinks+1] = mailboxItemLinks[i]
+			end
 		end
 	end
 	if(db.profile.settings.IncludeGuild) then
-		for i=1, #GuildBankItemLinks do
-			itemLinks[#itemLinks+1] = GuildBankItemLinks[i]
+		if(db.profile.settings.includeCachedData) then
+			for key,val in pairs(db.factionrealm.guilds) do
+				for i=1, #db.factionrealm.guilds[key]["GuildBankItemLinks"] do
+					itemLinks[#itemLinks+1] = db.factionrealm.guilds[key]["GuildBankItemLinks"][i]
+				end
+			end
+		else
+			for i=1, #GuildBankItemLinks do
+				itemLinks[#itemLinks+1] = GuildBankItemLinks[i]
+			end
+		end
+	end
+end
+
+function LegendaryStockTracker:AddItemsToList(itemSource)
+	for key,val in pairs(db.factionrealm.characters) do
+		for i=1, #db.factionrealm.characters[key][itemSource] do
+			itemLinks[#itemLinks+1] = db.factionrealm.characters[key][itemSource][i]
 		end
 	end
 end
@@ -734,10 +857,10 @@ function LegendaryStockTracker:UpdateRestockList()
 			local currentStock = tonumber(LegendaryStockTracker:GetStockCount(nameTable[item], rank))
 			if currentStock < restockAmount and restockAmount - currentStock >= tonumber(db.profile.settings.minrestockAmount) then 
 				if(IsTSMLoaded == false or db.profile.settings.showPricing == false) then
-					table.insert(RestockList, {nameTable[item], rank, restockAmount - currentStock})
+					table.insert(RestockList, {nameTable[item], rank, restockAmount - currentStock, 0})
 				else
 					if tonumber(LegendaryStockTracker:GetMinBuyoutMinusAuctionOpMin(nameTable[item], rank)) > tonumber(db.profile.settings.minProfit) then
-						table.insert(RestockList, {nameTable[item], rank, restockAmount - currentStock})
+						table.insert(RestockList, {nameTable[item], rank, restockAmount - currentStock, LegendaryStockTracker:GetMinBuyoutMinusAuctionOpMin(nameTable[item], rank)})
 					end
 				end
 			end
@@ -798,18 +921,19 @@ function LegendaryStockTracker:CreateRestockSheet(frame)
 		fontStringPool:ReleaseAll()
 	end
 	local sheet = {}
-	local titles = {LegendaryStockTracker:CreateTableTitle(frame, L["Item"]), LegendaryStockTracker:CreateTableTitle(frame, L["Amount"])}
+	local titles = {LegendaryStockTracker:CreateTableTitle(frame, L["Item"]), LegendaryStockTracker:CreateTableTitle(frame, L["Amount"]), LegendaryStockTracker:CreateTableTitle(frame, L["Profit"])}
 	table.insert(sheet, titles)
 	for i=1, #RestockList do 
 		row = 
 		{
 			LegendaryStockTracker:CreateTableElement(frame, RestockList[i][1] .. " - " .. L["Rank"] .. " " .. RestockList[i][2],  1, 1, 1, 1),
-			LegendaryStockTracker:CreateTableElement(frame, RestockList[i][3],  1, 1, 1, 1)
+			LegendaryStockTracker:CreateTableElement(frame, RestockList[i][3],  1, 1, 1, 1),
+			LegendaryStockTracker:CreateTableElement(frame, RestockList[i][4],  1, 1, 1, 1)
 		}
 		table.insert(sheet, row)
 	end
 
-	LegendaryStockTracker:CreateFrameSheet(frame, sheet, 2)
+	LegendaryStockTracker:CreateFrameSheet(frame, sheet, 3)
 end
 
 function LegendaryStockTracker:CreateTableSheet(frame)
@@ -1048,4 +1172,42 @@ function LegendaryStockTracker:ScanAhPrices(item)
 		itemKeys[4] = C_AuctionHouse.MakeItemKey(171419, 235, nil)
 		C_AuctionHouse.SearchForItemKeys(itemKeys, {})
 	end
+end
+
+function LegendaryStockTracker:GetKnownTradeSkillRecipes()
+	local table = C_TradeSkillUI.GetFilteredRecipeIDs()
+	return table;
+end
+
+function LegendaryStockTracker:IsTradeSkillRecipeSLLegendary(recipeID)
+	local info = C_TradeSkillUI.GetRecipeInfo(recipeID);
+	if(info["unlockedRecipeLevel"] == nil) then
+		return false;
+	end
+	return true;
+end
+
+function LegendaryStockTracker:GetTradeSkillRecipeName(recipeID)
+	local info = C_TradeSkillUI.GetRecipeInfo(recipeID);
+	return info["name"];
+end
+
+function LegendaryStockTracker:GetSLLegendaryUnlockedLevel(recipeID)
+	local info = C_TradeSkillUI.GetRecipeInfo(recipeID);
+	return info["unlockedRecipeLevel"];
+end
+
+function LegendaryStockTracker:ExportCraftRecipes()
+	local test = ""
+	print(test)
+	local table = LegendaryStockTracker:GetKnownTradeSkillRecipes();
+	for key, val in pairs(table) do 
+		test = test .. tostring(LegendaryStockTracker:GetTradeSkillRecipeName(val)) .. ": " .. tostring(LegendaryStockTracker:IsTradeSkillRecipeSLLegendary(val)) .. " rank unlocked: " .. tostring(LegendaryStockTracker:GetSLLegendaryUnlockedLevel(val)) .."\n"
+	end
+
+	local f = LegendaryStockTracker:GetMainFrame(UIParent)
+	LegendaryStockTracker:TabOnClick(exportTab)
+	LSTEditBox:SetText(test)
+	LSTEditBox:HighlightText()
+	f:Show()
 end

@@ -53,6 +53,7 @@ L["Settings"] =  "Settings"
 L["Table"] =  "Table"
 L["Restock"] =  "Restock"
 L["Rank"] =  "Rank"
+L["Profit"] =  "Profit"
 
 -- Export Frame
 L["Paste this data into your copy of the spreadsheet"] = "Paste this data into your copy of the spreadsheet"
@@ -60,6 +61,7 @@ L["Paste this data into your copy of the spreadsheet"] = "Paste this data into y
 --Settings Frame
 L["Show all legendaries"] = "Show all legendaries"
 L["Show profit (requires TSM operations)"] = "Show profit (requires TSM operations)"
+L["Include Cached items"] = "Include Cached items"
 L["Min profit before restocking"] = "Min profit before restocking"
 L["Restock amount"] = "Restock amount"
 L["Min restock amount"] = "Min restock amount"
