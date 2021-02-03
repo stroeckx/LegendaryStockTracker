@@ -1,5 +1,8 @@
-LegendaryStockTracker = LibStub("AceAddon-3.0"):NewAddon("LegendaryStockTracker", "AceConsole-3.0", "AceEvent-3.0")
+LegendaryStockTracker = LibStub("AceAddon-3.0"):NewAddon("LegendaryStockTracker", "AceConsole-3.0", "AceEvent-3.0", "AceComm-3.0")
 local L = LibStub("AceLocale-3.0"):GetLocale("LegendaryStockTracker")
+local AceSerializer = LibStub:GetLibrary("AceSerializer-3.0")
+local LibSerialize = LibStub("LibSerialize")
+local LibDeflate = LibStub("LibDeflate")
 
 -- Set up DataBroker for minimap button
 local LstockLDB = LibStub("LibDataBroker-1.1"):NewDataObject("LegendaryStockTracker", {
@@ -36,6 +39,7 @@ local bagItemLinks = {}
 local bagItemCount = 0
 local bankItemLinks = {}
 local bankItemCount = 0
+local isBankOpen = false
 local ahItemLinks = {}
 local ahItemCount = 0
 local mailboxItemLinks = {}
@@ -44,54 +48,51 @@ local GuildBankItemLinks = {}
 local GuildBankItemCount = 0
 local gearLinks = {}
 local legendaryLinks = {}
-local legendaryCountByRank = {}
 local TSMPriceDataByRank = {}
 local Rank1BonusIDs = "::2:1487:6716"
 local Rank2BonusIDs = "::2:1507:6717"
 local Rank3BonusIDs = "::2:1522:6718"
 local Rank4BonusIDs = "::2:1532:6758"
-local LegendaryIDsByName = 
+
+local LegendaryItemData = 
 {
-	[L["Shadowghast Armguards"]] =  171419,
-	[L["Shadowghast Breastplate"]] =  171412,
-	[L["Shadowghast Gauntlets"]] =  171414,
-	[L["Shadowghast Greaves"]] =  171416,
-	[L["Shadowghast Helm"]] =  171415,
-	[L["Shadowghast Pauldrons"]] =  171417,
-	[L["Shadowghast Sabatons"]] =  171413,
-	[L["Shadowghast Waistguard"]] =  171418,
-	
-	[L["Shadowghast Necklace"]] =  178927,
-	[L["Shadowghast Ring"]] =  178926,
-	
-	[L["Grim-Veiled Belt"]] =  173248,
-	[L["Grim-Veiled Bracers"]] =  173249,
-	[L["Grim-Veiled Cape"]] =  173242,
-	[L["Grim-Veiled Hood"]] =  173245,
-	[L["Grim-Veiled Mittens"]] =  173244,
-	[L["Grim-Veiled Pants"]] =  173246,
-	[L["Grim-Veiled Robe"]] =  173241,
-	[L["Grim-Veiled Sandals"]] =  173243,
-	[L["Grim-Veiled Spaulders"]] =  173247,
-	
-	[L["Umbrahide Armguards"]] =  172321,
-	[L["Umbrahide Gauntlets"]] =  172316,
-	[L["Umbrahide Helm"]] =  172317,
-	[L["Umbrahide Leggings"]] =  172318,
-	[L["Umbrahide Pauldrons"]] =  172319,
-	[L["Umbrahide Treads"]] =  172315,
-	[L["Umbrahide Vest"]] =  172314,
-	[L["Umbrahide Waistguard"]] =  172320,
-	
-	[L["Boneshatter Armguards"]] =  172329,
-	[L["Boneshatter Gauntlets"]] =  172324,
-	[L["Boneshatter Greaves"]] =  172326,
-	[L["Boneshatter Helm"]] =  172325,
-	[L["Boneshatter Pauldrons"]] =  172327,
-	[L["Boneshatter Treads"]] =  172323,
-	[L["Boneshatter Vest"]] =  172322,
-	[L["Boneshatter Waistguard"]] =  172328
+	["171419"] = {["profession"] = "plate", 	["recipeUnlocked"] = 0, ["stock"] = {0,0,0,0}},
+	["171412"] = {["profession"] = "plate", 	["recipeUnlocked"] = 0, ["stock"] = {0,0,0,0}},
+	["171414"] = {["profession"] = "plate", 	["recipeUnlocked"] = 0, ["stock"] = {0,0,0,0}},
+	["171416"] = {["profession"] = "plate", 	["recipeUnlocked"] = 0, ["stock"] = {0,0,0,0}},
+	["171415"] = {["profession"] = "plate", 	["recipeUnlocked"] = 0, ["stock"] = {0,0,0,0}},
+	["171417"] = {["profession"] = "plate", 	["recipeUnlocked"] = 0, ["stock"] = {0,0,0,0}},
+	["171413"] = {["profession"] = "plate", 	["recipeUnlocked"] = 0, ["stock"] = {0,0,0,0}},
+	["171418"] = {["profession"] = "plate", 	["recipeUnlocked"] = 0, ["stock"] = {0,0,0,0}},
+	["178927"] = {["profession"] = "jewelry", 	["recipeUnlocked"] = 0, ["stock"] = {0,0,0,0}},
+	["178926"] = {["profession"] = "jewelry", 	["recipeUnlocked"] = 0, ["stock"] = {0,0,0,0}},
+	["173248"] = {["profession"] = "cloth", 	["recipeUnlocked"] = 0, ["stock"] = {0,0,0,0}},
+	["173249"] = {["profession"] = "cloth", 	["recipeUnlocked"] = 0, ["stock"] = {0,0,0,0}},
+	["173242"] = {["profession"] = "cloth", 	["recipeUnlocked"] = 0, ["stock"] = {0,0,0,0}},
+	["173245"] = {["profession"] = "cloth", 	["recipeUnlocked"] = 0, ["stock"] = {0,0,0,0}},
+	["173244"] = {["profession"] = "cloth", 	["recipeUnlocked"] = 0, ["stock"] = {0,0,0,0}},
+	["173246"] = {["profession"] = "cloth", 	["recipeUnlocked"] = 0, ["stock"] = {0,0,0,0}},
+	["173241"] = {["profession"] = "cloth", 	["recipeUnlocked"] = 0, ["stock"] = {0,0,0,0}},
+	["173243"] = {["profession"] = "cloth", 	["recipeUnlocked"] = 0, ["stock"] = {0,0,0,0}},
+	["173247"] = {["profession"] = "cloth", 	["recipeUnlocked"] = 0, ["stock"] = {0,0,0,0}},
+	["172321"] = {["profession"] = "leather",	["recipeUnlocked"] = 0, ["stock"] = {0,0,0,0}},
+	["172316"] = {["profession"] = "leather", 	["recipeUnlocked"] = 0, ["stock"] = {0,0,0,0}},
+	["172317"] = {["profession"] = "leather", 	["recipeUnlocked"] = 0, ["stock"] = {0,0,0,0}},
+	["172318"] = {["profession"] = "leather", 	["recipeUnlocked"] = 0, ["stock"] = {0,0,0,0}},
+	["172319"] = {["profession"] = "leather", 	["recipeUnlocked"] = 0, ["stock"] = {0,0,0,0}},
+	["172315"] = {["profession"] = "leather", 	["recipeUnlocked"] = 0, ["stock"] = {0,0,0,0}},
+	["172314"] = {["profession"] = "leather", 	["recipeUnlocked"] = 0, ["stock"] = {0,0,0,0}},
+	["172320"] = {["profession"] = "leather", 	["recipeUnlocked"] = 0, ["stock"] = {0,0,0,0}},
+	["172329"] = {["profession"] = "mail", 		["recipeUnlocked"] = 0, ["stock"] = {0,0,0,0}},
+	["172324"] = {["profession"] = "mail", 		["recipeUnlocked"] = 0, ["stock"] = {0,0,0,0}},
+	["172326"] = {["profession"] = "mail", 		["recipeUnlocked"] = 0, ["stock"] = {0,0,0,0}},
+	["172325"] = {["profession"] = "mail", 		["recipeUnlocked"] = 0, ["stock"] = {0,0,0,0}},
+	["172327"] = {["profession"] = "mail", 		["recipeUnlocked"] = 0, ["stock"] = {0,0,0,0}},
+	["172323"] = {["profession"] = "mail", 		["recipeUnlocked"] = 0, ["stock"] = {0,0,0,0}},
+	["172322"] = {["profession"] = "mail", 		["recipeUnlocked"] = 0, ["stock"] = {0,0,0,0}},
+	["172328"] = {["profession"] = "mail", 		["recipeUnlocked"] = 0, ["stock"] = {0,0,0,0}}
 }
+
 local GUILD_BANK_SLOTS_PER_TAB = 98
 local IsTSMLoaded = false;
 local fontStringPool = nil
@@ -101,12 +102,8 @@ local numRanks = 4
 local activeTab = nil
 local exportTab = nil
 local contentFrame = nil
---local mainFrameHeight = db.profile.frame.height 
---local mainFrameWidth = db.profile.frame.width  
 local tabWidth = 150
 local tabHeight = 24
---local contentWidth = mainFrameWidth - tabWidth - 10
---local contentHeight = mainFrameHeight - 30
 local contentWidthOffset = 5
 local contentHeightOffset = -25
 
@@ -141,9 +138,11 @@ function LegendaryStockTracker:OnInitialize()
 				restockAmount = 3,
 				minrestockAmount = 2,
 				includeCachedData = true,
+				syncTarget = "charactername"
 			}
 		},
 		factionrealm = {
+			accountUUID = "",
 			characters = {
 				['*'] = {
 					characterName = "",
@@ -165,6 +164,10 @@ function LegendaryStockTracker:OnInitialize()
 					GuildBankItemCount = 0
 				}
 			},
+			syncData = 
+			{
+
+			},
 		}
 	});
 
@@ -177,7 +180,6 @@ function LegendaryStockTracker:OnInitialize()
     LegendaryStockTracker:RegisterChatCommand("lstSetSize", "SetMainFrameSize")
 	LegendaryStockTracker:RegisterChatCommand("lstockscan", "ScanAhPrices")
 	--events
-	LegendaryStockTracker:RegisterEvent("BANKFRAME_CLOSED", "GetAllItemsInBank")
 	LegendaryStockTracker:RegisterEvent("BANKFRAME_OPENED", "GetAllItemsInBank")
 	LegendaryStockTracker:RegisterEvent("OWNED_AUCTIONS_UPDATED", "GetAllItemsInAH")
 	LegendaryStockTracker:RegisterEvent("MAIL_INBOX_UPDATE", "GetAllItemsInMailbox")
@@ -185,6 +187,9 @@ function LegendaryStockTracker:OnInitialize()
 	LegendaryStockTracker:RegisterEvent("GUILDBANKFRAME_CLOSED", "GetAllItemsInGuildBank")
 	LegendaryStockTracker:RegisterEvent("GUILDBANKFRAME_OPENED", "GetAllItemsInGuildBank")
 	LegendaryStockTracker:RegisterEvent("AUCTION_HOUSE_BROWSE_RESULTS_UPDATED", "OnItemAdded")
+	LegendaryStockTracker:RegisterEvent("GET_ITEM_INFO_RECEIVED", "OnItemInfoReceived")
+
+	self:RegisterComm("LST")
 
 	LegendaryStockTracker:CheckIfTSMIsRunning()
 	playerName = UnitName("player")
@@ -192,12 +197,42 @@ function LegendaryStockTracker:OnInitialize()
 	db.factionrealm.characters[playerName].characterName = playerName;
 	db.factionrealm.characters[playerName].classNameBase = select(1,UnitClassBase("player"));
 	LegendaryStockTracker:GetAllItemsInBags();
+	local item = {};
+	for id,data in pairs(LegendaryItemData) do
+		local iteminfo = GetItemInfo(id);
+		if(iteminfo ~= nil ) then
+			LegendaryStockTracker:ProcessItemInfo(id, true)
+		end
+	end
+	if(db.factionrealm.accountUUID == nil or db.factionrealm.accountUUID == "") then
+		db.factionrealm.accountUUID = LegendaryStockTracker:GenerateUUID();
+	end
 end
 
-function LegendaryStockTracker:Test()
-	for key,val in pairs(db.factionrealm.characters) do
-		print(key);
+function tst()
+	return "test"
+end
+
+function LegendaryStockTracker:ProcessItemInfo(itemID, success)
+	if(LegendaryItemData[itemID] ~= nil) then
+		local itemName, itemLink, _, _, _, _, _, _, _, itemTexture, _, _, _, _, _, _, _ = GetItemInfo(itemID);
+		LegendaryItemData[itemID]["name"] = itemName;
+		LegendaryItemData[itemID]["itemLink"] = itemLink;
+		LegendaryItemData[itemID]["icon"] = itemTexture;
 	end
+end
+
+function LegendaryStockTracker:OnItemInfoReceived(event, itemID, success)
+	if(success == true) then
+		LegendaryStockTracker:ProcessItemInfo(tostring(tonumber(itemID)), success);
+	end
+end
+
+
+function LegendaryStockTracker:Test()
+	numSlots, full = GetNumBankSlots();
+	print(numSlots)
+	--LegendaryStockTracker:SendDataToPlayer("Talyma-Silvermoon");
 end
 
 function LegendaryStockTracker:SetMainFrameSize(value1, value2)
@@ -422,24 +457,66 @@ function LegendaryStockTracker:GetMainFrame(parent)
 		--settingsFrame:SetBackdropColor(0,0.75,0,0.9)
 		settingsFrame.title:SetText(L["Settings"])
 
+		settingsFrame.scrollframe = settingsFrame.scrollframe or CreateFrame("ScrollFrame", "LSTSettingsScrollFrame", settingsFrame, BackdropTemplateMixin and "UIPanelScrollFrameTemplate");
+		settingsFrame.scrollframe:SetPoint("LEFT")
+		settingsFrame.scrollframe:SetPoint("RIGHT", -22, 0)
+		settingsFrame.scrollframe:SetPoint("TOP")
+		settingsFrame.scrollframe:SetPoint("BOTTOM")
+
+		local LSTSettingsScrollChild = settingsFrame.scrollframe.scrollchild or CreateFrame("Frame", "LSTSettingsScrollChild", settingsFrame.scrollframe);
+		LSTSettingsScrollChild:SetSize(settingsFrame.scrollframe:GetSize())
+		settingsFrame.scrollframe:SetScrollChild(LSTSettingsScrollChild)
+
 		--settings options
 		local heightOffset = 0
-		heightOffset = LegendaryStockTracker:AddOptionCheckbox("ShowUnownedItemsCheckButton", settingsFrame, "loadUnownedLegendaries", L["Show all legendaries"], heightOffset)
-		heightOffset = LegendaryStockTracker:AddOptionCheckbox("ShowPricingCheckButton", settingsFrame, "showPricing", L["Show profit (requires TSM operations)"], heightOffset)
-		heightOffset = LegendaryStockTracker:AddOptionCheckbox("includeCacheCheckButton", settingsFrame, "includeCachedData", L["Include Cached items"], heightOffset)
-		heightOffset = LegendaryStockTracker:AddOptionEditbox("MinProfitEditBox", settingsFrame, "minProfit", L["Min profit before restocking"], heightOffset, 45)
-		heightOffset = LegendaryStockTracker:AddOptionEditbox("RestockAmountEditBox", settingsFrame, "restockAmount", L["Restock amount"], heightOffset, 25)
-		heightOffset = LegendaryStockTracker:AddOptionEditbox("MinRestockAmountEditBox", settingsFrame, "minrestockAmount", L["Min restock amount"], heightOffset, 25)
-		heightOffset = heightOffset - 100
-		local text = settingsFrame:CreateFontString(nil,"ARTWORK", "GameFontHighlight") 
-		text:SetPoint("TOPLEFT", settingsFrame, "TOPLEFT", 0, heightOffset)
+		heightOffset = LegendaryStockTracker:AddOptionCheckbox("ShowUnownedItemsCheckButton", LSTSettingsScrollChild, "loadUnownedLegendaries", L["Show all legendaries"], heightOffset)
+		heightOffset = LegendaryStockTracker:AddOptionCheckbox("ShowPricingCheckButton", LSTSettingsScrollChild, "showPricing", L["Show profit (requires TSM operations)"], heightOffset)
+		heightOffset = LegendaryStockTracker:AddOptionEditbox("MinProfitEditBox", LSTSettingsScrollChild, "minProfit", L["Min profit before restocking"], heightOffset, 45)
+		heightOffset = LegendaryStockTracker:AddOptionEditbox("RestockAmountEditBox", LSTSettingsScrollChild, "restockAmount", L["Restock amount"], heightOffset, 25)
+		heightOffset = LegendaryStockTracker:AddOptionEditbox("MinRestockAmountEditBox", LSTSettingsScrollChild, "minrestockAmount", L["Min restock amount"], heightOffset, 25)
+		heightOffset = heightOffset - 25
+		local text = LSTSettingsScrollChild:CreateFontString(nil,"ARTWORK", "GameFontHighlight") 
+		text:SetPoint("TOPLEFT", LSTSettingsScrollChild, "TOPLEFT", 0, heightOffset)
 		text:SetText(L["Sources to include:"])
 		heightOffset = heightOffset - 15
-		heightOffset = LegendaryStockTracker:AddOptionCheckbox("IncludeBagsCheckButton", settingsFrame, "includeBags", L["Include Bags"], heightOffset)
-		heightOffset = LegendaryStockTracker:AddOptionCheckbox("IncludeBankCheckButton", settingsFrame, "includeBank", L["Include Bank"], heightOffset)
-		heightOffset = LegendaryStockTracker:AddOptionCheckbox("IncludeAHCheckButton", settingsFrame, "includeAH", L["Include AH"], heightOffset)
-		heightOffset = LegendaryStockTracker:AddOptionCheckbox("IncludeMailCheckButton", settingsFrame, "includeMail", L["Include Mail"], heightOffset)
-		heightOffset = LegendaryStockTracker:AddOptionCheckbox("IncludeGuildCheckButton", settingsFrame, "IncludeGuild", L["Include Guild Bank"], heightOffset)
+		heightOffset = LegendaryStockTracker:AddOptionCheckbox("IncludeBagsCheckButton", LSTSettingsScrollChild, "includeBags", L["Include Bags"], heightOffset)
+		heightOffset = LegendaryStockTracker:AddOptionCheckbox("IncludeBankCheckButton", LSTSettingsScrollChild, "includeBank", L["Include Bank"], heightOffset)
+		heightOffset = LegendaryStockTracker:AddOptionCheckbox("IncludeAHCheckButton", LSTSettingsScrollChild, "includeAH", L["Include AH"], heightOffset)
+		heightOffset = LegendaryStockTracker:AddOptionCheckbox("IncludeMailCheckButton", LSTSettingsScrollChild, "includeMail", L["Include Mail"], heightOffset)
+		heightOffset = LegendaryStockTracker:AddOptionCheckbox("IncludeGuildCheckButton", LSTSettingsScrollChild, "IncludeGuild", L["Include Guild Bank"], heightOffset)
+		heightOffset = LegendaryStockTracker:AddOptionCheckbox("includeCacheCheckButton", LSTSettingsScrollChild, "includeCachedData", L["Include Cached items"], heightOffset)
+		heightOffset = heightOffset - 25
+		local syncEB = nil;
+		local syncText = nil;
+		heightOffset, syncEB, syncText = LegendaryStockTracker:AddOptionEditbox("syncTargetEditBox", LSTSettingsScrollChild, "syncTarget", L["Send data to this alt"], heightOffset, 100)
+
+		local syncButton = CreateFrame("Button", "LSTSendDataButton", LSTSettingsScrollChild, BackdropTemplateMixin and "BackdropTemplate");
+		Backdrop = {
+			bgFile = "Interface\\AddOns\\LegendaryStockTracker\\Assets\\Plain.tga",
+			edgeFile = "Interface/Buttons/WHITE8X8",
+			tile = true, tileSize = 0, edgeSize = 1,
+			insets = {left = 0, right = 0, top = 0, bottom = 0},
+		}
+		syncButton:SetBackdrop(Backdrop)
+		syncButton:SetBackdropColor(0.25,0.25,0.25,0.9)
+		syncButton:SetBackdropBorderColor(0,0,0,1)
+		syncButton:SetSize(200,24)
+		syncButton.HighlightTexture = syncButton:CreateTexture()
+		syncButton.HighlightTexture:SetColorTexture(1,1,1,.3)
+		syncButton.HighlightTexture:SetPoint("TOPLEFT")
+		syncButton.HighlightTexture:SetPoint("BOTTOMRIGHT")
+		syncButton:SetHighlightTexture(syncButton.HighlightTexture)
+		syncButton.PushedTexture = syncButton:CreateTexture()
+		syncButton.PushedTexture:SetColorTexture(.9,.8,.1,.3)
+		syncButton.PushedTexture:SetPoint("TOPLEFT")
+		syncButton.PushedTexture:SetPoint("BOTTOMRIGHT")
+		syncButton:SetPushedTexture(syncButton.PushedTexture)
+		local padding = 4;
+		local xOffset = 0;
+		syncButton:SetPoint("TOPLEFT", syncText, "TOPLEFT", -padding + xOffset, padding + 2);
+		syncButton:SetPoint("BOTTOMRIGHT", syncText, "BOTTOMRIGHT", padding + xOffset, -padding);
+		syncText:SetParent(syncButton);
+		syncButton:SetScript("OnClick", function(self) LegendaryStockTracker:SendDataToSyncTarget() end)
 
 		--table frame
 		local tableFrame = LegendaryStockTracker:CreateOptionsContentFrame("LSTtableFrame", contentFrame, BackdropTemplateMixin and "BackdropTemplate")
@@ -612,9 +689,9 @@ function LegendaryStockTracker:AddOptionEditbox(name, parent, setting, descripti
 	end)
 
 	local text = eb:CreateFontString(nil,"ARTWORK", "GameFontHighlight") 
-	text:SetPoint("LEFT", eb, "RIGHT", 3, -1)
+	text:SetPoint("LEFT", eb, "RIGHT", 6, -1)
 	text:SetText(description)
-	return heightOffset - 25
+	return heightOffset - 25, eb, text
 end
 
 function LegendaryStockTracker:OnEnable()
@@ -642,8 +719,18 @@ function LegendaryStockTracker:GetAllItemsInBags()
 	end
 end
 
-function LegendaryStockTracker:GetAllItemsInBank()
-	if(GetContainerItemLink(NUM_BAG_SLOTS+1,1) ~= nil) then
+function LegendaryStockTracker:GetAllItemsInBank(event)
+	if(event ~= nil) then
+		if(event == "BANKFRAME_OPENED") then
+			LegendaryStockTracker:RegisterEvent("BANKFRAME_CLOSED", "GetAllItemsInBank");
+			isBankOpen = true;
+		elseif(event == "BANKFRAME_CLOSED") then
+			LegendaryStockTracker:UnregisterEvent("BANKFRAME_CLOSED", "GetAllItemsInBank");
+			isBankOpen = false;
+		end
+	end
+
+	if(isBankOpen == true) then
 		bankItemLinks = {}
 		bankItemCount = 0
 		db.factionrealm.characters[playerName].bankItemLinks = {}
@@ -811,40 +898,47 @@ function LegendaryStockTracker:GetShadowlandsLegendariesFromGear()
 end
 
 function LegendaryStockTracker:CountLegendariesByRank()
-	legendaryCountByRank = {}
+	LegendaryStockTracker:CountLegendariesByRankWithoutSyncdata();
+
+	if(db.profile.settings.includeCachedData) then
+		for account, accountdata in pairs(db.factionrealm.syncData) do
+			for id, data in pairs (accountdata["legendaries"]) do
+				for rank, count in pairs(data["stock"]) do
+					LegendaryItemData[id]["stock"][rank] = LegendaryItemData[id]["stock"][rank] + count;
+					if(db.profile.settings.loadUnownedLegendaries == false and count > 0) then
+						LegendaryStockTracker:UpdateTsmPrices(id, rank);
+					end
+				end
+			end
+		end
+	end
+end
+
+function LegendaryStockTracker:CountLegendariesByRankWithoutSyncdata()
+	for id, data in pairs (LegendaryItemData) do
+		for rank, count in pairs(LegendaryItemData[id]["stock"]) do
+			LegendaryItemData[id]["stock"][rank] = 0;
+		end
+	end
+	
 	TSMPriceDataByRank = {}
 	for i=1, #legendaryLinks do
-		local itemName = select(1, GetItemInfo(legendaryLinks[i]))
-		local detailedItemLevel = GetDetailedItemLevelInfo(legendaryLinks[i])
-		LegendaryStockTracker:AddItemToLegendaryTableIfNotPresent(itemName)
-		local ItemCounts = legendaryCountByRank[itemName]
-		if detailedItemLevel == 190
-			then 
-				ItemCounts[1] = ItemCounts[1] + 1
-				if(db.profile.settings.loadUnownedLegendaries == false) then
-					LegendaryStockTracker:UpdateTsmPrices(itemName, 1)
-				end
-		elseif detailedItemLevel == 210
-			then 
-				ItemCounts[2] = ItemCounts[2] + 1
-				if(db.profile.settings.loadUnownedLegendaries == false) then
-					LegendaryStockTracker:UpdateTsmPrices(itemName, 2)
-				end
-		elseif detailedItemLevel == 225
-			then 
-				ItemCounts[3] = ItemCounts[3] + 1
-				if(db.profile.settings.loadUnownedLegendaries == false) then
-					LegendaryStockTracker:UpdateTsmPrices(itemName, 3)
-				end
-		elseif detailedItemLevel == 235
-			then 
-				ItemCounts[4] = ItemCounts[4] + 1
-				if(db.profile.settings.loadUnownedLegendaries == false) then
-					LegendaryStockTracker:UpdateTsmPrices(itemName, 4)
-				end
-		--add future ranks here
+		local itemID = select(3, strfind(legendaryLinks[i], "item:(%d+)"));
+		local detailedItemLevel = GetDetailedItemLevelInfo(legendaryLinks[i]);
+		local rank = 0;
+		if detailedItemLevel == 190 then
+			rank = 1;
+		elseif detailedItemLevel == 210 then
+			rank = 2;
+		elseif detailedItemLevel == 225 then
+			rank = 3;
+		elseif detailedItemLevel == 235 then
+			rank = 4;
 		end
-		legendaryCountByRank[itemName] = ItemCounts
+		LegendaryItemData[itemID]["stock"][rank] = LegendaryItemData[itemID]["stock"][rank] + 1;
+		if(db.profile.settings.loadUnownedLegendaries == false) then
+			LegendaryStockTracker:UpdateTsmPrices(itemID, rank);
+		end
 	end
 end
 
@@ -857,10 +951,10 @@ function LegendaryStockTracker:UpdateRestockList()
 			local currentStock = tonumber(LegendaryStockTracker:GetStockCount(nameTable[item], rank))
 			if currentStock < restockAmount and restockAmount - currentStock >= tonumber(db.profile.settings.minrestockAmount) then 
 				if(IsTSMLoaded == false or db.profile.settings.showPricing == false) then
-					table.insert(RestockList, {nameTable[item], rank, restockAmount - currentStock, 0})
+					table.insert(RestockList, {LegendaryItemData[nameTable[item]]["name"] , rank, restockAmount - currentStock, 0})
 				else
 					if tonumber(LegendaryStockTracker:GetMinBuyoutMinusAuctionOpMin(nameTable[item], rank)) > tonumber(db.profile.settings.minProfit) then
-						table.insert(RestockList, {nameTable[item], rank, restockAmount - currentStock, LegendaryStockTracker:GetMinBuyoutMinusAuctionOpMin(nameTable[item], rank)})
+						table.insert(RestockList, {LegendaryItemData[nameTable[item]]["name"], rank, restockAmount - currentStock, LegendaryStockTracker:GetMinBuyoutMinusAuctionOpMin(nameTable[item], rank)})
 					end
 				end
 			end
@@ -875,7 +969,7 @@ function LegendaryStockTracker:GenerateExportText()
 	if(IsTSMLoaded == false or db.profile.settings.showPricing == false) then
 		text = L["Item name, Rank 1, Rank 2, Rank 3,  Rank 4\n"]
 		for i=1, #NameTable do 
-			text = text .. NameTable[i] .. "," 
+			text = text .. LegendaryItemData[NameTable[i]]["name"] .. "," 
 			.. LegendaryStockTracker:GetStockCount(NameTable[i], 1) .. "," 
 			.. LegendaryStockTracker:GetStockCount(NameTable[i], 2) .. "," 
 			.. LegendaryStockTracker:GetStockCount(NameTable[i], 3) .. "," 
@@ -884,7 +978,7 @@ function LegendaryStockTracker:GenerateExportText()
 	else
 		text = L["Item name, Rank 1, Profit Rank 1, Rank 2, Profit Rank 2, Rank 3, Profit Rank 3, Rank 4, Profit Rank 4\n"]
 		for i=1, #NameTable do 
-			text = text .. NameTable[i] .. "," 
+			text = text .. LegendaryItemData[NameTable[i]]["name"] .. "," 
 			.. LegendaryStockTracker:GetStockCount(NameTable[i], 1) .. "," .. tostring(LegendaryStockTracker:GetMinBuyoutMinusAuctionOpMin(NameTable[i], 1)) .. ","
 			.. LegendaryStockTracker:GetStockCount(NameTable[i], 2) .. "," .. tostring(LegendaryStockTracker:GetMinBuyoutMinusAuctionOpMin(NameTable[i], 2)) .. ","
 			.. LegendaryStockTracker:GetStockCount(NameTable[i], 3) .. "," .. tostring(LegendaryStockTracker:GetMinBuyoutMinusAuctionOpMin(NameTable[i], 3)) .. ","
@@ -895,17 +989,23 @@ function LegendaryStockTracker:GenerateExportText()
 end
 
 function LegendaryStockTracker:createNameTable()
-	local NameTable = {}
+	local NameTable = {} --nametable is now "list of items to export"
 	if(db.profile.settings.loadUnownedLegendaries == false) then
-		for name, count in pairs(legendaryCountByRank) do 
-			table.insert(NameTable, name) 
+		for id, data in pairs (LegendaryItemData) do
+			local count = 0;
+			for rank, data in pairs(LegendaryItemData[id]["stock"]) do
+				count = count + data;
+			end
+			if(count > 0 ) then
+				table.insert(NameTable, id) 
+			end
 		end
 		table.sort(NameTable)
 	else
 		TSMPriceDataByRank = {}
-		for name, id in pairs(LegendaryIDsByName) do 
-			NameTable[#NameTable + 1] = name;
-			LegendaryStockTracker:UpdateTsmPriceForAllRanks(name)
+		for id, data in pairs(LegendaryItemData) do 
+			table.insert(NameTable, id)
+			LegendaryStockTracker:UpdateTsmPriceForAllRanks(id)
 		end
 		table.sort(NameTable)	
 	end
@@ -951,7 +1051,7 @@ function LegendaryStockTracker:CreateTableSheet(frame)
 		for i=1, #NameTable do 
 			row = 
 			{
-				LegendaryStockTracker:CreateTableElement(frame, NameTable[i],  1, 1, 1, 1),
+				LegendaryStockTracker:CreateTableElement(frame, LegendaryItemData[NameTable[i]]["name"],  1, 1, 1, 1),
 				LegendaryStockTracker:CreateTableElement(frame, LegendaryStockTracker:GetStockCount(NameTable[i], 1), LegendaryStockTracker:GetTableStockFont(LegendaryStockTracker:GetStockCount(NameTable[i], 1))), 
 				LegendaryStockTracker:CreateTableElement(frame, LegendaryStockTracker:GetStockCount(NameTable[i], 2), LegendaryStockTracker:GetTableStockFont(LegendaryStockTracker:GetStockCount(NameTable[i], 2))), 
 				LegendaryStockTracker:CreateTableElement(frame, LegendaryStockTracker:GetStockCount(NameTable[i], 3), LegendaryStockTracker:GetTableStockFont(LegendaryStockTracker:GetStockCount(NameTable[i], 3))), 
@@ -967,7 +1067,7 @@ function LegendaryStockTracker:CreateTableSheet(frame)
 		for i=1, #NameTable do 
 			row = 
 			{
-				LegendaryStockTracker:CreateTableElement(frame, NameTable[i], 1, 1, 1, 1),
+				LegendaryStockTracker:CreateTableElement(frame, LegendaryItemData[NameTable[i]]["name"], 1, 1, 1, 1),
 				LegendaryStockTracker:CreateTableElement(frame, LegendaryStockTracker:GetStockCount(NameTable[i], 1), LegendaryStockTracker:GetTableStockFont(LegendaryStockTracker:GetStockCount(NameTable[i], 1), tostring(LegendaryStockTracker:GetMinBuyoutMinusAuctionOpMin(NameTable[i], 1)))), LegendaryStockTracker:CreateTableElement(frame, tostring(LegendaryStockTracker:GetMinBuyoutMinusAuctionOpMin(NameTable[i], 1)), LegendaryStockTracker:GetTablePriceFont(tostring(LegendaryStockTracker:GetMinBuyoutMinusAuctionOpMin(NameTable[i], 1)))),
 				LegendaryStockTracker:CreateTableElement(frame, LegendaryStockTracker:GetStockCount(NameTable[i], 2), LegendaryStockTracker:GetTableStockFont(LegendaryStockTracker:GetStockCount(NameTable[i], 2), tostring(LegendaryStockTracker:GetMinBuyoutMinusAuctionOpMin(NameTable[i], 2)))), LegendaryStockTracker:CreateTableElement(frame, tostring(LegendaryStockTracker:GetMinBuyoutMinusAuctionOpMin(NameTable[i], 2)), LegendaryStockTracker:GetTablePriceFont(tostring(LegendaryStockTracker:GetMinBuyoutMinusAuctionOpMin(NameTable[i], 2)))),
 				LegendaryStockTracker:CreateTableElement(frame, LegendaryStockTracker:GetStockCount(NameTable[i], 3), LegendaryStockTracker:GetTableStockFont(LegendaryStockTracker:GetStockCount(NameTable[i], 3), tostring(LegendaryStockTracker:GetMinBuyoutMinusAuctionOpMin(NameTable[i], 3)))), LegendaryStockTracker:CreateTableElement(frame, tostring(LegendaryStockTracker:GetMinBuyoutMinusAuctionOpMin(NameTable[i], 3)), LegendaryStockTracker:GetTablePriceFont(tostring(LegendaryStockTracker:GetMinBuyoutMinusAuctionOpMin(NameTable[i], 3)))),
@@ -1080,12 +1180,6 @@ function LegendaryStockTracker:AddTableLine(frame, yPosition)
 	line:SetEndPoint("TOPRIGHT", 3, yPosition + 2)
 end
 
-function LegendaryStockTracker:AddItemToLegendaryTableIfNotPresent(itemName)
-	if (legendaryCountByRank[itemName] == nil) then
-		legendaryCountByRank[itemName] = {0,0,0,0,0,0,0,0,0,0} --leaving room for up to 10 legendary ranks
-	end
-end
-
 function LegendaryStockTracker:AddEmptyTsmPriceDataEntryIfNotPresent(itemName)
 	if (TSMPriceDataByRank[itemName] == nil) then
 		TSMPriceDataByRank[itemName] = {{0,0,0,0,0},{0,0,0,0,0},{0,0,0,0,0},{0,0,0,0,0},{0,0,0,0,0},{0,0,0,0,0},{0,0,0,0,0},{0,0,0,0,0},{0,0,0,0,0},{0,0,0,0,0}} --leaving room for up to 10 legendary ranks
@@ -1111,7 +1205,7 @@ function LegendaryStockTracker:UpdateTsmPrices(itemName, rank)
 		ItemPrices[rank][2] = 0
 		return nil
 	end
-	local tsmString = "i:" .. LegendaryIDsByName[itemName]
+	local tsmString = "i:" .. itemName;
 	if(rank == 1) then
 		tsmString = tsmString .. Rank1BonusIDs
 	elseif(rank == 2) then
@@ -1147,13 +1241,13 @@ function LegendaryStockTracker:ConvertTsmPriceToGold(value)
 end
 
 function LegendaryStockTracker:GetStockCount(itemName, rank)
-	local count = 0
-	if (legendaryCountByRank[itemName] ~= nil) then 
-		if (legendaryCountByRank[itemName][rank] ~= nil) then 
-			count = legendaryCountByRank[itemName][rank] 
+	local count = 0;
+	if (LegendaryItemData[itemName] ~= nil) then 
+		if (LegendaryItemData[itemName]["stock"][rank] ~= nil) then 
+			count = LegendaryItemData[itemName]["stock"][rank];
 		end
 	end
-	return count
+	return count;
 end
 
 function LegendaryStockTracker:CheckIfTSMIsRunning()
@@ -1199,10 +1293,12 @@ end
 
 function LegendaryStockTracker:ExportCraftRecipes()
 	local test = ""
-	print(test)
 	local table = LegendaryStockTracker:GetKnownTradeSkillRecipes();
 	for key, val in pairs(table) do 
-		test = test .. tostring(LegendaryStockTracker:GetTradeSkillRecipeName(val)) .. ": " .. tostring(LegendaryStockTracker:IsTradeSkillRecipeSLLegendary(val)) .. " rank unlocked: " .. tostring(LegendaryStockTracker:GetSLLegendaryUnlockedLevel(val)) .."\n"
+		--test = test .. tostring(LegendaryStockTracker:GetTradeSkillRecipeName(val)) .. ": " .. tostring(LegendaryStockTracker:IsTradeSkillRecipeSLLegendary(val)) .. " rank unlocked: " .. tostring(LegendaryStockTracker:GetSLLegendaryUnlockedLevel(val)) .."\n"
+		for k, v in pairs(C_TradeSkillUI.GetRecipeInfo(val)) do  
+			test = test .. tostring(k) .. ":" .. tostring(v) .."\n";
+		end
 	end
 
 	local f = LegendaryStockTracker:GetMainFrame(UIParent)
@@ -1210,4 +1306,67 @@ function LegendaryStockTracker:ExportCraftRecipes()
 	LSTEditBox:SetText(test)
 	LSTEditBox:HighlightText()
 	f:Show()
+end
+
+function LegendaryStockTracker:OnCommReceived(prefix, payload, distribution, sender)
+	local decoded = LibDeflate:DecodeForWoWAddonChannel(payload)
+	if not decoded then return end
+	local decompressed = LibDeflate:DecompressDeflate(decoded)
+	if not decompressed then return end
+	local success, data = LibSerialize:Deserialize(decompressed)
+	if not success then return end
+	print(L["LST: Received item data from "] .. sender)
+	db.factionrealm.syncData[data["accID"]] = {}
+	db.factionrealm.syncData[data["accID"]]["legendaries"] = {}
+	local table = db.factionrealm.syncData[data["accID"]]["legendaries"]
+	for id, data in pairs (data["legendaries"]) do
+		table[id] = 
+		{
+			["canCraft"] = data[1],
+			["stock"] = {data[2],  data[3], data[4], data[5]}
+		}
+	end
+end
+
+function LegendaryStockTracker:SendDataToSyncTarget()
+	LegendaryStockTracker:SendDataToPlayer(db.profile.settings.syncTarget)
+end
+
+function LegendaryStockTracker:SendDataToPlayer(player)
+	print(L["LST: Sending data to "] .. player)
+	LegendaryStockTracker:CountLegendariesByRankWithoutSyncdata();
+	local syncData = {
+		["accID"] = db.factionrealm.accountUUID,
+		["legendaries"] = {}
+	}
+
+	for id, data in pairs (LegendaryItemData) do
+		local count = 0;
+		for rank, data in pairs(LegendaryItemData[id]["stock"]) do
+			count = count + data;
+		end
+		if(count > 0 ) then
+			syncData["legendaries"][id] = {0, LegendaryItemData[id]["stock"][1], LegendaryItemData[id]["stock"][2], LegendaryItemData[id]["stock"][3], LegendaryItemData[id]["stock"][4]}
+		end
+	end
+
+	LegendaryStockTracker:CountLegendariesByRank();
+
+	local serialized = LibSerialize:Serialize(syncData)
+	local compressed = LibDeflate:CompressDeflate(serialized)
+	local encoded = LibDeflate:EncodeForWoWAddonChannel(compressed)
+	self:SendCommMessage("LST", encoded, "WHISPER", player, "NORMAL", LegendaryStockTracker:OnCommChunkSent())
+end
+
+function LegendaryStockTracker:OnCommChunkSent(arg, sentBytes, totalBytes)
+	--print(sentBytes == totalBytes);
+end
+
+function LegendaryStockTracker:GenerateUUID()
+	local random = math.random
+	local template ='xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'
+	return string.gsub(template, '[xy]', function (c)
+		local v = (c == 'x') and random(0, 0xf) or random(8, 0xb)
+		return string.format('%x', v)
+	end)
 end

@@ -71,6 +71,7 @@ L["Include Bank"] = "Include Bank"
 L["Include AH"] = "Include AH"
 L["Include Mail"] = "Include Mail"
 L["Include Guild Bank"] = "Include Guild Bank"
+L["Send data to this alt"] = "Send data to this alt"
 
 -- Minimap Icon
 L["Click or type /lst to show the main panel"] =  "Click or type /lst to show the main panel"
@@ -103,3 +104,7 @@ L["Profit R4"] = "Profit R4"
 -- Restock
 L["Item"] = "Item"
 L["Amount"] = "Amount"
+
+-- Data Sync
+L["LST: Sending data to "] = "LST: Sending data to "
+L["LST: Received item data from "] = "LST: Received item data from "
