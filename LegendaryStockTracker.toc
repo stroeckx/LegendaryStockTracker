@@ -3,7 +3,7 @@
 ## Notes: Helps keeping track of your stock of shadowlands legendaries
 ## Author: Stroeckx
 ## Contributors: Bullseye, Andran, Voldoroc
-## Version: 2.5
+## Version: 2.6
 ## SavedVariables: LegendaryStockTrackerDB
 ## OptionalDeps: TradeSkillMaster
 
@@ -23,4 +23,3 @@ Libs\LibDBIcon-1.0\lib.xml
 Locales\Locales.xml
 
 core.lua
-
