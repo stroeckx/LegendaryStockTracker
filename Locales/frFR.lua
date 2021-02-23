@@ -114,3 +114,7 @@ L["Amount"] = "Montant"
 -- Data Sync
 L["LST: Sending data to "] = "LST : Envoi de données vers "
 L["LST: Received item data from "] = "LST : Received item data from "
+
+-- Crafting
+L["LST: You need to open your profession first"] = "LST: Vous devez d'abord ouvrir votre profession"
+L["LST: Not enough materials to craft "] = "LST: Pas assez de matériaux pour l'artisanat "

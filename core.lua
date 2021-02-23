@@ -32,6 +32,9 @@ local LstockIcon = LibStub("LibDBIcon-1.0")
 local LstockMainFrame = nil
 local LSTTableScrollChild = nil
 local LSTRestockScrollChild = nil
+local tableFrame = nil
+local restockFrame = nil
+local exportFrame = nil
 
 --all collections of items are stored separately for future expandability
 local itemLinks = {}
@@ -56,42 +59,49 @@ local Rank4BonusIDs = "::2:1532:6758"
 
 local LegendaryItemData = 
 {
-	["171419"] = {["profession"] = "plate", 	["recipeUnlocked"] = 0, ["stock"] = {0,0,0,0}},
-	["171412"] = {["profession"] = "plate", 	["recipeUnlocked"] = 0, ["stock"] = {0,0,0,0}},
-	["171414"] = {["profession"] = "plate", 	["recipeUnlocked"] = 0, ["stock"] = {0,0,0,0}},
-	["171416"] = {["profession"] = "plate", 	["recipeUnlocked"] = 0, ["stock"] = {0,0,0,0}},
-	["171415"] = {["profession"] = "plate", 	["recipeUnlocked"] = 0, ["stock"] = {0,0,0,0}},
-	["171417"] = {["profession"] = "plate", 	["recipeUnlocked"] = 0, ["stock"] = {0,0,0,0}},
-	["171413"] = {["profession"] = "plate", 	["recipeUnlocked"] = 0, ["stock"] = {0,0,0,0}},
-	["171418"] = {["profession"] = "plate", 	["recipeUnlocked"] = 0, ["stock"] = {0,0,0,0}},
-	["178927"] = {["profession"] = "jewelry", 	["recipeUnlocked"] = 0, ["stock"] = {0,0,0,0}},
-	["178926"] = {["profession"] = "jewelry", 	["recipeUnlocked"] = 0, ["stock"] = {0,0,0,0}},
-	["173248"] = {["profession"] = "cloth", 	["recipeUnlocked"] = 0, ["stock"] = {0,0,0,0}},
-	["173249"] = {["profession"] = "cloth", 	["recipeUnlocked"] = 0, ["stock"] = {0,0,0,0}},
-	["173242"] = {["profession"] = "cloth", 	["recipeUnlocked"] = 0, ["stock"] = {0,0,0,0}},
-	["173245"] = {["profession"] = "cloth", 	["recipeUnlocked"] = 0, ["stock"] = {0,0,0,0}},
-	["173244"] = {["profession"] = "cloth", 	["recipeUnlocked"] = 0, ["stock"] = {0,0,0,0}},
-	["173246"] = {["profession"] = "cloth", 	["recipeUnlocked"] = 0, ["stock"] = {0,0,0,0}},
-	["173241"] = {["profession"] = "cloth", 	["recipeUnlocked"] = 0, ["stock"] = {0,0,0,0}},
-	["173243"] = {["profession"] = "cloth", 	["recipeUnlocked"] = 0, ["stock"] = {0,0,0,0}},
-	["173247"] = {["profession"] = "cloth", 	["recipeUnlocked"] = 0, ["stock"] = {0,0,0,0}},
-	["172321"] = {["profession"] = "leather",	["recipeUnlocked"] = 0, ["stock"] = {0,0,0,0}},
-	["172316"] = {["profession"] = "leather", 	["recipeUnlocked"] = 0, ["stock"] = {0,0,0,0}},
-	["172317"] = {["profession"] = "leather", 	["recipeUnlocked"] = 0, ["stock"] = {0,0,0,0}},
-	["172318"] = {["profession"] = "leather", 	["recipeUnlocked"] = 0, ["stock"] = {0,0,0,0}},
-	["172319"] = {["profession"] = "leather", 	["recipeUnlocked"] = 0, ["stock"] = {0,0,0,0}},
-	["172315"] = {["profession"] = "leather", 	["recipeUnlocked"] = 0, ["stock"] = {0,0,0,0}},
-	["172314"] = {["profession"] = "leather", 	["recipeUnlocked"] = 0, ["stock"] = {0,0,0,0}},
-	["172320"] = {["profession"] = "leather", 	["recipeUnlocked"] = 0, ["stock"] = {0,0,0,0}},
-	["172329"] = {["profession"] = "mail", 		["recipeUnlocked"] = 0, ["stock"] = {0,0,0,0}},
-	["172324"] = {["profession"] = "mail", 		["recipeUnlocked"] = 0, ["stock"] = {0,0,0,0}},
-	["172326"] = {["profession"] = "mail", 		["recipeUnlocked"] = 0, ["stock"] = {0,0,0,0}},
-	["172325"] = {["profession"] = "mail", 		["recipeUnlocked"] = 0, ["stock"] = {0,0,0,0}},
-	["172327"] = {["profession"] = "mail", 		["recipeUnlocked"] = 0, ["stock"] = {0,0,0,0}},
-	["172323"] = {["profession"] = "mail", 		["recipeUnlocked"] = 0, ["stock"] = {0,0,0,0}},
-	["172322"] = {["profession"] = "mail", 		["recipeUnlocked"] = 0, ["stock"] = {0,0,0,0}},
-	["172328"] = {["profession"] = "mail", 		["recipeUnlocked"] = 0, ["stock"] = {0,0,0,0}}
+	["171419"] = {["profession"] = 1311, ["recipeUnlocked"] = 0, ["stock"] = {0,0,0,0}, ["recipeID"] = {0,0,0,0}},
+	["171412"] = {["profession"] = 1311, ["recipeUnlocked"] = 0, ["stock"] = {0,0,0,0}, ["recipeID"] = {0,0,0,0}},
+	["171414"] = {["profession"] = 1311, ["recipeUnlocked"] = 0, ["stock"] = {0,0,0,0}, ["recipeID"] = {0,0,0,0}},
+	["171416"] = {["profession"] = 1311, ["recipeUnlocked"] = 0, ["stock"] = {0,0,0,0}, ["recipeID"] = {0,0,0,0}},
+	["171415"] = {["profession"] = 1311, ["recipeUnlocked"] = 0, ["stock"] = {0,0,0,0}, ["recipeID"] = {0,0,0,0}},
+	["171417"] = {["profession"] = 1311, ["recipeUnlocked"] = 0, ["stock"] = {0,0,0,0}, ["recipeID"] = {0,0,0,0}},
+	["171413"] = {["profession"] = 1311, ["recipeUnlocked"] = 0, ["stock"] = {0,0,0,0}, ["recipeID"] = {0,0,0,0}},
+	["171418"] = {["profession"] = 1311, ["recipeUnlocked"] = 0, ["stock"] = {0,0,0,0}, ["recipeID"] = {0,0,0,0}},
+	["178927"] = {["profession"] = 1418, ["recipeUnlocked"] = 0, ["stock"] = {0,0,0,0}, ["recipeID"] = {0,0,0,0}},
+	["178926"] = {["profession"] = 1418, ["recipeUnlocked"] = 0, ["stock"] = {0,0,0,0}, ["recipeID"] = {0,0,0,0}},
+	["173248"] = {["profession"] = 1395, ["recipeUnlocked"] = 0, ["stock"] = {0,0,0,0}, ["recipeID"] = {0,0,0,0}},
+	["173249"] = {["profession"] = 1395, ["recipeUnlocked"] = 0, ["stock"] = {0,0,0,0}, ["recipeID"] = {0,0,0,0}},
+	["173242"] = {["profession"] = 1395, ["recipeUnlocked"] = 0, ["stock"] = {0,0,0,0}, ["recipeID"] = {0,0,0,0}},
+	["173245"] = {["profession"] = 1395, ["recipeUnlocked"] = 0, ["stock"] = {0,0,0,0}, ["recipeID"] = {0,0,0,0}},
+	["173244"] = {["profession"] = 1395, ["recipeUnlocked"] = 0, ["stock"] = {0,0,0,0}, ["recipeID"] = {0,0,0,0}},
+	["173246"] = {["profession"] = 1395, ["recipeUnlocked"] = 0, ["stock"] = {0,0,0,0}, ["recipeID"] = {0,0,0,0}},
+	["173241"] = {["profession"] = 1395, ["recipeUnlocked"] = 0, ["stock"] = {0,0,0,0}, ["recipeID"] = {0,0,0,0}},
+	["173243"] = {["profession"] = 1395, ["recipeUnlocked"] = 0, ["stock"] = {0,0,0,0}, ["recipeID"] = {0,0,0,0}},
+	["173247"] = {["profession"] = 1395, ["recipeUnlocked"] = 0, ["stock"] = {0,0,0,0}, ["recipeID"] = {0,0,0,0}},
+	["172321"] = {["profession"] = 1334, ["recipeUnlocked"] = 0, ["stock"] = {0,0,0,0}, ["recipeID"] = {0,0,0,0}},
+	["172316"] = {["profession"] = 1334, ["recipeUnlocked"] = 0, ["stock"] = {0,0,0,0}, ["recipeID"] = {0,0,0,0}},
+	["172317"] = {["profession"] = 1334, ["recipeUnlocked"] = 0, ["stock"] = {0,0,0,0}, ["recipeID"] = {0,0,0,0}},
+	["172318"] = {["profession"] = 1334, ["recipeUnlocked"] = 0, ["stock"] = {0,0,0,0}, ["recipeID"] = {0,0,0,0}},
+	["172319"] = {["profession"] = 1334, ["recipeUnlocked"] = 0, ["stock"] = {0,0,0,0}, ["recipeID"] = {0,0,0,0}},
+	["172315"] = {["profession"] = 1334, ["recipeUnlocked"] = 0, ["stock"] = {0,0,0,0}, ["recipeID"] = {0,0,0,0}},
+	["172314"] = {["profession"] = 1334, ["recipeUnlocked"] = 0, ["stock"] = {0,0,0,0}, ["recipeID"] = {0,0,0,0}},
+	["172320"] = {["profession"] = 1334, ["recipeUnlocked"] = 0, ["stock"] = {0,0,0,0}, ["recipeID"] = {0,0,0,0}},
+	["172329"] = {["profession"] = 1334, ["recipeUnlocked"] = 0, ["stock"] = {0,0,0,0}, ["recipeID"] = {0,0,0,0}},
+	["172324"] = {["profession"] = 1334, ["recipeUnlocked"] = 0, ["stock"] = {0,0,0,0}, ["recipeID"] = {0,0,0,0}},
+	["172326"] = {["profession"] = 1334, ["recipeUnlocked"] = 0, ["stock"] = {0,0,0,0}, ["recipeID"] = {0,0,0,0}},
+	["172325"] = {["profession"] = 1334, ["recipeUnlocked"] = 0, ["stock"] = {0,0,0,0}, ["recipeID"] = {0,0,0,0}},
+	["172327"] = {["profession"] = 1334, ["recipeUnlocked"] = 0, ["stock"] = {0,0,0,0}, ["recipeID"] = {0,0,0,0}},
+	["172323"] = {["profession"] = 1334, ["recipeUnlocked"] = 0, ["stock"] = {0,0,0,0}, ["recipeID"] = {0,0,0,0}},
+	["172322"] = {["profession"] = 1334, ["recipeUnlocked"] = 0, ["stock"] = {0,0,0,0}, ["recipeID"] = {0,0,0,0}},
+	["172328"] = {["profession"] = 1334, ["recipeUnlocked"] = 0, ["stock"] = {0,0,0,0}, ["recipeID"] = {0,0,0,0}}
+}local SLProfessionsIds =
+{
+	[1418] = "Jewelcrafting",
+	[1311] = "Blacksmithing",
+	[1395] = "Tailoring",
+	[1334] = "LeatherWorking"
 }
+local openedProfession = 0;
 
 local GUILD_BANK_SLOTS_PER_TAB = 98
 local IsTSMLoaded = false;
@@ -197,6 +207,7 @@ function LST:OnInitialize()
     LST:RegisterChatCommand("lst", "HandleChatCommand")
     LST:RegisterChatCommand("LST", "HandleChatCommand")
     LST:RegisterChatCommand("lstocktest", "Test")
+    LST:RegisterChatCommand("tst", "tst")
     LST:RegisterChatCommand("lstSetSize", "SetMainFrameSize")
 	LST:RegisterChatCommand("lstockscan", "ScanAhPrices")
 	--events
@@ -210,6 +221,8 @@ function LST:OnInitialize()
 	LST:RegisterEvent("GET_ITEM_INFO_RECEIVED", "OnItemInfoReceived")
 	LST:RegisterEvent("TRADE_SKILL_LIST_UPDATE", "UpdateLegendaryRecipes")
 	LST:RegisterEvent("NEW_RECIPE_LEARNED", "UpdateLegendaryRecipes")
+	LST:RegisterEvent("TRADE_SKILL_CLOSE", "OnTradeskillClosed")
+	LST:RegisterEvent("BAG_UPDATE", "OnBagsUpdated")
 
 	self:RegisterComm("LST")
 
@@ -232,7 +245,8 @@ function LST:OnInitialize()
 end
 
 function LST:tst()
-	print("tst");
+	print(tostring(openedProfession))
+	return nil;
 end
 
 function LST:ProcessItemInfo(itemID, success)
@@ -252,8 +266,8 @@ end
 
 
 function LST:Test()
-	LST:UpdateLegendaryRecipes();
-	--LST:SendDataToPlayer("Talyma-Silvermoon");
+	LST:CraftNextRestockItem();
+	--LSTEditBox:SetText(LST:UpdateLegendaryRecipes());
 end
 
 function LST:SetMainFrameSize(value1, value2)
@@ -425,7 +439,7 @@ function LST:GetMainFrame(parent)
 		line:SetEndPoint("TOPRIGHT",-2,-20)
 
 		--Export Frame
-		local exportFrame = LST:CreateOptionsContentFrame("LSTExportFrame", contentFrame, Backdrop)
+		exportFrame = LST:CreateOptionsContentFrame("LSTExportFrame", contentFrame, Backdrop)
 		--exportFrame:SetBackdropColor(0.75,0,0,0.9)
 		exportFrame.title:SetText(L["Paste this data into your copy of the spreadsheet"])
 		exportFrame:SetScript("OnShow", function()
@@ -511,7 +525,7 @@ function LST:GetMainFrame(parent)
 		heightOffset = LST:AddSyncButtonToOptions(heightOffset, LSTSettingsScrollChild);
 		
 		--table frame
-		local tableFrame = LST:CreateOptionsContentFrame("LSTtableFrame", contentFrame, BackdropTemplateMixin and "BackdropTemplate")
+		tableFrame = LST:CreateOptionsContentFrame("LSTtableFrame", contentFrame, BackdropTemplateMixin and "BackdropTemplate")
 		--tableFrame:SetBackdrop(Backdrop)
 		--tableFrame:SetBackdropColor(0,0,1,0.9)
 		tableFrame.title:SetText(L["Table"])
@@ -529,7 +543,7 @@ function LST:GetMainFrame(parent)
 		tableFrame.scrollframe:SetScrollChild(LSTTableScrollChild)
 
 		--Restock frame
-		local restockFrame = LST:CreateOptionsContentFrame("LSTRestockFrame", contentFrame, Backdrop)
+		restockFrame = LST:CreateOptionsContentFrame("LSTRestockFrame", contentFrame, Backdrop)
 		restockFrame.title:SetText(L["Restock"])
 		restockFrame:SetScript("OnShow", function()
 			LST:UpdateRestock()
@@ -543,6 +557,8 @@ function LST:GetMainFrame(parent)
 		LSTRestockScrollChild = restockFrame.scrollframe.scrollchild or CreateFrame("Frame", "LSTRestockScrollChild", restockFrame.scrollframe);
 		LSTRestockScrollChild:SetSize(restockFrame.scrollframe:GetSize())
 		restockFrame.scrollframe:SetScrollChild(LSTRestockScrollChild)
+
+		LST:AddCraftButtonToRestock(restockFrame);
 
 		--create tabs
 		exportTab = LST:AddTab(tabList, tabWidth, 24, 3, exportFrame, L["Export"])
@@ -721,12 +737,62 @@ function LST:AddSyncButtonToOptions(heightOffset, LSTSettingsScrollChild)
 	return heightOffset;
 end
 
+function LST:AddCraftButtonToRestock(restockFrame)
+	local craftButton = CreateFrame("Button", "LSTCraftNextButton", restockFrame, BackdropTemplateMixin and "BackdropTemplate");
+	Backdrop = {
+		bgFile = "Interface\\AddOns\\LegendaryStockTracker\\Assets\\Plain.tga",
+		edgeFile = "Interface/Buttons/WHITE8X8",
+		tile = true, tileSize = 0, edgeSize = 1,
+		insets = {left = 0, right = 0, top = 0, bottom = 0},
+	}
+	craftButton:SetBackdrop(Backdrop)
+	craftButton:SetBackdropColor(0.25,0.25,0.25,0.9)
+	craftButton:SetBackdropBorderColor(0,0,0,1)
+	craftButton:SetSize(100,24)
+	craftButton.HighlightTexture = craftButton:CreateTexture()
+	craftButton.HighlightTexture:SetColorTexture(1,1,1,.3)
+	craftButton.HighlightTexture:SetPoint("TOPLEFT")
+	craftButton.HighlightTexture:SetPoint("BOTTOMRIGHT")
+	craftButton:SetHighlightTexture(craftButton.HighlightTexture)
+	craftButton.PushedTexture = craftButton:CreateTexture()
+	craftButton.PushedTexture:SetColorTexture(.9,.8,.1,.3)
+	craftButton.PushedTexture:SetPoint("TOPLEFT")
+	craftButton.PushedTexture:SetPoint("BOTTOMRIGHT")
+	craftButton:SetPushedTexture(craftButton.PushedTexture)
+	craftButton:SetPoint("TOPLEFT", restockFrame, "BOTTOMLEFT", 0, 0);
+	craftButton:SetScript("OnClick", function(self) LST:CraftNextRestockItem() end)
+
+	local text = craftButton:CreateFontString(nil,"ARTWORK", "GameFontHighlight") 
+	text:SetPoint("TOPLEFT")
+	text:SetPoint("BOTTOMRIGHT")
+	text:SetText("craft next")
+end
+
 function LST:OnEnable()
 
 end
 
 function LST:OnDisable()
 
+end
+
+function LST:OnBagsUpdated(bagIndex)
+	LST:UpdateShownTab();
+end
+
+function LST:UpdateShownTab()
+	if not LstockMainFrame then
+		return nil
+	end
+	if(tableFrame:IsVisible()) then
+		LST:UpdateTable();
+	end
+	if(exportFrame:IsVisible()) then
+		LST:UpdateExportText();
+	end
+	if(restockFrame:IsVisible()) then
+		LST:UpdateRestock();
+	end
 end
 
 function LST:GetAllItemsInBags()
@@ -941,6 +1007,20 @@ function LST:CountLegendariesByRank()
 	end
 end
 
+function LST:GetLegendaryRankByItemLevel(itemlevel)
+	local rank = 0;
+	if itemlevel == 190 then
+		rank = 1;
+	elseif itemlevel == 210 then
+		rank = 2;
+	elseif itemlevel == 225 then
+		rank = 3;
+	elseif itemlevel == 235 then
+		rank = 4;
+	end
+	return rank;
+end
+
 function LST:CountLegendariesByRankWithoutSyncdata()
 	for id, data in pairs (LegendaryItemData) do
 		for rank, count in pairs(LegendaryItemData[id]["stock"]) do
@@ -952,16 +1032,7 @@ function LST:CountLegendariesByRankWithoutSyncdata()
 	for i=1, #legendaryLinks do
 		local itemID = select(3, strfind(legendaryLinks[i], "item:(%d+)"));
 		local detailedItemLevel = GetDetailedItemLevelInfo(legendaryLinks[i]);
-		local rank = 0;
-		if detailedItemLevel == 190 then
-			rank = 1;
-		elseif detailedItemLevel == 210 then
-			rank = 2;
-		elseif detailedItemLevel == 225 then
-			rank = 3;
-		elseif detailedItemLevel == 235 then
-			rank = 4;
-		end
+		local rank = LST:GetLegendaryRankByItemLevel(detailedItemLevel);
 		LegendaryItemData[itemID]["stock"][rank] = LegendaryItemData[itemID]["stock"][rank] + 1;
 		if(db.profile.settings.loadUnownedLegendaries == false) then
 			LST:UpdateTsmPrices(itemID, rank);
@@ -1003,10 +1074,10 @@ function LST:UpdateRestockList()
 				local currentStock = tonumber(LST:GetStockCount(nameTable[item], rank))
 				if currentStock < restockAmount and restockAmount - currentStock >= tonumber(db.profile.settings.minrestockAmount) then 
 					if(IsTSMLoaded == false or db.profile.settings.showPricing == false) then
-						table.insert(RestockList, {LegendaryItemData[nameTable[item]]["name"] , rank, restockAmount - currentStock, 0})
+						table.insert(RestockList, {LegendaryItemData[nameTable[item]]["name"] , rank, restockAmount - currentStock, 0, nameTable[item]})
 					else
 						if tonumber(LST:GetMinBuyoutMinusAuctionOpMin(nameTable[item], rank)) > tonumber(db.profile.settings.minProfit) then
-							table.insert(RestockList, {LegendaryItemData[nameTable[item]]["name"], rank, restockAmount - currentStock, LST:GetMinBuyoutMinusAuctionOpMin(nameTable[item], rank)})
+							table.insert(RestockList, {LegendaryItemData[nameTable[item]]["name"], rank, restockAmount - currentStock, LST:GetMinBuyoutMinusAuctionOpMin(nameTable[item], rank), nameTable[item]})
 						end
 					end
 				end
@@ -1425,14 +1496,59 @@ function LST:GetCraftResultItemId(recipeInfo)
 end
 
 function LST:UpdateLegendaryRecipes()
+	local categories = {C_TradeSkillUI.GetCategories()}
+	local SLID = 0;
+	for _, categoryID in pairs(categories) do
+		if(SLProfessionsIds[categoryID] ~= nil) then
+			SLID = categoryID;
+		end
+	end
+	LST:SetOpenedProfessionID(SLID)
 	local recipes = LST:GetKnownTradeSkillRecipes();
 	for recipeID, val in pairs(recipes) do 
 		local recipeInfo = C_TradeSkillUI.GetRecipeInfo(recipeID);
 		if(LST:IsTradeSkillRecipeSLLegendary(recipeInfo)) then
+			local itemLevel = GetDetailedItemLevelInfo(C_TradeSkillUI.GetRecipeItemLink(recipeID))
+			local rank = LST:GetLegendaryRankByItemLevel(itemLevel);
 			local itemID = LST:GetCraftResultItemId(recipeInfo);
 			local unlockedLevel = LST:GetSLLegendaryUnlockedLevel(recipeInfo)
 			db.factionrealm.characters[playerName].unlockedLegendaryCraftRanks[itemID] = unlockedLevel;
 			LegendaryItemData[itemID]["recipeUnlocked"] = unlockedLevel;
+			LegendaryItemData[itemID]["recipeID"][rank] = recipeID;
+		end
+	end
+end
+
+function LST:OnTradeskillClosed()
+	LST:SetOpenedProfessionID(0)
+end
+
+function LST:SetOpenedProfessionID(ID)
+	openedProfession = ID;
+end
+
+function LST:CraftNextRestockItem()
+	if(openedProfession == 0) then 
+		print(L["LST: You need to open your profession first"]);
+		return nil 
+	end;
+	for index, restockData in ipairs(RestockList) do
+		local itemID = restockData[5];
+		if(LegendaryItemData[itemID]["profession"] == openedProfession) then
+			local recipeID = LegendaryItemData[tostring(itemID)]["recipeID"][restockData[2]];
+			if(recipeID ~= 0) then
+				local recipeInfo = C_TradeSkillUI.GetRecipeInfo(recipeID);
+				local availableCraftCount = recipeInfo["numAvailable"];
+				if(availableCraftCount >= restockData[3]) then
+					C_TradeSkillUI.CraftRecipe(recipeID, restockData[3], nil, 1);
+					return nil;
+				elseif(availableCraftCount > 0) then
+					C_TradeSkillUI.CraftRecipe(recipeID, availableCraftCount, nil, 1);
+					return nil;
+				else 
+					print(L["LST: Not enough materials to craft "] .. restockData[1])
+				end
+			end
 		end
 	end
 end
@@ -1501,16 +1617,11 @@ function LST:GenerateUUID()
 	end)
 end
 
-
-
 function LST:AddComasEveryThousand(number)
-
 	local i, j, minus, int, fraction = tostring(number):find('([-]?)(%d+)([.]?%d*)')
-  
 	-- reverse the int-string and append a comma to all blocks of 3 digits
 	int = int:reverse():gsub("(%d%d%d)", "%1,")
-  
 	-- reverse the int-string back remove an optional comma and put the 
 	-- optional minus and fractional part back
 	return minus .. int:reverse():gsub("^,", "") .. fraction
-  end
+end
