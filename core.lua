@@ -52,6 +52,7 @@ local GuildBankItemCount = 0
 local gearLinks = {}
 local legendaryLinks = {}
 local TSMPriceDataByRank = {}
+local materialPrices = {}
 local Rank1BonusIDs = "::2:1487:6716"
 local Rank2BonusIDs = "::2:1507:6717"
 local Rank3BonusIDs = "::2:1522:6718"
@@ -153,7 +154,8 @@ function LST:OnInitialize()
 				minrestockAmount = 2,
 				includeCachedData = true,
 				syncTarget = "charactername",
-				onlyRestockCraftable = false
+				onlyRestockCraftable = false,
+				priceSource = "LST Crafting"
 			}
 		},
 		factionrealm = {
@@ -198,6 +200,29 @@ function LST:OnInitialize()
 					}
 				}
 			},
+			recipes = 
+			{
+				materialList = 
+				{
+					--['*'] = ""
+				},
+				['*'] = 
+				{
+					name = "",
+					ranks =
+					{
+			--			['*'] =  
+			--			{
+			--				['*'] =  
+			--				{
+			--					name = "",
+			--					itemid = 0,
+			--					numRequired = 0
+			--				}
+			--			}
+					}
+				}
+			}
 		}
 	});
 
@@ -266,7 +291,20 @@ end
 
 
 function LST:Test()
-	LST:CraftNextRestockItem();
+	--local test = {};
+	--TSM_API.GetPriceSourceKeys(test);
+	--for i=1, #test do
+	--	print(test[i]);
+	--end
+	local valid = TSM_API.IsCustomPriceValid("test");
+	print(valid);
+	local price = TSM_API.GetCustomPriceValue("test", "i:171428");
+	print(price);
+
+	--tsmstring = TSM_API.ToItemString(tsmString)
+	local test = TSM_API.GetCustomPriceValue("matprice", "i:172094")
+	print(test);
+
 	--LSTEditBox:SetText(LST:UpdateLegendaryRecipes());
 end
 
@@ -510,6 +548,7 @@ function LST:GetMainFrame(parent)
 		heightOffset = LST:AddOptionEditbox("RestockAmountEditBox", LSTSettingsScrollChild, "restockAmount", L["Restock amount"], heightOffset, 25)
 		heightOffset = LST:AddOptionEditbox("MinRestockAmountEditBox", LSTSettingsScrollChild, "minrestockAmount", L["Min restock amount"], heightOffset, 25)
 		heightOffset = LST:AddOptionCheckbox("onlyRestockCraftableEditBox", LSTSettingsScrollChild, "onlyRestockCraftable", L["Only restock items I can craft"], heightOffset, 25)
+		heightOffset = LST:AddDropdownMenu("LSTPriceSourceDropdown", LSTSettingsScrollChild, heightOffset);
 		heightOffset = heightOffset - 25
 		local text = LSTSettingsScrollChild:CreateFontString(nil,"ARTWORK", "GameFontHighlight") 
 		text:SetPoint("TOPLEFT", LSTSettingsScrollChild, "TOPLEFT", 0, heightOffset)
@@ -523,6 +562,7 @@ function LST:GetMainFrame(parent)
 		heightOffset = LST:AddOptionCheckbox("includeCacheCheckButton", LSTSettingsScrollChild, "includeCachedData", L["Include Cached items"], heightOffset)
 		heightOffset = heightOffset - 25
 		heightOffset = LST:AddSyncButtonToOptions(heightOffset, LSTSettingsScrollChild);
+		
 		
 		--table frame
 		tableFrame = LST:CreateOptionsContentFrame("LSTtableFrame", contentFrame, BackdropTemplateMixin and "BackdropTemplate")
@@ -700,6 +740,38 @@ function LST:AddOptionEditbox(name, parent, setting, description, heightOffset, 
 	text:SetPoint("LEFT", eb, "RIGHT", 6, -1)
 	text:SetText(description)
 	return heightOffset - 25, eb, text
+end
+
+function LST:AddDropdownMenu(name, parent, heightOffset)
+	local dropDown = CreateFrame("FRAME", name, parent, BackdropTemplateMixin and "UIDropDownMenuTemplate")
+	dropDown:SetPoint("TOPLEFT", parent, "TOPLEFT", 0, heightOffset);
+	UIDropDownMenu_SetWidth(dropDown, 150)
+	UIDropDownMenu_SetText(dropDown, "price source: " .. db.profile.settings.priceSource)
+	UIDropDownMenu_Initialize(dropDown, function(self, level, menuList)
+		local info = UIDropDownMenu_CreateInfo()
+			if (level or 1) == 1 then
+				for _, title in ipairs{"LST Crafting", "TSM operation"} do
+				info.text = title;
+				info.menuList = title;
+				info.arg1 = title;
+				info.func = self.SetValue;
+				if(title == db.profile.settings.priceSource) then
+					info.checked = true;
+				else
+					info.checked = false;
+				end
+				UIDropDownMenu_AddButton(info)
+				end
+			end
+	end)
+
+	function dropDown:SetValue(value)
+		db.profile.settings.priceSource = value;
+		UIDropDownMenu_SetText(dropDown, "price source: " .. value)
+		--CloseDropDownMenus()
+	end
+
+	return heightOffset - 20;
 end
 
 function LST:AddSyncButtonToOptions(heightOffset, LSTSettingsScrollChild)
@@ -992,7 +1064,9 @@ end
 
 function LST:CountLegendariesByRank()
 	LST:CountLegendariesByRankWithoutSyncdata();
-
+	if(db.profile.settings.priceSource == "LST Crafting") then 
+		LST:UpdateMaterialPrices();
+	end
 	if(db.profile.settings.includeCachedData) then
 		for account, accountdata in pairs(db.factionrealm.syncData) do
 			for id, data in pairs (accountdata["legendaries"]) do
@@ -1029,6 +1103,9 @@ function LST:CountLegendariesByRankWithoutSyncdata()
 	end
 	
 	TSMPriceDataByRank = {}
+	if(db.profile.settings.priceSource == "LST Crafting") then 
+		LST:UpdateMaterialPrices();
+	end
 	for i=1, #legendaryLinks do
 		local itemID = select(3, strfind(legendaryLinks[i], "item:(%d+)"));
 		local detailedItemLevel = GetDetailedItemLevelInfo(legendaryLinks[i]);
@@ -1076,8 +1153,10 @@ function LST:UpdateRestockList()
 					if(IsTSMLoaded == false or db.profile.settings.showPricing == false) then
 						table.insert(RestockList, {LegendaryItemData[nameTable[item]]["name"] , rank, restockAmount - currentStock, 0, nameTable[item]})
 					else
-						if tonumber(LST:GetMinBuyoutMinusAuctionOpMin(nameTable[item], rank)) > tonumber(db.profile.settings.minProfit) then
-							table.insert(RestockList, {LegendaryItemData[nameTable[item]]["name"], rank, restockAmount - currentStock, LST:GetMinBuyoutMinusAuctionOpMin(nameTable[item], rank), nameTable[item]})
+						if(LST:GetMinBuyoutMinusAuctionOpMin(nameTable[item], rank) ~= "not scanned" ) then
+							if tonumber(LST:GetMinBuyoutMinusAuctionOpMin(nameTable[item], rank)) > tonumber(db.profile.settings.minProfit) then
+								table.insert(RestockList, {LegendaryItemData[nameTable[item]]["name"], rank, restockAmount - currentStock, LST:GetMinBuyoutMinusAuctionOpMin(nameTable[item], rank), nameTable[item]})
+							end
 						end
 					end
 				end
@@ -1102,10 +1181,10 @@ function LST:GenerateExportText()
 		text = L["Item name, Rank 1, Profit Rank 1, Rank 2, Profit Rank 2, Rank 3, Profit Rank 3, Rank 4, Profit Rank 4\n"]
 		for i=1, #NameTable do 
 			text = text .. LegendaryItemData[NameTable[i]]["name"] .. "," 
-			.. LST:GetStockCount(NameTable[i], 1) .. "," .. tostring(LST:GetMinBuyoutMinusAuctionOpMin(NameTable[i], 1)) .. ","
-			.. LST:GetStockCount(NameTable[i], 2) .. "," .. tostring(LST:GetMinBuyoutMinusAuctionOpMin(NameTable[i], 2)) .. ","
-			.. LST:GetStockCount(NameTable[i], 3) .. "," .. tostring(LST:GetMinBuyoutMinusAuctionOpMin(NameTable[i], 3)) .. ","
-			.. LST:GetStockCount(NameTable[i], 4) .. "," .. tostring(LST:GetMinBuyoutMinusAuctionOpMin(NameTable[i], 4)) .. "\n"
+			.. LST:GetStockCount(NameTable[i], 1) .. "," .. tostring(LST:RoundToInt(LST:GetMinBuyoutMinusAuctionOpMin(NameTable[i], 1))) .. ","
+			.. LST:GetStockCount(NameTable[i], 2) .. "," .. tostring(LST:RoundToInt(LST:GetMinBuyoutMinusAuctionOpMin(NameTable[i], 2))) .. ","
+			.. LST:GetStockCount(NameTable[i], 3) .. "," .. tostring(LST:RoundToInt(LST:GetMinBuyoutMinusAuctionOpMin(NameTable[i], 3))) .. ","
+			.. LST:GetStockCount(NameTable[i], 4) .. "," .. tostring(LST:RoundToInt(LST:GetMinBuyoutMinusAuctionOpMin(NameTable[i], 4))) .. "\n"
 		end
 	end
 	return text
@@ -1126,9 +1205,12 @@ function LST:createNameTable()
 		table.sort(NameTable)
 	else
 		TSMPriceDataByRank = {}
+		if(db.profile.settings.priceSource == "LST Crafting") then 
+			LST:UpdateMaterialPrices();
+		end
 		for id, data in pairs(LegendaryItemData) do 
-			table.insert(NameTable, id)
-			LST:UpdateTsmPriceForAllRanks(id)
+			table.insert(NameTable, id);
+			LST:UpdateTsmPriceForAllRanks(id);
 		end
 		table.sort(NameTable)	
 	end
@@ -1151,7 +1233,7 @@ function LST:CreateRestockSheet(frame)
 		{
 			LST:CreateTableElement(frame, RestockList[i][1] .. " - " .. L["Rank"] .. " " .. RestockList[i][2],  1, 1, 1, 1),
 			LST:CreateTableElement(frame, RestockList[i][3],  1, 1, 1, 1),
-			LST:CreateTableElement(frame, RestockList[i][4],  1, 1, 1, 1)
+			LST:CreateTableElement(frame, LST:RoundToInt(RestockList[i][4]),  1, 1, 1, 1)
 		}
 		table.insert(sheet, row)
 	end
@@ -1216,22 +1298,24 @@ function LST:CreateTableSheet(frame)
 				profit[j] = LST:GetMinBuyoutMinusAuctionOpMin(NameTable[i], j);
 				stockSum[j] = stockSum[j] + stock[j];
 				priceSum[j] = priceSum[j] + (stock[j] * price[j]);
-				profitSum[j] = profitSum[j] + (stock[j] * profit[j]);
+				if(profit[j] ~= "not scanned") then
+					profitSum[j] = profitSum[j] + (stock[j] * profit[j]);
+				end
 			end
 			row = 
 			{
 				LST:CreateTableElement(frame, LegendaryItemData[NameTable[i]]["name"], 1, 1, 1, 1),
-				LST:CreateTableElement(frame, stock[1], LST:GetTableStockFont(stock[1], tostring(profit[1]))), LST:CreateTableElement(frame, tostring(profit[1]), LST:GetTablePriceFont(tostring(profit[1]))),
-				LST:CreateTableElement(frame, stock[2], LST:GetTableStockFont(stock[2], tostring(profit[2]))), LST:CreateTableElement(frame, tostring(profit[2]), LST:GetTablePriceFont(tostring(profit[2]))),
-				LST:CreateTableElement(frame, stock[3], LST:GetTableStockFont(stock[3], tostring(profit[3]))), LST:CreateTableElement(frame, tostring(profit[3]), LST:GetTablePriceFont(tostring(profit[3]))),
-				LST:CreateTableElement(frame, stock[4], LST:GetTableStockFont(stock[4], tostring(profit[4]))), LST:CreateTableElement(frame, tostring(profit[4]), LST:GetTablePriceFont(tostring(profit[4])))
+				LST:CreateTableElement(frame, stock[1], LST:GetTableStockFont(stock[1], tostring(profit[1]))), LST:CreateTableElement(frame, tostring(LST:RoundToInt(profit[1])), LST:GetTablePriceFont(tostring(profit[1]))),
+				LST:CreateTableElement(frame, stock[2], LST:GetTableStockFont(stock[2], tostring(profit[2]))), LST:CreateTableElement(frame, tostring(LST:RoundToInt(profit[2])), LST:GetTablePriceFont(tostring(profit[2]))),
+				LST:CreateTableElement(frame, stock[3], LST:GetTableStockFont(stock[3], tostring(profit[3]))), LST:CreateTableElement(frame, tostring(LST:RoundToInt(profit[3])), LST:GetTablePriceFont(tostring(profit[3]))),
+				LST:CreateTableElement(frame, stock[4], LST:GetTableStockFont(stock[4], tostring(profit[4]))), LST:CreateTableElement(frame, tostring(LST:RoundToInt(profit[4])), LST:GetTablePriceFont(tostring(profit[4])))
 			}
 			table.insert(sheet, row)		
 		end
-		table.insert(sheet, LST:CreateTablePriceRowWhite(frame, L["Total per rank (profit): "], stockSum[1], LST:AddComasEveryThousand(profitSum[1]), stockSum[2], LST:AddComasEveryThousand(profitSum[2]), stockSum[3], LST:AddComasEveryThousand(profitSum[3]), stockSum[4], LST:AddComasEveryThousand(profitSum[4])))
-		table.insert(sheet, LST:CreateTablePriceRowWhite(frame, L["Total per rank (min price): "], stockSum[1], LST:AddComasEveryThousand(priceSum[1]), stockSum[2], LST:AddComasEveryThousand(priceSum[2]), stockSum[3], LST:AddComasEveryThousand(priceSum[3]), stockSum[4], LST:AddComasEveryThousand(priceSum[4])))
-		table.insert(sheet, LST:CreateTablePriceRowWhite(frame, L["Total (profit): "], (stockSum[1] + stockSum[2] + stockSum[3] + stockSum[4]), LST:AddComasEveryThousand(profitSum[1] + profitSum[2] + profitSum[3] + profitSum[4]), "","","","","",""))
-		table.insert(sheet, LST:CreateTablePriceRowWhite(frame, L["Total (min price): "], (stockSum[1] + stockSum[2] + stockSum[3] + stockSum[4]), LST:AddComasEveryThousand(priceSum[1] + priceSum[2] + priceSum[3] + priceSum[4]), "","","","","",""))
+		table.insert(sheet, LST:CreateTablePriceRowWhite(frame, L["Total per rank (profit): "], stockSum[1], LST:AddComasEveryThousand(LST:RoundToInt(profitSum[1])), stockSum[2], LST:AddComasEveryThousand(LST:RoundToInt(profitSum[2])), stockSum[3], LST:AddComasEveryThousand(LST:RoundToInt(profitSum[3])), stockSum[4], LST:AddComasEveryThousand(LST:RoundToInt(profitSum[4]))))
+		table.insert(sheet, LST:CreateTablePriceRowWhite(frame, L["Total per rank (min price): "], stockSum[1], LST:AddComasEveryThousand(LST:RoundToInt(priceSum[1])), stockSum[2], LST:AddComasEveryThousand(LST:RoundToInt(priceSum[2])), stockSum[3], LST:AddComasEveryThousand(LST:RoundToInt(priceSum[3])), stockSum[4], LST:AddComasEveryThousand(LST:RoundToInt(priceSum[4]))))
+		table.insert(sheet, LST:CreateTablePriceRowWhite(frame, L["Total (profit): "], (stockSum[1] + stockSum[2] + stockSum[3] + stockSum[4]), LST:AddComasEveryThousand(LST:RoundToInt(profitSum[1] + profitSum[2] + profitSum[3] + profitSum[4])), "","","","","",""))
+		table.insert(sheet, LST:CreateTablePriceRowWhite(frame, L["Total (min price): "], (stockSum[1] + stockSum[2] + stockSum[3] + stockSum[4]), LST:AddComasEveryThousand(LST:RoundToInt(priceSum[1] + priceSum[2] + priceSum[3] + priceSum[4])), "","","","","",""))
 	end
 	LST:CreateFrameSheet(frame, sheet, #maxWidth)
 end
@@ -1295,6 +1379,9 @@ function LST:CreateFrameSheet(frame, table, numColumns)
 end
 
 function LST:GetTablePriceFont(stringValue)
+	if(stringValue == "not scanned") then
+		return 1,1,1,1;
+	end
 	if(tonumber(db.profile.settings.minProfit) > 0 and tonumber(stringValue) > tonumber(db.profile.settings.minProfit)) then
 		return 0.15, 1, 0.15, 1
 	elseif(tonumber(stringValue) < 0) then
@@ -1305,6 +1392,9 @@ function LST:GetTablePriceFont(stringValue)
 end
 
 function LST:GetTableStockFont(value, price)
+	if(price == "not scanned") then
+		return 1,1,1,1;
+	end
 	if(value < tonumber(db.profile.settings.restockAmount)) then
 		if(db.profile.settings.showPricing == true and price ~= nil) then
 			if(tonumber(price) > tonumber(db.profile.settings.minProfit)) then 
@@ -1373,11 +1463,42 @@ function LST:AddEmptyTsmPriceDataEntryIfNotPresent(itemName)
 end
 
 function LST:GetMinBuyoutMinusAuctionOpMin(name, rank)
+	if(TSMPriceDataByRank[name][rank][2] == "not scanned") then
+		return "not scanned";
+	end
 	return tonumber(TSMPriceDataByRank[name][rank][1] - TSMPriceDataByRank[name][rank][2]);
 end
 
 function LST:GetMinBuyout(name, rank)
 	return tonumber(TSMPriceDataByRank[name][rank][1]);
+end
+
+function LST:UpdateMaterialPrices()
+	for materialID, name in	pairs(db.factionrealm.recipes.materialList) do
+		local matPrice = tonumber(LST:ConvertTsmPriceToValue(TSM_API.GetCustomPriceValue("matPrice", "i:" .. materialID)));
+		if(tonumber(matPrice) == 0 and tonumber(matprice) == nil) then
+			print("LST: no material price found in TSM for " .. name .. ", defaulting material cost to 0");
+			materialPrices[materialID] = 0;
+		else
+			materialPrices[materialID] = matPrice;
+		end
+	end
+end
+
+function LST:GetLSTCraftCostForItem(itemID, rank)
+	if(db.factionrealm.recipes[itemID] == nil or db.factionrealm.recipes[itemID]["ranks"] == nil or db.factionrealm.recipes[itemID]["ranks"][rank] == nil) then
+		return "not scanned";
+	end
+	local price = 0;
+	for materialID, data in pairs(db.factionrealm.recipes[itemID]["ranks"][rank]) do
+		--print(materialID)
+		--print("matprice: " .. materialPrices[materialID]);
+		--print("numreq: " .. data["numRequired"]);
+		price = price + (materialPrices[materialID] * data["numRequired"])
+		--print(materialID .. ": " .. data["numRequired"]);
+	end
+	--print(itemID .. " rank " .. rank .. ": " .. price);
+	return price;
 end
 
 function LST:UpdateTsmPriceForAllRanks(itemName)
@@ -1406,14 +1527,26 @@ function LST:UpdateTsmPrices(itemName, rank)
 		tsmString = tsmString .. Rank4BonusIDs
 	end
 	tsmstring = TSM_API.ToItemString(tsmString)
-	ItemPrices[rank][1] = LST:ConvertTsmPriceToGold(TSM_API.GetCustomPriceValue("DBMinBuyout", tsmString))
-	ItemPrices[rank][2] = LST:ConvertTsmPriceToGold(TSM_API.GetCustomPriceValue("AuctioningOpMin", tsmString))
-	if(ItemPrices[rank][1] == nil) then
-		ItemPrices[rank][1] = LST:ConvertTsmPriceToGold(TSM_API.GetCustomPriceValue("AuctioningOpNormal", tsmString))
+	ItemPrices[rank][1] = LST:ConvertTsmPriceToValue(TSM_API.GetCustomPriceValue("DBMinBuyout", tsmString));
+	if(db.profile.settings.priceSource == "TSM operation") then 
+		ItemPrices[rank][2] = LST:ConvertTsmPriceToValue(TSM_API.GetCustomPriceValue("AuctioningOpMin", tsmString))
+	elseif(db.profile.settings.priceSource == "LST Crafting") then
+		local craftCost = LST:GetLSTCraftCostForItem(itemName, rank);
+		if(craftCost ~= "not scanned") then
+			craftCost = LST:RoundToInt(craftCost);--0.95
+		end
+		ItemPrices[rank][2] = craftCost;
+	else
+		print("LST: Invalid price source");
+	end
+	if(ItemPrices[rank][1] == nil or ItemPrices[rank][1] == 0) then
+		ItemPrices[rank][1] = LST:ConvertTsmPriceToValue(TSM_API.GetCustomPriceValue("AuctioningOpNormal", tsmString));
 	end
 	if(ItemPrices[rank][1] == nil or ItemPrices[rank][2] == nil) then
 		ItemPrices[rank][1] = 0
 		ItemPrices[rank][2] = 0
+	elseif(db.profile.settings.priceSource == "LST Crafting") then
+		ItemPrices[rank][1] = ItemPrices[rank][1] * 0.95;
 	end
 
 	TSMPriceDataByRank[itemName] = ItemPrices
@@ -1428,6 +1561,24 @@ function LST:ConvertTsmPriceToGold(value)
 		return 0
 	end
 	return tonumber(string)
+end
+
+function LST:ConvertTsmPriceToValue(value)
+	if(value == nil or value <= 0) then
+		return 0
+	end
+	local string = tostring(value);
+	local gold = 0;
+	local silver = 0;
+	if(string ~= "0" and string ~= nil) then
+		gold = tonumber(string:sub(1, #string - 4));
+		silver = tonumber(string.sub(string, -4)) / 10000;
+	end
+	local sum = gold + silver;
+	if(sum == nil or sum <= 0) then
+		return 0
+	end
+	return sum;
 end
 
 function LST:GetStockCount(itemID, rank)
@@ -1490,9 +1641,14 @@ function LST:GetSLLegendaryUnlockedLevel(recipeInfo)
 end
 
 function LST:GetCraftResultItemId(recipeInfo)
-	local recipeItemLink = C_TradeSkillUI.GetRecipeItemLink(recipeInfo["recipeID"])
-	local itemID = select(3, strfind(recipeItemLink, "item:(%d+)"));
-	return itemID;
+	return LST:GetItemIDFromItemLink(C_TradeSkillUI.GetRecipeItemLink(recipeInfo["recipeID"]));
+	--local recipeItemLink = 
+	--local itemID = select(3, strfind(recipeItemLink, "item:(%d+)"));
+	--return itemID;
+end
+
+function LST:GetItemIDFromItemLink(itemlink)
+	return select(3, strfind(itemlink, "item:(%d+)"));
 end
 
 function LST:UpdateLegendaryRecipes()
@@ -1503,18 +1659,38 @@ function LST:UpdateLegendaryRecipes()
 			SLID = categoryID;
 		end
 	end
+	local test = "";
 	LST:SetOpenedProfessionID(SLID)
 	local recipes = LST:GetKnownTradeSkillRecipes();
 	for recipeID, val in pairs(recipes) do 
 		local recipeInfo = C_TradeSkillUI.GetRecipeInfo(recipeID);
-		if(LST:IsTradeSkillRecipeSLLegendary(recipeInfo)) then
-			local itemLevel = GetDetailedItemLevelInfo(C_TradeSkillUI.GetRecipeItemLink(recipeID))
-			local rank = LST:GetLegendaryRankByItemLevel(itemLevel);
-			local itemID = LST:GetCraftResultItemId(recipeInfo);
-			local unlockedLevel = LST:GetSLLegendaryUnlockedLevel(recipeInfo)
-			db.factionrealm.characters[playerName].unlockedLegendaryCraftRanks[itemID] = unlockedLevel;
-			LegendaryItemData[itemID]["recipeUnlocked"] = unlockedLevel;
-			LegendaryItemData[itemID]["recipeID"][rank] = recipeID;
+		if(type(recipeInfo) == "table") then
+			if(LST:IsTradeSkillRecipeSLLegendary(recipeInfo)) then
+				local itemLevel = GetDetailedItemLevelInfo(C_TradeSkillUI.GetRecipeItemLink(recipeID))
+				local rank = LST:GetLegendaryRankByItemLevel(itemLevel);
+				local itemID = LST:GetCraftResultItemId(recipeInfo);
+				local unlockedLevel = LST:GetSLLegendaryUnlockedLevel(recipeInfo)
+				db.factionrealm.characters[playerName].unlockedLegendaryCraftRanks[itemID] = unlockedLevel;
+				LegendaryItemData[itemID]["recipeUnlocked"] = unlockedLevel;
+				LegendaryItemData[itemID]["recipeID"][rank] = recipeID;
+				
+				local recipeData = {}
+				local materials = {}
+				for i = 1, C_TradeSkillUI.GetRecipeNumReagents(recipeID) do
+					local reagentName, reagentIcon, reagentNumRequired, reagentNumOwned = C_TradeSkillUI.GetRecipeReagentInfo(recipeID, i, 1);
+					local materialID = LST:GetItemIDFromItemLink(C_TradeSkillUI.GetRecipeReagentItemLink(recipeID, i));
+					materials[materialID] = 
+					{
+						name = reagentName,
+						itemid = materialID,
+						numRequired = reagentNumRequired
+					}
+					db.factionrealm.recipes.materialList[materialID] = reagentName;
+				end
+				db.factionrealm.recipes[itemID]["name"] = recipeInfo["name"];
+				db.factionrealm.recipes[itemID]["ranks"][rank] = materials;
+				
+			end
 		end
 	end
 end
@@ -1537,7 +1713,7 @@ function LST:CraftNextRestockItem()
 		if(LegendaryItemData[itemID]["profession"] == openedProfession) then
 			local recipeID = LegendaryItemData[tostring(itemID)]["recipeID"][restockData[2]];
 			if(recipeID ~= 0) then
-				local recipeInfo = C_TradeSkillUI.GetRecipeInfo(recipeID);
+				local recipeInfo = C_TradeSkillUI.GetRecipeInfo(recipeID, 1);
 				local availableCraftCount = recipeInfo["numAvailable"];
 				if(availableCraftCount >= restockData[3]) then
 					C_TradeSkillUI.CraftRecipe(recipeID, restockData[3], nil, 1);
@@ -1624,4 +1800,11 @@ function LST:AddComasEveryThousand(number)
 	-- reverse the int-string back remove an optional comma and put the 
 	-- optional minus and fractional part back
 	return minus .. int:reverse():gsub("^,", "") .. fraction
+end
+
+function LST:RoundToInt(x)
+	if(x == "not scanned") then
+		return x;
+	end
+	return x + 0.5 - (x + 0.5) % 1;
 end
