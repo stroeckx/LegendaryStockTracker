@@ -118,3 +118,10 @@ L["LST: Received item data from "] = "LST: Received item data from "
 -- Crafting
 L["LST: You need to open your profession first"] = "LST: You need to open your profession first"
 L["LST: Not enough materials to craft "] = "LST: Not enough materials to craft "
+L["not scanned"] = "not scanned"
+L["LST Crafting"] = "LST Crafting"
+L["TSM operations"] = "TSM operations"
+L["LST: no material price found in TSM for "] = "LST: no material price found in TSM for "
+L[", defaulting material cost to 0"] = ", defaulting material cost to 0"
+L["LST: Invalid price source"] = "LST: Invalid price source"
+

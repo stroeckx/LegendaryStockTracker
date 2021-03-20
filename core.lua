@@ -155,7 +155,7 @@ function LST:OnInitialize()
 				includeCachedData = true,
 				syncTarget = "charactername",
 				onlyRestockCraftable = false,
-				priceSource = "LST Crafting"
+				priceSource = L["LST Crafting"]
 			}
 		},
 		factionrealm = {
@@ -200,26 +200,29 @@ function LST:OnInitialize()
 					}
 				}
 			},
-			recipes = 
+			recipeData = 
 			{
 				materialList = 
 				{
 					--['*'] = ""
 				},
-				['*'] = 
+				recipes = 
 				{
-					name = "",
-					ranks =
+					['*'] = 
 					{
-			--			['*'] =  
-			--			{
-			--				['*'] =  
-			--				{
-			--					name = "",
-			--					itemid = 0,
-			--					numRequired = 0
-			--				}
-			--			}
+						name = "",
+						ranks =
+						{
+				--			['*'] =  
+				--			{
+				--				['*'] =  
+				--				{
+				--					name = "",
+				--					itemid = 0,
+				--					numRequired = 0
+				--				}
+				--			}
+						}
 					}
 				}
 			}
@@ -291,21 +294,7 @@ end
 
 
 function LST:Test()
-	--local test = {};
-	--TSM_API.GetPriceSourceKeys(test);
-	--for i=1, #test do
-	--	print(test[i]);
-	--end
-	local valid = TSM_API.IsCustomPriceValid("test");
-	print(valid);
-	local price = TSM_API.GetCustomPriceValue("test", "i:171428");
-	print(price);
-
-	--tsmstring = TSM_API.ToItemString(tsmString)
-	local test = TSM_API.GetCustomPriceValue("matprice", "i:172094")
-	print(test);
-
-	--LSTEditBox:SetText(LST:UpdateLegendaryRecipes());
+	print(time());
 end
 
 function LST:SetMainFrameSize(value1, value2)
@@ -744,13 +733,13 @@ end
 
 function LST:AddDropdownMenu(name, parent, heightOffset)
 	local dropDown = CreateFrame("FRAME", name, parent, BackdropTemplateMixin and "UIDropDownMenuTemplate")
-	dropDown:SetPoint("TOPLEFT", parent, "TOPLEFT", 0, heightOffset);
+	dropDown:SetPoint("TOPLEFT", parent, "TOPLEFT", -20, heightOffset);
 	UIDropDownMenu_SetWidth(dropDown, 150)
 	UIDropDownMenu_SetText(dropDown, "price source: " .. db.profile.settings.priceSource)
 	UIDropDownMenu_Initialize(dropDown, function(self, level, menuList)
 		local info = UIDropDownMenu_CreateInfo()
 			if (level or 1) == 1 then
-				for _, title in ipairs{"LST Crafting", "TSM operation"} do
+				for _, title in ipairs{L["LST Crafting"], L["TSM operations"]} do
 				info.text = title;
 				info.menuList = title;
 				info.arg1 = title;
@@ -1064,7 +1053,7 @@ end
 
 function LST:CountLegendariesByRank()
 	LST:CountLegendariesByRankWithoutSyncdata();
-	if(db.profile.settings.priceSource == "LST Crafting") then 
+	if(db.profile.settings.priceSource == L["LST Crafting"]) then 
 		LST:UpdateMaterialPrices();
 	end
 	if(db.profile.settings.includeCachedData) then
@@ -1103,7 +1092,7 @@ function LST:CountLegendariesByRankWithoutSyncdata()
 	end
 	
 	TSMPriceDataByRank = {}
-	if(db.profile.settings.priceSource == "LST Crafting") then 
+	if(db.profile.settings.priceSource == L["LST Crafting"]) then 
 		LST:UpdateMaterialPrices();
 	end
 	for i=1, #legendaryLinks do
@@ -1153,7 +1142,7 @@ function LST:UpdateRestockList()
 					if(IsTSMLoaded == false or db.profile.settings.showPricing == false) then
 						table.insert(RestockList, {LegendaryItemData[nameTable[item]]["name"] , rank, restockAmount - currentStock, 0, nameTable[item]})
 					else
-						if(LST:GetMinBuyoutMinusAuctionOpMin(nameTable[item], rank) ~= "not scanned" ) then
+						if(LST:GetMinBuyoutMinusAuctionOpMin(nameTable[item], rank) ~= L["not scanned"] ) then
 							if tonumber(LST:GetMinBuyoutMinusAuctionOpMin(nameTable[item], rank)) > tonumber(db.profile.settings.minProfit) then
 								table.insert(RestockList, {LegendaryItemData[nameTable[item]]["name"], rank, restockAmount - currentStock, LST:GetMinBuyoutMinusAuctionOpMin(nameTable[item], rank), nameTable[item]})
 							end
@@ -1205,7 +1194,7 @@ function LST:createNameTable()
 		table.sort(NameTable)
 	else
 		TSMPriceDataByRank = {}
-		if(db.profile.settings.priceSource == "LST Crafting") then 
+		if(db.profile.settings.priceSource == L["LST Crafting"]) then 
 			LST:UpdateMaterialPrices();
 		end
 		for id, data in pairs(LegendaryItemData) do 
@@ -1298,7 +1287,7 @@ function LST:CreateTableSheet(frame)
 				profit[j] = LST:GetMinBuyoutMinusAuctionOpMin(NameTable[i], j);
 				stockSum[j] = stockSum[j] + stock[j];
 				priceSum[j] = priceSum[j] + (stock[j] * price[j]);
-				if(profit[j] ~= "not scanned") then
+				if(profit[j] ~= L["not scanned"]) then
 					profitSum[j] = profitSum[j] + (stock[j] * profit[j]);
 				end
 			end
@@ -1379,7 +1368,7 @@ function LST:CreateFrameSheet(frame, table, numColumns)
 end
 
 function LST:GetTablePriceFont(stringValue)
-	if(stringValue == "not scanned") then
+	if(stringValue == L["not scanned"]) then
 		return 1,1,1,1;
 	end
 	if(tonumber(db.profile.settings.minProfit) > 0 and tonumber(stringValue) > tonumber(db.profile.settings.minProfit)) then
@@ -1392,7 +1381,7 @@ function LST:GetTablePriceFont(stringValue)
 end
 
 function LST:GetTableStockFont(value, price)
-	if(price == "not scanned") then
+	if(price == L["not scanned"]) then
 		return 1,1,1,1;
 	end
 	if(value < tonumber(db.profile.settings.restockAmount)) then
@@ -1463,8 +1452,8 @@ function LST:AddEmptyTsmPriceDataEntryIfNotPresent(itemName)
 end
 
 function LST:GetMinBuyoutMinusAuctionOpMin(name, rank)
-	if(TSMPriceDataByRank[name][rank][2] == "not scanned") then
-		return "not scanned";
+	if(TSMPriceDataByRank[name][rank][2] == L["not scanned"]) then
+		return L["not scanned"];
 	end
 	return tonumber(TSMPriceDataByRank[name][rank][1] - TSMPriceDataByRank[name][rank][2]);
 end
@@ -1474,10 +1463,10 @@ function LST:GetMinBuyout(name, rank)
 end
 
 function LST:UpdateMaterialPrices()
-	for materialID, name in	pairs(db.factionrealm.recipes.materialList) do
+	for materialID, name in	pairs(db.factionrealm.recipeData.materialList) do
 		local matPrice = tonumber(LST:ConvertTsmPriceToValue(TSM_API.GetCustomPriceValue("matPrice", "i:" .. materialID)));
 		if(tonumber(matPrice) == 0 and tonumber(matprice) == nil) then
-			print("LST: no material price found in TSM for " .. name .. ", defaulting material cost to 0");
+			print(L["LST: no material price found in TSM for "] .. name .. L[", defaulting material cost to 0"]);
 			materialPrices[materialID] = 0;
 		else
 			materialPrices[materialID] = matPrice;
@@ -1486,11 +1475,11 @@ function LST:UpdateMaterialPrices()
 end
 
 function LST:GetLSTCraftCostForItem(itemID, rank)
-	if(db.factionrealm.recipes[itemID] == nil or db.factionrealm.recipes[itemID]["ranks"] == nil or db.factionrealm.recipes[itemID]["ranks"][rank] == nil) then
-		return "not scanned";
+	if(db.factionrealm.recipeData.recipes[itemID] == nil or db.factionrealm.recipeData.recipes[itemID]["ranks"] == nil or db.factionrealm.recipeData.recipes[itemID]["ranks"][rank] == nil) then
+		return L["not scanned"];
 	end
 	local price = 0;
-	for materialID, data in pairs(db.factionrealm.recipes[itemID]["ranks"][rank]) do
+	for materialID, data in pairs(db.factionrealm.recipeData.recipes[itemID]["ranks"][rank]) do
 		--print(materialID)
 		--print("matprice: " .. materialPrices[materialID]);
 		--print("numreq: " .. data["numRequired"]);
@@ -1528,16 +1517,17 @@ function LST:UpdateTsmPrices(itemName, rank)
 	end
 	tsmstring = TSM_API.ToItemString(tsmString)
 	ItemPrices[rank][1] = LST:ConvertTsmPriceToValue(TSM_API.GetCustomPriceValue("DBMinBuyout", tsmString));
-	if(db.profile.settings.priceSource == "TSM operation") then 
+	if(db.profile.settings.priceSource == L["TSM operations"]) then 
 		ItemPrices[rank][2] = LST:ConvertTsmPriceToValue(TSM_API.GetCustomPriceValue("AuctioningOpMin", tsmString))
-	elseif(db.profile.settings.priceSource == "LST Crafting") then
+	elseif(db.profile.settings.priceSource == L["LST Crafting"]) then
 		local craftCost = LST:GetLSTCraftCostForItem(itemName, rank);
-		if(craftCost ~= "not scanned") then
-			craftCost = LST:RoundToInt(craftCost);--0.95
+		if(craftCost ~= L["not scanned"]) then
+			craftCost = LST:RoundToInt(craftCost);
 		end
 		ItemPrices[rank][2] = craftCost;
 	else
-		print("LST: Invalid price source");
+		print(db.profile.settings.priceSource)
+		print(L["LST: Invalid price source"]);
 	end
 	if(ItemPrices[rank][1] == nil or ItemPrices[rank][1] == 0) then
 		ItemPrices[rank][1] = LST:ConvertTsmPriceToValue(TSM_API.GetCustomPriceValue("AuctioningOpNormal", tsmString));
@@ -1545,7 +1535,7 @@ function LST:UpdateTsmPrices(itemName, rank)
 	if(ItemPrices[rank][1] == nil or ItemPrices[rank][2] == nil) then
 		ItemPrices[rank][1] = 0
 		ItemPrices[rank][2] = 0
-	elseif(db.profile.settings.priceSource == "LST Crafting") then
+	elseif(db.profile.settings.priceSource == L["LST Crafting"]) then
 		ItemPrices[rank][1] = ItemPrices[rank][1] * 0.95;
 	end
 
@@ -1659,7 +1649,6 @@ function LST:UpdateLegendaryRecipes()
 			SLID = categoryID;
 		end
 	end
-	local test = "";
 	LST:SetOpenedProfessionID(SLID)
 	local recipes = LST:GetKnownTradeSkillRecipes();
 	for recipeID, val in pairs(recipes) do 
@@ -1685,10 +1674,10 @@ function LST:UpdateLegendaryRecipes()
 						itemid = materialID,
 						numRequired = reagentNumRequired
 					}
-					db.factionrealm.recipes.materialList[materialID] = reagentName;
+					db.factionrealm.recipeData.materialList[materialID] = reagentName;
 				end
-				db.factionrealm.recipes[itemID]["name"] = recipeInfo["name"];
-				db.factionrealm.recipes[itemID]["ranks"][rank] = materials;
+				db.factionrealm.recipeData.recipes[itemID]["name"] = recipeInfo["name"];
+				db.factionrealm.recipeData.recipes[itemID]["ranks"][rank] = materials;
 				
 			end
 		end
@@ -1740,13 +1729,18 @@ function LST:OnCommReceived(prefix, payload, distribution, sender)
 	db.factionrealm.syncData[data["accID"]] = {}
 	db.factionrealm.syncData[data["accID"]]["legendaries"] = {}
 	local table = db.factionrealm.syncData[data["accID"]]["legendaries"]
-	for id, data in pairs (data["legendaries"]) do
+	for id, data in pairs(data["legendaries"]) do
 		table[id] = 
 		{
 			["canCraft"] = data[1],
 			["stock"] = {data[2],  data[3], data[4], data[5]}
 		}
 	end
+	db.factionrealm.recipeData.materialList = data.recipeData["materialList"];
+	for recipeID, recipeData in pairs(data.recipeData.recipes) do
+		db.factionrealm.recipeData.recipes[recipeID] = recipeData;
+	end
+
 end
 
 function LST:SendDataToSyncTarget()
@@ -1758,7 +1752,8 @@ function LST:SendDataToPlayer(player)
 	LST:CountLegendariesByRankWithoutSyncdata();
 	local syncData = {
 		["accID"] = db.factionrealm.accountUUID,
-		["legendaries"] = {}
+		["legendaries"] = {},
+		["recipeData"] = db.factionrealm.recipeData
 	}
 
 	for id, data in pairs (LegendaryItemData) do
@@ -1803,7 +1798,7 @@ function LST:AddComasEveryThousand(number)
 end
 
 function LST:RoundToInt(x)
-	if(x == "not scanned") then
+	if(x == L["not scanned"]) then
 		return x;
 	end
 	return x + 0.5 - (x + 0.5) % 1;
