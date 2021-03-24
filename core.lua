@@ -27,6 +27,7 @@ local LstockLDB = LibStub("LibDataBroker-1.1"):NewDataObject("LegendaryStockTrac
   end
 })
 
+local LSTVersion = "v2.8.1"
 local db = nil
 local LstockIcon = LibStub("LibDBIcon-1.0")
 local LstockMainFrame = nil
@@ -464,6 +465,10 @@ function LST:GetMainFrame(parent)
 		line:SetColorTexture(0.6,0.6,0.6,1)
 		line:SetStartPoint("TOPLEFT",0,-20)
 		line:SetEndPoint("TOPRIGHT",-2,-20)
+
+		local versionText = f:CreateFontString(nil,"ARTWORK", "GameFontHighlight"); 
+		versionText:SetPoint("BOTTOMLEFT", f, "BOTTOMLEFT", 5, 5);
+		versionText:SetText(LSTVersion);
 
 		--Export Frame
 		exportFrame = LST:CreateOptionsContentFrame("LSTExportFrame", contentFrame, Backdrop)
@@ -1480,13 +1485,12 @@ function LST:GetLSTCraftCostForItem(itemID, rank)
 	end
 	local price = 0;
 	for materialID, data in pairs(db.factionrealm.recipeData.recipes[itemID]["ranks"][rank]) do
-		--print(materialID)
-		--print("matprice: " .. materialPrices[materialID]);
-		--print("numreq: " .. data["numRequired"]);
-		price = price + (materialPrices[materialID] * data["numRequired"])
-		--print(materialID .. ": " .. data["numRequired"]);
+		if(materialPrices[materialID] == nil) then
+			price = price + 0;
+		else
+			price = price + (materialPrices[materialID] * data["numRequired"]);
+		end
 	end
-	--print(itemID .. " rank " .. rank .. ": " .. price);
 	return price;
 end
 
