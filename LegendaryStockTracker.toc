@@ -22,4 +22,7 @@ Libs\LibDBIcon-1.0\lib.xml
 #--Locale Translations
 Locales\Locales.xml
 
+init.lua
+UIComponents.lua
+stockManagement.lua
 core.lua

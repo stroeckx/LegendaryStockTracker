@@ -77,7 +77,10 @@ L["Include Bank"] = "Include Bank"
 L["Include AH"] = "Include AH"
 L["Include Mail"] = "Include Mail"
 L["Include Guild Bank"] = "Include Guild Bank"
+L["Include Synced Data"] = "Include Synced Data"
 L["Send data to this alt"] = "Send data to this alt"
+L["clear cache"] = "clear cache"
+L["LST: Cleared item cache"] = "LST: Cleared item cache"
 
 -- Minimap Icon
 L["Click or type /lst to show the main panel"] =  "Click or type /lst to show the main panel"

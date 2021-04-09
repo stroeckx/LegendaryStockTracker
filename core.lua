@@ -1,4 +1,5 @@
-LST = LibStub("AceAddon-3.0"):NewAddon("LegendaryStockTracker", "AceConsole-3.0", "AceEvent-3.0", "AceComm-3.0")
+local addonName, globalTable = ...
+
 local L = LibStub("AceLocale-3.0"):GetLocale("LegendaryStockTracker")
 local AceSerializer = LibStub:GetLibrary("AceSerializer-3.0")
 local LibSerialize = LibStub("LibSerialize")
@@ -18,7 +19,7 @@ local LstockLDB = LibStub("LibDataBroker-1.1"):NewDataObject("LegendaryStockTrac
     end
   end,
   OnTooltipShow = function(tt)
-	LST:GetAllItemsInBags()
+	LST:GetAllItemsInBags();
     tt:AddLine("Legendary Stock Tracker")
     tt:AddLine(" ")
     tt:AddLine(L["Click or type /lst to show the main panel"])
@@ -28,7 +29,8 @@ local LstockLDB = LibStub("LibDataBroker-1.1"):NewDataObject("LegendaryStockTrac
 })
 
 local LSTVersion = "v2.8.1"
-local db = nil
+--local db = nil
+LST.db = nil
 local LstockIcon = LibStub("LibDBIcon-1.0")
 local LstockMainFrame = nil
 local LSTTableScrollChild = nil
@@ -38,20 +40,8 @@ local restockFrame = nil
 local exportFrame = nil
 
 --all collections of items are stored separately for future expandability
-local itemLinks = {}
-local bagItemLinks = {}
-local bagItemCount = 0
-local bankItemLinks = {}
-local bankItemCount = 0
+LST.legendaryLinks = {}
 local isBankOpen = false
-local ahItemLinks = {}
-local ahItemCount = 0
-local mailboxItemLinks = {}
-local mailboxItemCount = 0
-local GuildBankItemLinks = {}
-local GuildBankItemCount = 0
-local gearLinks = {}
-local legendaryLinks = {}
 local TSMPriceDataByRank = {}
 local materialPrices = {}
 local Rank1BonusIDs = "::2:1487:6716"
@@ -96,7 +86,8 @@ local LegendaryItemData =
 	["172323"] = {["profession"] = 1334, ["recipeUnlocked"] = 0, ["stock"] = {0,0,0,0}, ["recipeID"] = {0,0,0,0}},
 	["172322"] = {["profession"] = 1334, ["recipeUnlocked"] = 0, ["stock"] = {0,0,0,0}, ["recipeID"] = {0,0,0,0}},
 	["172328"] = {["profession"] = 1334, ["recipeUnlocked"] = 0, ["stock"] = {0,0,0,0}, ["recipeID"] = {0,0,0,0}}
-}local SLProfessionsIds =
+}
+local SLProfessionsIds =
 {
 	[1418] = "Jewelcrafting",
 	[1311] = "Blacksmithing",
@@ -105,7 +96,6 @@ local LegendaryItemData =
 }
 local openedProfession = 0;
 
-local GUILD_BANK_SLOTS_PER_TAB = 98
 local IsTSMLoaded = false;
 local fontStringPool = nil
 local RestockList = {}
@@ -119,12 +109,15 @@ local tabHeight = 24
 local contentWidthOffset = 5
 local contentHeightOffset = -25
 
-local playerName = ""
+--LST.playerName = ""
 local guildName = ""
+
+local isMaterialPriceUpdated = false;
+local isTSMPriceUpdated = false;
 
 function LST:OnInitialize()
 	-- init databroker
-	db = LibStub("AceDB-3.0"):New("LegendaryStockTrackerDB", {
+	LST.db = LibStub("AceDB-3.0"):New("LegendaryStockTrackerDB", {
 		profile = 
 		{
 			minimap = 
@@ -143,19 +136,18 @@ function LST:OnInitialize()
 			},
 			settings = 
 			{
-				loadUnownedLegendaries = true,
 				showPricing = true,
 				includeBags = true,
 				includeBank = true,
 				includeAH = true,
 				includeMail = true,
 				IncludeGuild = true,
-				minProfit = 5000,
-				restockAmount = 3,
-				minrestockAmount = 2,
-				includeCachedData = true,
+				IncludeSyncData = true,
+				minProfit = 1000,
+				restockAmount = 2,
+				minrestockAmount = 1,
 				syncTarget = "charactername",
-				onlyRestockCraftable = false,
+				onlyRestockCraftable = true,
 				priceSource = L["LST Crafting"]
 			}
 		},
@@ -167,14 +159,14 @@ function LST:OnInitialize()
 				{
 					characterName = "",
 					classNameBase = "",
-					bagItemLinks = {},
-					bagItemCount = 0,
-					bankItemLinks = {},
-					bankItemCount = 0,
-					ahItemLinks = {},
-					ahItemCount = 0,
-					mailboxItemLinks = {},
-					mailboxItemCount = 0,
+					bagItemLegendaryLinks = {},
+					bagItemLegendaryCount = 0,
+					bankItemLegendaryLinks = {},
+					bankItemLegendaryCount = 0,
+					ahItemLegendaryLinks = {},
+					ahItemLegendaryCount = 0,
+					mailboxItemLegendaryLinks = {},
+					mailboxItemLegendaryCount = 0,
 					unlockedLegendaryCraftRanks = {}
 				}
 			},
@@ -183,8 +175,8 @@ function LST:OnInitialize()
 				['*'] = 
 				{
 					guildName = "",
-					GuildBankItemLinks = {},
-					GuildBankItemCount = 0
+					GuildBankItemLegendaryLinks = {},
+					GuildBankItemLegendaryCount = 0
 				}
 			},
 			syncData = 
@@ -230,7 +222,7 @@ function LST:OnInitialize()
 		}
 	});
 
-	LstockIcon:Register("LegendaryStockTracker", LstockLDB, db.profile.minimap)
+	LstockIcon:Register("LegendaryStockTracker", LstockLDB, LST.db.profile.minimap)
 	--chat commands
     LST:RegisterChatCommand("lstock", "HandleChatCommand")
     LST:RegisterChatCommand("lst", "HandleChatCommand")
@@ -256,10 +248,10 @@ function LST:OnInitialize()
 	self:RegisterComm("LST")
 
 	LST:CheckIfTSMIsRunning()
-	playerName = UnitName("player")
+	LST.playerName = UnitName("player")
 	--guildName = select(1,GetGuildInfo("player")); --doesn't work on login, only on reloads
-	db.factionrealm.characters[playerName].characterName = playerName;
-	db.factionrealm.characters[playerName].classNameBase = select(1,UnitClassBase("player"));
+	LST.db.factionrealm.characters[LST.playerName].characterName = LST.playerName;
+	LST.db.factionrealm.characters[LST.playerName].classNameBase = select(1,UnitClassBase("player"));
 	LST:GetAllItemsInBags();
 	local item = {};
 	for id,data in pairs(LegendaryItemData) do
@@ -268,8 +260,8 @@ function LST:OnInitialize()
 			LST:ProcessItemInfo(id, true)
 		end
 	end
-	if(db.factionrealm.accountUUID == nil or db.factionrealm.accountUUID == "") then
-		db.factionrealm.accountUUID = LST:GenerateUUID();
+	if(LST.db.factionrealm.accountUUID == nil or LST.db.factionrealm.accountUUID == "") then
+		LST.db.factionrealm.accountUUID = LST:GenerateUUID();
 	end
 end
 
@@ -299,41 +291,33 @@ function LST:Test()
 end
 
 function LST:SetMainFrameSize(value1, value2)
-	--db.profile.frame.width = value1
-	--db.profile.frame.height = value2
+	--LST.db.profile.frame.width = value1
+	--LST.db.profile.frame.height = value2
 	--local f = LST:GetMainFrame()
 	--f:SetSize(tonumber(value1), tonumber(value2))
 end
 
 function LST:GetDataCounts()
 	local text = ""
-	if(db.profile.settings.includeCachedData) then
-		text = text .. L["Bags: "] .. LST:GetItemCounts("bagItemCount") .. "\n"
-		text = text .. L["Bank: "] .. LST:GetItemCounts("bankItemCount") .. "\n"
-		text = text .. L["AH: "] .. LST:GetItemCounts("ahItemCount") .. "\n"
-		text = text .. L["Mail: "] .. LST:GetItemCounts("mailboxItemCount") .. "\n"
-		local sum = 0
-		local count = 0
-		local altString = " ("
-		for key,val in pairs(db.factionrealm.guilds) do
-			sum = sum + db.factionrealm.guilds[key]["GuildBankItemCount"];
-			altString = altString .. db.factionrealm.guilds[key]["GuildBankItemCount"] .. " ";
-			count = count + 1;
-		end
-		altString = altString:sub(1, #altString - 1);
-		altString = altString .. ")";
-		if(count == 0) then
-			altString = "";
-		end
-
-		text = text .. L["Guild: "] .. sum .. altString .. "\n"
-	else
-		text = text .. L["Bags: "] .. bagItemCount .. "\n"
-		text = text .. L["Bank: "] .. bankItemCount .. "\n"
-		text = text .. L["AH: "] .. ahItemCount .. "\n"
-		text = text .. L["Mail: "] .. mailboxItemCount .. "\n"
-		text = text .. L["Guild: "] .. GuildBankItemCount .. "\n"
+	text = text .. L["Bags: "] .. LST:GetItemCounts("bagItemLegendaryCount") .. "\n"
+	text = text .. L["Bank: "] .. LST:GetItemCounts("bankItemLegendaryCount") .. "\n"
+	text = text .. L["AH: "] .. LST:GetItemCounts("ahItemLegendaryCount") .. "\n"
+	text = text .. L["Mail: "] .. LST:GetItemCounts("mailboxItemLegendaryCount") .. "\n"
+	local sum = 0
+	local count = 0
+	local altString = " ("
+	for key,val in pairs(LST.db.factionrealm.guilds) do
+		sum = sum + LST.db.factionrealm.guilds[key]["GuildBankItemLegendaryCount"];
+		altString = altString .. LST.db.factionrealm.guilds[key]["GuildBankItemLegendaryCount"] .. " ";
+		count = count + 1;
 	end
+	altString = altString:sub(1, #altString - 1);
+	altString = altString .. ")";
+	if(count == 0) then
+		altString = "";
+	end
+
+	text = text .. L["Guild: "] .. sum .. altString .. "\n"
 	return text
 end
 
@@ -342,14 +326,14 @@ function LST:GetItemCounts(itemCountParameterName)
 	local altString = " ("
 	local count = 0
 	local classColorEsc = ""
-	for key,val in pairs(db.factionrealm.characters) do
-		sum = sum + db.factionrealm.characters[key][itemCountParameterName];
-		if(db.factionrealm.characters[key].classNameBase ~= nil and db.factionrealm.characters[key].classNameBase ~= "") then
-			classColorEsc = "|c" .. C_ClassColor.GetClassColor(db.factionrealm.characters[key].classNameBase):GenerateHexColor();
+	for key,val in pairs(LST.db.factionrealm.characters) do
+		sum = sum + LST.db.factionrealm.characters[key][itemCountParameterName];
+		if(LST.db.factionrealm.characters[key].classNameBase ~= nil and LST.db.factionrealm.characters[key].classNameBase ~= "") then
+			classColorEsc = "|c" .. C_ClassColor.GetClassColor(LST.db.factionrealm.characters[key].classNameBase):GenerateHexColor();
 		else
 			classColorEsc = "";
 		end
-		altString = altString .. classColorEsc .. db.factionrealm.characters[key][itemCountParameterName] .. "|r ";
+		altString = altString .. classColorEsc .. LST.db.factionrealm.characters[key][itemCountParameterName] .. "|r ";
 		count = count + 1;
 	end
 	altString = altString:sub(1, #altString - 1);
@@ -362,9 +346,13 @@ end
 
 function LST:HandleChatCommand(input)
 	local f = LST:GetMainFrame(UIParent)
-	LST:UpdateExportText()
-	LST:UpdateTable()
-	f:Show()
+	if(f:IsShown()) then
+		f:Hide()
+	else
+		LST:UpdateExportText()
+		LST:UpdateTable()
+		f:Show()
+	end
 end
 
 function LST:UpdateExportText()
@@ -390,7 +378,7 @@ end
 
 function LST:UpdateAllAvailableItemSources()
 	LST:GetAllItemsInAH()
-	LST:GetAllItemsInBags()
+	LST:GetAllItemsInBags();
 	LST:GetAllItemsInBank() --if the bank is open at the time of command, update bank as well
 	--LST:GetAllItemsInAH() auctions specifically not updated on command, as we don't know if the ah is closed or the player has no auctions. relying on OWNED_AUCTIONS_UPDATED to update those.
 	--LST:GetAllItemsInMailbox() mailbox is updated anytime the mailbox is updated, no need to update on command 
@@ -400,8 +388,6 @@ end
 function LST:GetLegendariesFromItems()
 	LST:CheckIfTSMIsRunning()
 	LST:AddAllItemsToList()
-	LST:GetGearFromItems()
-	LST:GetShadowlandsLegendariesFromGear()
 	LST:CountLegendariesByRank()
 end
 
@@ -412,8 +398,8 @@ end
 
 function LST:GetMainFrame(parent)
 	if not LstockMainFrame then
-		local mainFrameWidth = tonumber(db.profile.frame.width)
-		local mainFrameHeight = tonumber(db.profile.frame.height)
+		local mainFrameWidth = tonumber(LST.db.profile.frame.width)
+		local mainFrameHeight = tonumber(LST.db.profile.frame.height)
 		if(mainFrameWidth == nil) then
 			mainFrameWidth = 760
 		end
@@ -426,7 +412,7 @@ function LST:GetMainFrame(parent)
 			tile = false, tileSize = 0, edgeSize = 1,
 			insets = {left = 1, right = 1, top = 1, bottom = 1},
 		}
-		local frameConfig = db.profile.frame
+		local frameConfig = LST.db.profile.frame
 		local f = CreateFrame("Frame","LSTMainFrame",parent, BackdropTemplateMixin and "BackdropTemplate")
 		LstockMainFrame = f
 		f:SetBackdrop(Backdrop)
@@ -536,7 +522,6 @@ function LST:GetMainFrame(parent)
 
 		--settings options
 		local heightOffset = 0
-		heightOffset = LST:AddOptionCheckbox("ShowUnownedItemsCheckButton", LSTSettingsScrollChild, "loadUnownedLegendaries", L["Show all legendaries"], heightOffset)
 		heightOffset = LST:AddOptionCheckbox("ShowPricingCheckButton", LSTSettingsScrollChild, "showPricing", L["Show profit (requires TSM operations)"], heightOffset)
 		heightOffset = LST:AddOptionEditbox("MinProfitEditBox", LSTSettingsScrollChild, "minProfit", L["Min profit before restocking"], heightOffset, 45)
 		heightOffset = LST:AddOptionEditbox("RestockAmountEditBox", LSTSettingsScrollChild, "restockAmount", L["Restock amount"], heightOffset, 25)
@@ -553,9 +538,20 @@ function LST:GetMainFrame(parent)
 		heightOffset = LST:AddOptionCheckbox("IncludeAHCheckButton", LSTSettingsScrollChild, "includeAH", L["Include AH"], heightOffset)
 		heightOffset = LST:AddOptionCheckbox("IncludeMailCheckButton", LSTSettingsScrollChild, "includeMail", L["Include Mail"], heightOffset)
 		heightOffset = LST:AddOptionCheckbox("IncludeGuildCheckButton", LSTSettingsScrollChild, "IncludeGuild", L["Include Guild Bank"], heightOffset)
-		heightOffset = LST:AddOptionCheckbox("includeCacheCheckButton", LSTSettingsScrollChild, "includeCachedData", L["Include Cached items"], heightOffset)
+		heightOffset = LST:AddOptionCheckbox("IncludeSyncDataCheckButton", LSTSettingsScrollChild, "IncludeSyncData", L["Include Synced Data"], heightOffset)
 		heightOffset = heightOffset - 25
 		heightOffset = LST:AddSyncButtonToOptions(heightOffset, LSTSettingsScrollChild);
+
+		local clearCacheText = f:CreateFontString(nil,"ARTWORK", "GameFontHighlight") 
+		clearCacheText:SetText(L["clear cache"])
+		local clearCacheButton = LST:CreateSettingsButton("LSTClearCacheButton", LSTSettingsScrollChild, 90, 22);
+		local padding = 4;
+		local xOffset = 0;
+		clearCacheButton:SetPoint("TOPLEFT", LSTSettingsScrollChild, "TOPLEFT", 0, heightOffset)
+		heightOffset = heightOffset + 25;
+		clearCacheText:SetParent(clearCacheButton);
+		clearCacheText:SetPoint("LEFT", clearCacheButton, "LEFT", (90 - clearCacheText:GetStringWidth()) / 2, -1)
+		clearCacheButton:SetScript("OnClick", function(self) LST:ClearItemCache() end)
 		
 		
 		--table frame
@@ -611,12 +607,13 @@ function LST:GetMainFrame(parent)
 		closeButton:SetScript("OnClick", function()
 			LstockMainFrame:Hide()
 		end)
+		LstockMainFrame:Hide();
 	end
 	return LstockMainFrame
 end
 
 function LST:SetFrameMovable(f)
-	local frameConfig = db.profile.frame
+	local frameConfig = LST.db.profile.frame
 	f:EnableMouse(true)
 	f:SetMovable(true)
 	f:SetScript("OnMouseDown", function(self, button)
@@ -689,12 +686,12 @@ function LST:AddOptionCheckbox(name, parent, setting, description, heightOffset)
 	cb:SetSize(20,20)
 	cb:SetPoint("TOPLEFT", parent, "TOPLEFT", 0, heightOffset)
 	cb.setting = setting
-	cb:SetChecked(db.profile.settings[cb.setting])
+	cb:SetChecked(LST.db.profile.settings[cb.setting])
 	cb:SetScript("OnClick", function(cb)
 		if cb:GetChecked() then
-			db.profile.settings[cb.setting] = true
+			LST.db.profile.settings[cb.setting] = true
 		else
-			db.profile.settings[cb.setting] = false
+			LST.db.profile.settings[cb.setting] = false
 		end
 	end)
 	local text = cb:CreateFontString(nil,"ARTWORK", "GameFontHighlight") 
@@ -721,9 +718,9 @@ function LST:AddOptionEditbox(name, parent, setting, description, heightOffset, 
 	eb:SetFontObject("GameFontNormal")
 	eb:SetTextColor(1,1,1,1)
 	eb.setting = setting
-	eb:SetText(db.profile.settings[eb.setting])
+	eb:SetText(LST.db.profile.settings[eb.setting])
 	eb:SetScript("OnTextChanged", function(self)
-		db.profile.settings[eb.setting] = self:GetText()
+		LST.db.profile.settings[eb.setting] = self:GetText()
 	end)
 
 	eb:SetScript("OnEscapePressed", function()
@@ -740,7 +737,7 @@ function LST:AddDropdownMenu(name, parent, heightOffset)
 	local dropDown = CreateFrame("FRAME", name, parent, BackdropTemplateMixin and "UIDropDownMenuTemplate")
 	dropDown:SetPoint("TOPLEFT", parent, "TOPLEFT", -20, heightOffset);
 	UIDropDownMenu_SetWidth(dropDown, 150)
-	UIDropDownMenu_SetText(dropDown, "price source: " .. db.profile.settings.priceSource)
+	UIDropDownMenu_SetText(dropDown, "price source: " .. LST.db.profile.settings.priceSource)
 	UIDropDownMenu_Initialize(dropDown, function(self, level, menuList)
 		local info = UIDropDownMenu_CreateInfo()
 			if (level or 1) == 1 then
@@ -749,7 +746,7 @@ function LST:AddDropdownMenu(name, parent, heightOffset)
 				info.menuList = title;
 				info.arg1 = title;
 				info.func = self.SetValue;
-				if(title == db.profile.settings.priceSource) then
+				if(title == LST.db.profile.settings.priceSource) then
 					info.checked = true;
 				else
 					info.checked = false;
@@ -760,7 +757,7 @@ function LST:AddDropdownMenu(name, parent, heightOffset)
 	end)
 
 	function dropDown:SetValue(value)
-		db.profile.settings.priceSource = value;
+		LST.db.profile.settings.priceSource = value;
 		UIDropDownMenu_SetText(dropDown, "price source: " .. value)
 		--CloseDropDownMenus()
 	end
@@ -772,28 +769,7 @@ function LST:AddSyncButtonToOptions(heightOffset, LSTSettingsScrollChild)
 	local syncEB = nil;
 	local syncText = nil;
 	heightOffset, syncEB, syncText = LST:AddOptionEditbox("syncTargetEditBox", LSTSettingsScrollChild, "syncTarget", L["Send data to this alt"], heightOffset, 100)
-
-	local syncButton = CreateFrame("Button", "LSTSendDataButton", LSTSettingsScrollChild, BackdropTemplateMixin and "BackdropTemplate");
-	Backdrop = {
-		bgFile = "Interface\\AddOns\\LegendaryStockTracker\\Assets\\Plain.tga",
-		edgeFile = "Interface/Buttons/WHITE8X8",
-		tile = true, tileSize = 0, edgeSize = 1,
-		insets = {left = 0, right = 0, top = 0, bottom = 0},
-	}
-	syncButton:SetBackdrop(Backdrop)
-	syncButton:SetBackdropColor(0.25,0.25,0.25,0.9)
-	syncButton:SetBackdropBorderColor(0,0,0,1)
-	syncButton:SetSize(200,24)
-	syncButton.HighlightTexture = syncButton:CreateTexture()
-	syncButton.HighlightTexture:SetColorTexture(1,1,1,.3)
-	syncButton.HighlightTexture:SetPoint("TOPLEFT")
-	syncButton.HighlightTexture:SetPoint("BOTTOMRIGHT")
-	syncButton:SetHighlightTexture(syncButton.HighlightTexture)
-	syncButton.PushedTexture = syncButton:CreateTexture()
-	syncButton.PushedTexture:SetColorTexture(.9,.8,.1,.3)
-	syncButton.PushedTexture:SetPoint("TOPLEFT")
-	syncButton.PushedTexture:SetPoint("BOTTOMRIGHT")
-	syncButton:SetPushedTexture(syncButton.PushedTexture)
+	local syncButton = LST:CreateSettingsButton("LSTSendDataButton", LSTSettingsScrollChild, 200, 24);
 	local padding = 4;
 	local xOffset = 0;
 	syncButton:SetPoint("TOPLEFT", syncText, "TOPLEFT", -padding + xOffset, padding + 2);
@@ -861,214 +837,16 @@ function LST:UpdateShownTab()
 	end
 end
 
-function LST:GetAllItemsInBags()
-	bagItemLinks = {}
-	bagItemCount = 0
-	db.factionrealm.characters[playerName].bagItemLinks = {}
-	db.factionrealm.characters[playerName].bagItemCount = 0
-    for bag=0,NUM_BAG_SLOTS do
-        for slot=1,GetContainerNumSlots(bag) do
-			if not (GetContainerItemID(bag,slot) == nil) then 
-				bagItemLinks[#bagItemLinks+1] = (select(7,GetContainerItemInfo(bag,slot)));
-				bagItemCount = bagItemCount + 1;
-				db.factionrealm.characters[playerName].bagItemLinks[#db.factionrealm.characters[playerName].bagItemLinks + 1] = (select(7,GetContainerItemInfo(bag,slot)));
-				db.factionrealm.characters[playerName].bagItemCount = db.factionrealm.characters[playerName].bagItemCount + 1;
-			end
-        end
-	end
-end
-
-function LST:GetAllItemsInBank(event)
-	if(event ~= nil) then
-		if(event == "BANKFRAME_OPENED") then
-			LST:RegisterEvent("BANKFRAME_CLOSED", "GetAllItemsInBank");
-			isBankOpen = true;
-		elseif(event == "BANKFRAME_CLOSED") then
-			LST:UnregisterEvent("BANKFRAME_CLOSED", "GetAllItemsInBank");
-			isBankOpen = false;
-		end
-	end
-
-	if(isBankOpen == true) then
-		bankItemLinks = {}
-		bankItemCount = 0
-		db.factionrealm.characters[playerName].bankItemLinks = {}
-		db.factionrealm.characters[playerName].bankItemCount = 0
-		--go through all bank bag slots
-		for bag=NUM_BAG_SLOTS+1,NUM_BAG_SLOTS + NUM_BANKBAGSLOTS do
-			for slot=1,GetContainerNumSlots(bag) do
-				if not (GetContainerItemID(bag,slot) == nil) then 
-					bankItemLinks[#bankItemLinks+1] = (select(7,GetContainerItemInfo(bag,slot)));
-					bankItemCount = bankItemCount + 1;
-					db.factionrealm.characters[playerName].bankItemLinks[#db.factionrealm.characters[playerName].bankItemLinks + 1] = (select(7,GetContainerItemInfo(bag,slot)));
-					db.factionrealm.characters[playerName].bankItemCount = db.factionrealm.characters[playerName].bankItemCount + 1;
-				end
-			end
-		end
-		--go through default 28 bank spaces
-		for slot=1,GetContainerNumSlots(-1) do
-			if not (GetContainerItemID(-1,slot) == nil) then 
-				bankItemLinks[#bankItemLinks+1] = (select(7,GetContainerItemInfo(-1,slot)));
-				bankItemCount = bankItemCount + 1;
-				db.factionrealm.characters[playerName].bankItemLinks[#db.factionrealm.characters[playerName].bankItemLinks + 1] = (select(7,GetContainerItemInfo(-1,slot)));
-				db.factionrealm.characters[playerName].bankItemCount = db.factionrealm.characters[playerName].bankItemCount + 1;
-			end
-		end
-	end
-end
-
-function LST:GetAllItemsInAH()
-	if(C_AuctionHouse.GetNumOwnedAuctions() ~= 0) then
-		ahItemLinks = {}
-		ahItemCount = 0
-		db.factionrealm.characters[playerName].ahItemLinks = {}
-		db.factionrealm.characters[playerName].ahItemCount = 0
-		local numOwnedAuctions = C_AuctionHouse.GetNumOwnedAuctions()
-		for i=1, numOwnedAuctions do
-			local auctionInfo = C_AuctionHouse.GetOwnedAuctionInfo(i)
-			if(auctionInfo.status == 0) then 
-				ahItemLinks[#ahItemLinks+1] = auctionInfo.itemLink;
-				ahItemCount = ahItemCount + 1;
-				db.factionrealm.characters[playerName].ahItemLinks[#db.factionrealm.characters[playerName].ahItemLinks + 1] = auctionInfo.itemLink;
-				db.factionrealm.characters[playerName].ahItemCount = db.factionrealm.characters[playerName].ahItemCount + 1;
-			end
-		end
-	end
-end
-
-function LST:GetAllItemsInMailbox()
-	mailboxItemLinks = {}
-	mailboxItemCount = 0
-	db.factionrealm.characters[playerName].mailboxItemLinks = {}
-	db.factionrealm.characters[playerName].mailboxItemCount = 0
-	for i=1, GetInboxNumItems() do
-		for j=1,ATTACHMENTS_MAX_RECEIVE do 
-			if(GetInboxItemLink(i, j) ~= nil) then
-				mailboxItemLinks[#mailboxItemLinks+1] = GetInboxItemLink(i, j);
-				mailboxItemCount = mailboxItemCount + 1;
-				db.factionrealm.characters[playerName].mailboxItemLinks[#db.factionrealm.characters[playerName].mailboxItemLinks + 1] = GetInboxItemLink(i, j);
-				db.factionrealm.characters[playerName].mailboxItemCount = db.factionrealm.characters[playerName].mailboxItemCount + 1;
-			end
-		end
-	end
-end
-
-function LST:GetAllItemsInGuildBank()
-	local guildBankTabCount = GetNumGuildBankTabs()
-	guildName = select(1,GetGuildInfo("player"));
-	if(guildBankTabCount > 0 and GetGuildBankTabInfo(1) ~= nil) then
-		GuildBankItemLinks = {}
-		GuildBankItemCount = 0
-		db.factionrealm.guilds[guildName].GuildBankItemLinks = {}
-		db.factionrealm.guilds[guildName].GuildBankItemCount = 0
-		for tab=1,guildBankTabCount do
-			for slot=1,GUILD_BANK_SLOTS_PER_TAB do
-				if not (GetGuildBankItemInfo(tab,slot) == nil) then 
-					GuildBankItemLinks[#GuildBankItemLinks+1] = GetGuildBankItemLink(tab,slot);
-					GuildBankItemCount = GuildBankItemCount + 1;
-					db.factionrealm.guilds[guildName].GuildBankItemLinks[#db.factionrealm.guilds[guildName].GuildBankItemLinks + 1] = GetGuildBankItemLink(tab,slot);
-					db.factionrealm.guilds[guildName].GuildBankItemCount = db.factionrealm.guilds[guildName].GuildBankItemCount + 1;
-				end
-			end
-		end
-	end
-end
-
-function LST:GetGearFromItems()
-	gearLinks = {}
-	for i=1, #itemLinks do
-		if select(12, GetItemInfo(itemLinks[i])) == 4 then 
-			gearLinks[#gearLinks+1] = itemLinks[i]
-		end
-	end
-end
-
-function LST:AddAllItemsToList()
-	itemLinks = {}
-	if(db.profile.settings.includeBags) then
-		if(db.profile.settings.includeCachedData) then
-			LST:AddItemsToList("bagItemLinks")
-		else
-			for i=1, #bagItemLinks do
-				itemLinks[#itemLinks+1] = bagItemLinks[i]
-			end
-		end
-	end
-	if(db.profile.settings.includeBank) then
-		if(db.profile.settings.includeCachedData) then
-			LST:AddItemsToList("bankItemLinks")
-		else
-			for i=1, #bankItemLinks do
-				itemLinks[#itemLinks+1] = bankItemLinks[i]
-			end
-		end
-	end
-	if(db.profile.settings.includeAH) then
-		if(db.profile.settings.includeCachedData) then
-			LST:AddItemsToList("ahItemLinks")
-		else
-			for i=1, #ahItemLinks do
-				itemLinks[#itemLinks+1] = ahItemLinks[i]
-			end
-		end
-	end
-	if(db.profile.settings.includeMail) then
-		if(db.profile.settings.includeCachedData) then
-			LST:AddItemsToList("mailboxItemLinks")
-		else
-			for i=1, #mailboxItemLinks do
-				itemLinks[#itemLinks+1] = mailboxItemLinks[i]
-			end
-		end
-	end
-	if(db.profile.settings.IncludeGuild) then
-		if(db.profile.settings.includeCachedData) then
-			for key,val in pairs(db.factionrealm.guilds) do
-				for i=1, #db.factionrealm.guilds[key]["GuildBankItemLinks"] do
-					itemLinks[#itemLinks+1] = db.factionrealm.guilds[key]["GuildBankItemLinks"][i]
-				end
-			end
-		else
-			for i=1, #GuildBankItemLinks do
-				itemLinks[#itemLinks+1] = GuildBankItemLinks[i]
-			end
-		end
-	end
-end
-
-function LST:AddItemsToList(itemSource)
-	for key,val in pairs(db.factionrealm.characters) do
-		for i=1, #db.factionrealm.characters[key][itemSource] do
-			itemLinks[#itemLinks+1] = db.factionrealm.characters[key][itemSource][i]
-		end
-	end
-end
-
-function LST:GetShadowlandsLegendariesFromGear()
-	legendaryLinks = {}
-	for i=1, #gearLinks do
-		if (select(3, GetItemInfo(gearLinks[i])) == 1)  then 
-			local detailedItemLevel = GetDetailedItemLevelInfo(gearLinks[i])
-			if (detailedItemLevel > 175) and (detailedItemLevel < 300) then --leaving ilvl room for future upgradres (max 235 at time of writing)
-				legendaryLinks[#legendaryLinks+1] = gearLinks[i]
-			end
-		end
-	end
-end
-
 function LST:CountLegendariesByRank()
 	LST:CountLegendariesByRankWithoutSyncdata();
-	if(db.profile.settings.priceSource == L["LST Crafting"]) then 
+	if(LST.db.profile.settings.priceSource == L["LST Crafting"]) then 
 		LST:UpdateMaterialPrices();
 	end
-	if(db.profile.settings.includeCachedData) then
-		for account, accountdata in pairs(db.factionrealm.syncData) do
+	if(LST.db.profile.settings.IncludeSyncData) then
+		for account, accountdata in pairs(LST.db.factionrealm.syncData) do
 			for id, data in pairs (accountdata["legendaries"]) do
 				for rank, count in pairs(data["stock"]) do
 					LegendaryItemData[id]["stock"][rank] = LegendaryItemData[id]["stock"][rank] + count;
-					if(db.profile.settings.loadUnownedLegendaries == false and count > 0) then
-						LST:UpdateTsmPrices(id, rank);
-					end
 				end
 			end
 		end
@@ -1096,18 +874,17 @@ function LST:CountLegendariesByRankWithoutSyncdata()
 		end
 	end
 	
-	TSMPriceDataByRank = {}
-	if(db.profile.settings.priceSource == L["LST Crafting"]) then 
+	--if(isTSMPriceUpdated == false) then
+		TSMPriceDataByRank = {}
+	--end
+	if(LST.db.profile.settings.priceSource == L["LST Crafting"]) then 
 		LST:UpdateMaterialPrices();
 	end
-	for i=1, #legendaryLinks do
-		local itemID = select(3, strfind(legendaryLinks[i], "item:(%d+)"));
-		local detailedItemLevel = GetDetailedItemLevelInfo(legendaryLinks[i]);
+	for i=1, #LST.legendaryLinks do
+		local itemID = select(3, strfind(LST.legendaryLinks[i], "item:(%d+)"));
+		local detailedItemLevel = GetDetailedItemLevelInfo(LST.legendaryLinks[i]);
 		local rank = LST:GetLegendaryRankByItemLevel(detailedItemLevel);
 		LegendaryItemData[itemID]["stock"][rank] = LegendaryItemData[itemID]["stock"][rank] + 1;
-		if(db.profile.settings.loadUnownedLegendaries == false) then
-			LST:UpdateTsmPrices(itemID, rank);
-		end
 	end
 end
 
@@ -1116,21 +893,17 @@ function LST:GetUnlockedCraftRank(itemID, includeSyncData)
 		includeSyncData = true;
 	end
 	local unlockedRank  = 0;
-	if(db.profile.settings.includeCachedData) then
-		for key,val in pairs(db.factionrealm.characters) do
-			if(db.factionrealm.characters[key].unlockedLegendaryCraftRanks[itemID] ~= nil and db.factionrealm.characters[key].unlockedLegendaryCraftRanks[itemID] > unlockedRank) then
-				unlockedRank = db.factionrealm.characters[key].unlockedLegendaryCraftRanks[itemID];
+	for key,val in pairs(LST.db.factionrealm.characters) do
+		if(LST.db.factionrealm.characters[key].unlockedLegendaryCraftRanks[itemID] ~= nil and LST.db.factionrealm.characters[key].unlockedLegendaryCraftRanks[itemID] > unlockedRank) then
+			unlockedRank = LST.db.factionrealm.characters[key].unlockedLegendaryCraftRanks[itemID];
+		end
+	end
+	if(includeSyncData == true) then
+		for account,data in pairs(LST.db.factionrealm.syncData) do
+			if(data ~= nil and data["legendaries"] ~= nil and data["legendaries"][itemID] ~= nil and data["legendaries"][itemID]["canCraft"] > unlockedRank) then
+				unlockedRank = data["legendaries"][itemID]["canCraft"];
 			end
 		end
-		if(includeSyncData == true) then
-			for account,data in pairs(db.factionrealm.syncData) do
-				if(data ~= nil and data["legendaries"] ~= nil and data["legendaries"][itemID] ~= nil and data["legendaries"][itemID]["canCraft"] > unlockedRank) then
-					unlockedRank = data["legendaries"][itemID]["canCraft"];
-				end
-			end
-		end
-	else
-		unlockedRank = LegendaryItemData[itemID]["recipeUnlocked"];
 	end
 	return unlockedRank;
 end
@@ -1138,17 +911,17 @@ end
 function LST:UpdateRestockList()
 	RestockList = {}
 	local nameTable = LST:createNameTable()
-	local restockAmount = tonumber(db.profile.settings.restockAmount)
+	local restockAmount = tonumber(LST.db.profile.settings.restockAmount)
 	for item=1, #nameTable do
 		for rank=1, numRanks do
-			if(not db.profile.settings.onlyRestockCraftable or (db.profile.settings.onlyRestockCraftable and LST:GetUnlockedCraftRank(nameTable[item]) >= rank)) then
+			if(not LST.db.profile.settings.onlyRestockCraftable or (LST.db.profile.settings.onlyRestockCraftable and LST:GetUnlockedCraftRank(nameTable[item]) >= rank)) then
 				local currentStock = tonumber(LST:GetStockCount(nameTable[item], rank))
-				if currentStock < restockAmount and restockAmount - currentStock >= tonumber(db.profile.settings.minrestockAmount) then 
-					if(IsTSMLoaded == false or db.profile.settings.showPricing == false) then
+				if currentStock < restockAmount and restockAmount - currentStock >= tonumber(LST.db.profile.settings.minrestockAmount) then 
+					if(IsTSMLoaded == false or LST.db.profile.settings.showPricing == false) then
 						table.insert(RestockList, {LegendaryItemData[nameTable[item]]["name"] , rank, restockAmount - currentStock, 0, nameTable[item]})
 					else
 						if(LST:GetMinBuyoutMinusAuctionOpMin(nameTable[item], rank) ~= L["not scanned"] ) then
-							if tonumber(LST:GetMinBuyoutMinusAuctionOpMin(nameTable[item], rank)) > tonumber(db.profile.settings.minProfit) then
+							if tonumber(LST:GetMinBuyoutMinusAuctionOpMin(nameTable[item], rank)) > tonumber(LST.db.profile.settings.minProfit) then
 								table.insert(RestockList, {LegendaryItemData[nameTable[item]]["name"], rank, restockAmount - currentStock, LST:GetMinBuyoutMinusAuctionOpMin(nameTable[item], rank), nameTable[item]})
 							end
 						end
@@ -1162,7 +935,7 @@ end
 function LST:GenerateExportText()
 	local NameTable = LST:createNameTable()
 	local text = ""
-	if(IsTSMLoaded == false or db.profile.settings.showPricing == false) then
+	if(IsTSMLoaded == false or LST.db.profile.settings.showPricing == false) then
 		text = L["Item name, Rank 1, Rank 2, Rank 3,  Rank 4\n"]
 		for i=1, #NameTable do 
 			text = text .. LegendaryItemData[NameTable[i]]["name"] .. "," 
@@ -1186,28 +959,19 @@ end
 
 function LST:createNameTable()
 	local NameTable = {} --nametable is now "list of items to export"
-	if(db.profile.settings.loadUnownedLegendaries == false) then
-		for id, data in pairs (LegendaryItemData) do
-			local count = 0;
-			for rank, data in pairs(LegendaryItemData[id]["stock"]) do
-				count = count + data;
-			end
-			if(count > 0 ) then
-				table.insert(NameTable, id) 
-			end
-		end
-		table.sort(NameTable)
-	else
+	--if(isTSMPriceUpdated == false) then
 		TSMPriceDataByRank = {}
-		if(db.profile.settings.priceSource == L["LST Crafting"]) then 
-			LST:UpdateMaterialPrices();
-		end
-		for id, data in pairs(LegendaryItemData) do 
-			table.insert(NameTable, id);
-			LST:UpdateTsmPriceForAllRanks(id);
-		end
-		table.sort(NameTable)	
+	--end
+	if(LST.db.profile.settings.priceSource == L["LST Crafting"]) then 
+		LST:UpdateMaterialPrices();
 	end
+	for id, data in pairs(LegendaryItemData) do 
+		table.insert(NameTable, id);
+		LST:UpdateTsmPriceForAllRanks(id);
+	end
+	--print("updated prices")
+	--isTSMPriceUpdated = true;
+	table.sort(NameTable)	
 	return NameTable
 end
 
@@ -1244,7 +1008,7 @@ function LST:CreateTableSheet(frame)
 	end
 	local sheet = {}
 	local maxwidth = {};
-	if(IsTSMLoaded == false or db.profile.settings.showPricing == false) then
+	if(IsTSMLoaded == false or LST.db.profile.settings.showPricing == false) then
 		local titles = {LST:CreateTableTitle(frame, L["Item name"]), LST:CreateTableTitle(frame, L["Rank 1"]), LST:CreateTableTitle(frame, L["Rank 2"]), LST:CreateTableTitle(frame, L["Rank 3"]), LST:CreateTableTitle(frame, L["Rank 4"])}
 		table.insert(sheet, titles)
 		maxWidth = {0,0,0,0,0}
@@ -1376,7 +1140,7 @@ function LST:GetTablePriceFont(stringValue)
 	if(stringValue == L["not scanned"]) then
 		return 1,1,1,1;
 	end
-	if(tonumber(db.profile.settings.minProfit) > 0 and tonumber(stringValue) > tonumber(db.profile.settings.minProfit)) then
+	if(tonumber(LST.db.profile.settings.minProfit) > 0 and tonumber(stringValue) > tonumber(LST.db.profile.settings.minProfit)) then
 		return 0.15, 1, 0.15, 1
 	elseif(tonumber(stringValue) < 0) then
 		return 1, 0.15, 0.15, 1
@@ -1389,9 +1153,9 @@ function LST:GetTableStockFont(value, price)
 	if(price == L["not scanned"]) then
 		return 1,1,1,1;
 	end
-	if(value < tonumber(db.profile.settings.restockAmount)) then
-		if(db.profile.settings.showPricing == true and price ~= nil) then
-			if(tonumber(price) > tonumber(db.profile.settings.minProfit)) then 
+	if(value < tonumber(LST.db.profile.settings.restockAmount)) then
+		if(LST.db.profile.settings.showPricing == true and price ~= nil) then
+			if(tonumber(price) > tonumber(LST.db.profile.settings.minProfit)) then 
 				return 0, 0.5, 1, 1
 			else 
 				return 1, 1, 1, 1
@@ -1468,7 +1232,8 @@ function LST:GetMinBuyout(name, rank)
 end
 
 function LST:UpdateMaterialPrices()
-	for materialID, name in	pairs(db.factionrealm.recipeData.materialList) do
+	--if(isMaterialPriceUpdated == true) then return nil end
+	for materialID, name in	pairs(LST.db.factionrealm.recipeData.materialList) do
 		local matPrice = tonumber(LST:ConvertTsmPriceToValue(TSM_API.GetCustomPriceValue("matPrice", "i:" .. materialID)));
 		if(tonumber(matPrice) == 0 and tonumber(matprice) == nil) then
 			print(L["LST: no material price found in TSM for "] .. name .. L[", defaulting material cost to 0"]);
@@ -1477,14 +1242,15 @@ function LST:UpdateMaterialPrices()
 			materialPrices[materialID] = matPrice;
 		end
 	end
+	--isMaterialPriceUpdated = true;
 end
 
 function LST:GetLSTCraftCostForItem(itemID, rank)
-	if(db.factionrealm.recipeData.recipes[itemID] == nil or db.factionrealm.recipeData.recipes[itemID]["ranks"] == nil or db.factionrealm.recipeData.recipes[itemID]["ranks"][rank] == nil) then
+	if(LST.db.factionrealm.recipeData.recipes[itemID] == nil or LST.db.factionrealm.recipeData.recipes[itemID]["ranks"] == nil or LST.db.factionrealm.recipeData.recipes[itemID]["ranks"][rank] == nil) then
 		return L["not scanned"];
 	end
 	local price = 0;
-	for materialID, data in pairs(db.factionrealm.recipeData.recipes[itemID]["ranks"][rank]) do
+	for materialID, data in pairs(LST.db.factionrealm.recipeData.recipes[itemID]["ranks"][rank]) do
 		if(materialPrices[materialID] == nil) then
 			price = price + 0;
 		else
@@ -1502,6 +1268,7 @@ function LST:UpdateTsmPriceForAllRanks(itemName)
 end
 
 function LST:UpdateTsmPrices(itemName, rank)
+	--if(isTSMPriceUpdated == true) then return nil end
 	LST:AddEmptyTsmPriceDataEntryIfNotPresent(itemName)
 	local ItemPrices = TSMPriceDataByRank[itemName]
 	if(IsTSMLoaded ~= true) then
@@ -1521,16 +1288,16 @@ function LST:UpdateTsmPrices(itemName, rank)
 	end
 	tsmstring = TSM_API.ToItemString(tsmString)
 	ItemPrices[rank][1] = LST:ConvertTsmPriceToValue(TSM_API.GetCustomPriceValue("DBMinBuyout", tsmString));
-	if(db.profile.settings.priceSource == L["TSM operations"]) then 
+	if(LST.db.profile.settings.priceSource == L["TSM operations"]) then 
 		ItemPrices[rank][2] = LST:ConvertTsmPriceToValue(TSM_API.GetCustomPriceValue("AuctioningOpMin", tsmString))
-	elseif(db.profile.settings.priceSource == L["LST Crafting"]) then
+	elseif(LST.db.profile.settings.priceSource == L["LST Crafting"]) then
 		local craftCost = LST:GetLSTCraftCostForItem(itemName, rank);
 		if(craftCost ~= L["not scanned"]) then
 			craftCost = LST:RoundToInt(craftCost);
 		end
 		ItemPrices[rank][2] = craftCost;
 	else
-		print(db.profile.settings.priceSource)
+		print(LST.db.profile.settings.priceSource)
 		print(L["LST: Invalid price source"]);
 	end
 	if(ItemPrices[rank][1] == nil or ItemPrices[rank][1] == 0) then
@@ -1539,10 +1306,9 @@ function LST:UpdateTsmPrices(itemName, rank)
 	if(ItemPrices[rank][1] == nil or ItemPrices[rank][2] == nil) then
 		ItemPrices[rank][1] = 0
 		ItemPrices[rank][2] = 0
-	elseif(db.profile.settings.priceSource == L["LST Crafting"]) then
+	elseif(LST.db.profile.settings.priceSource == L["LST Crafting"]) then
 		ItemPrices[rank][1] = ItemPrices[rank][1] * 0.95;
 	end
-
 	TSMPriceDataByRank[itemName] = ItemPrices
 end
 
@@ -1663,7 +1429,7 @@ function LST:UpdateLegendaryRecipes()
 				local rank = LST:GetLegendaryRankByItemLevel(itemLevel);
 				local itemID = LST:GetCraftResultItemId(recipeInfo);
 				local unlockedLevel = LST:GetSLLegendaryUnlockedLevel(recipeInfo)
-				db.factionrealm.characters[playerName].unlockedLegendaryCraftRanks[itemID] = unlockedLevel;
+				LST.db.factionrealm.characters[LST.playerName].unlockedLegendaryCraftRanks[itemID] = unlockedLevel;
 				LegendaryItemData[itemID]["recipeUnlocked"] = unlockedLevel;
 				LegendaryItemData[itemID]["recipeID"][rank] = recipeID;
 				
@@ -1678,10 +1444,10 @@ function LST:UpdateLegendaryRecipes()
 						itemid = materialID,
 						numRequired = reagentNumRequired
 					}
-					db.factionrealm.recipeData.materialList[materialID] = reagentName;
+					LST.db.factionrealm.recipeData.materialList[materialID] = reagentName;
 				end
-				db.factionrealm.recipeData.recipes[itemID]["name"] = recipeInfo["name"];
-				db.factionrealm.recipeData.recipes[itemID]["ranks"][rank] = materials;
+				LST.db.factionrealm.recipeData.recipes[itemID]["name"] = recipeInfo["name"];
+				LST.db.factionrealm.recipeData.recipes[itemID]["ranks"][rank] = materials;
 				
 			end
 		end
@@ -1730,9 +1496,9 @@ function LST:OnCommReceived(prefix, payload, distribution, sender)
 	local success, data = LibSerialize:Deserialize(decompressed)
 	if not success then return end
 	print(L["LST: Received item data from "] .. sender)
-	db.factionrealm.syncData[data["accID"]] = {}
-	db.factionrealm.syncData[data["accID"]]["legendaries"] = {}
-	local table = db.factionrealm.syncData[data["accID"]]["legendaries"]
+	LST.db.factionrealm.syncData[data["accID"]] = {}
+	LST.db.factionrealm.syncData[data["accID"]]["legendaries"] = {}
+	local table = LST.db.factionrealm.syncData[data["accID"]]["legendaries"]
 	for id, data in pairs(data["legendaries"]) do
 		table[id] = 
 		{
@@ -1740,24 +1506,24 @@ function LST:OnCommReceived(prefix, payload, distribution, sender)
 			["stock"] = {data[2],  data[3], data[4], data[5]}
 		}
 	end
-	db.factionrealm.recipeData.materialList = data.recipeData["materialList"];
+	LST.db.factionrealm.recipeData.materialList = data.recipeData["materialList"];
 	for recipeID, recipeData in pairs(data.recipeData.recipes) do
-		db.factionrealm.recipeData.recipes[recipeID] = recipeData;
+		LST.db.factionrealm.recipeData.recipes[recipeID] = recipeData;
 	end
 
 end
 
 function LST:SendDataToSyncTarget()
-	LST:SendDataToPlayer(db.profile.settings.syncTarget)
+	LST:SendDataToPlayer(LST.db.profile.settings.syncTarget)
 end
 
 function LST:SendDataToPlayer(player)
 	print(L["LST: Sending data to "] .. player)
 	LST:CountLegendariesByRankWithoutSyncdata();
 	local syncData = {
-		["accID"] = db.factionrealm.accountUUID,
+		["accID"] = LST.db.factionrealm.accountUUID,
 		["legendaries"] = {},
-		["recipeData"] = db.factionrealm.recipeData
+		["recipeData"] = LST.db.factionrealm.recipeData
 	}
 
 	for id, data in pairs (LegendaryItemData) do
@@ -1781,6 +1547,29 @@ end
 
 function LST:OnCommChunkSent(arg, sentBytes, totalBytes)
 	--print(sentBytes == totalBytes);
+end
+
+function LST:ClearItemCache()
+	for key,val in pairs(LST.db.factionrealm.characters) do
+		LST.db.factionrealm.characters[key]["bagItemLegendaryLinks"] = {};
+		LST.db.factionrealm.characters[key]["bagItemLegendaryCount"] = 0;
+		LST.db.factionrealm.characters[key]["bankItemLegendaryLinks"] = {};
+		LST.db.factionrealm.characters[key]["bankItemLegendaryCount"] = 0;
+		LST.db.factionrealm.characters[key]["ahItemLegendaryLinks"] = {};
+		LST.db.factionrealm.characters[key]["ahItemLegendaryCount"] = 0;
+		LST.db.factionrealm.characters[key]["mailboxItemLegendaryLinks"] = {};
+		LST.db.factionrealm.characters[key]["mailboxItemLegendaryCount"] = 0;
+	end
+	for key,val in pairs(LST.db.factionrealm.guilds) do
+		LST.db.factionrealm.guilds[key]["GuildBankItemLegendaryLinks"] = {};
+		LST.db.factionrealm.guilds[key]["GuildBankItemLegendaryCount"] = 0;
+	end
+	for key,val in pairs(LST.db.factionrealm.syncData) do
+		for k,v in pairs(LST.db.factionrealm.syncData[key]["legendaries"]) do
+			LST.db.factionrealm.syncData[key]["legendaries"][k]["stock"] = {0,0,0,0};
+		end
+	end
+	print(L["LST: Cleared item cache"])
 end
 
 function LST:GenerateUUID()

@@ -59,6 +59,7 @@ L["Total (profit): "] =  "Gesamt (Gewinn): "
 L["Total (min price): "] =  "Gesamt (Mindestpreis): "
 L["Total per rank (profit): "] =  "Gesamt pro Rang (Gewinn): "
 L["Total per rank (min price): "] =  "Gesamt pro Rang (Mindestpreis): "
+L["LST: Clearing item cache"] = "LST: Clearing item cache"
 
 -- Export Frame
 L["Paste this data into your copy of the spreadsheet"] = "Füge diese Daten in deine Kopie des Tabellenblatts ein"
@@ -77,7 +78,10 @@ L["Include Bank"] = "Bank berücksichtigen"
 L["Include AH"] = "Auktionshaus berücksichtigen"
 L["Include Mail"] = "Briefkasten berücksichtigen"
 L["Include Guild Bank"] = "Gildenbank berücksichtigen"
+L["Include Synced Data"] = "Synchrone Daten berücksichtigen"
 L["Send data to this alt"] = "Daten an diesen Twink senden"
+L["clear cache"] = "Cache löschen"
+L["LST: Cleared item cache"] = "LST: Artikel-Cache geleert"
 
 -- Minimap Icon
 L["Click or type /lst to show the main panel"] =  "Klicken Sie oder geben Sie /lst ein, um das Hauptfenster anzuzeigen"
