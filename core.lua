@@ -28,7 +28,7 @@ local LstockLDB = LibStub("LibDataBroker-1.1"):NewDataObject("LegendaryStockTrac
   end
 })
 
-local LSTVersion = "v2.8.1"
+local LSTVersion = "v2.8.3"
 --local db = nil
 LST.db = nil
 local LstockIcon = LibStub("LibDBIcon-1.0")
@@ -108,6 +108,7 @@ local tabWidth = 150
 local tabHeight = 24
 local contentWidthOffset = 5
 local contentHeightOffset = -25
+local isfirstRestockAmountInputChange = true;
 
 --LST.playerName = ""
 local guildName = ""
@@ -145,6 +146,7 @@ function LST:OnInitialize()
 				IncludeSyncData = true,
 				minProfit = 1000,
 				restockAmount = 2,
+				restockAmountByRank = {0,0,0,0},
 				minrestockAmount = 1,
 				syncTarget = "charactername",
 				onlyRestockCraftable = true,
@@ -231,6 +233,8 @@ function LST:OnInitialize()
     LST:RegisterChatCommand("tst", "tst")
     LST:RegisterChatCommand("lstSetSize", "SetMainFrameSize")
 	LST:RegisterChatCommand("lstockscan", "ScanAhPrices")
+	LST:RegisterChatCommand("lstsetrestock", "SetRestockFromChat")
+	LST:RegisterChatCommand("lstprintrestock", "PrintRestockAmountByRank")
 	--events
 	LST:RegisterEvent("BANKFRAME_OPENED", "GetAllItemsInBank")
 	LST:RegisterEvent("OWNED_AUCTIONS_UPDATED", "GetAllItemsInAH")
@@ -263,6 +267,9 @@ function LST:OnInitialize()
 	if(LST.db.factionrealm.accountUUID == nil or LST.db.factionrealm.accountUUID == "") then
 		LST.db.factionrealm.accountUUID = LST:GenerateUUID();
 	end
+	if(LST.db.profile.settings.restockAmountByRank[1] == 0 and LST.db.profile.settings.restockAmountByRank[2] == 0 and LST.db.profile.settings.restockAmountByRank[3] == 0 and LST.db.profile.settings.restockAmountByRank[4] == 0) then
+		LST:SetRestockAmountByRank(LST.db.profile.settings.restockAmount, nil, nil, nil);
+	end
 end
 
 function LST:tst()
@@ -285,9 +292,8 @@ function LST:OnItemInfoReceived(event, itemID, success)
 	end
 end
 
-
 function LST:Test()
-	print(time());
+	
 end
 
 function LST:SetMainFrameSize(value1, value2)
@@ -590,11 +596,30 @@ function LST:GetMainFrame(parent)
 
 		LST:AddCraftButtonToRestock(restockFrame);
 
+		--FAQ frame
+		local faqFrame = LST:CreateOptionsContentFrame("LSTFAQFrame", contentFrame, Backdrop);
+		faqFrame.title:SetText(L["FAQ"]);
+		faqFrame.scrollframe = faqFrame.scrollframe or CreateFrame("ScrollFrame", "LSTFAQScrollFrame", faqFrame, BackdropTemplateMixin and "UIPanelScrollFrameTemplate");
+		faqFrame.scrollframe:SetPoint("LEFT")
+		faqFrame.scrollframe:SetPoint("RIGHT", -22, 0)
+		faqFrame.scrollframe:SetPoint("TOP")
+		faqFrame.scrollframe:SetPoint("BOTTOM")
+		LSTFAQScrollChild =  faqFrame.scrollframe.scrollchild or CreateFrame("Frame", "LSTFAQScrollChild", faqFrame.scrollframe);
+		LSTFAQScrollChild:SetSize(faqFrame.scrollframe:GetSize())
+		faqFrame.scrollframe:SetScrollChild(LSTFAQScrollChild)
+		LSTFAQScrollChild:SetPoint("LEFT");
+		LSTFAQScrollChild:SetPoint("RIGHT");
+		--LSTFAQScrollChild:SetHeight(faqFrame.scrollframe:GetHeight())
+
+		--LSTFAQScrollChild:SetParent(faqFrame.scrollframe);
+		LST:PopulateFAQFrame(LSTFAQScrollChild, faqFrame.scrollframe);
+
 		--create tabs
 		exportTab = LST:AddTab(tabList, tabWidth, 24, 3, exportFrame, L["Export"])
 		LST:AddTab(tabList, tabWidth, 24, 2, settingsFrame, L["Settings"])
 		local tab = LST:AddTab(tabList, tabWidth, 24, 1, tableFrame, L["Table"])
 		LST:AddTab(tabList, tabWidth, 24, 4, restockFrame, L["Restock"])
+		LST:AddTab(tabList, tabWidth, 24, 5, faqFrame, L["FAQ"])
 		LST:TabOnClick(tab)
 
 		local closeButton = CreateFrame("Button", "LSTMainFrameCloseButton", f)
@@ -631,6 +656,60 @@ function LST:SetFrameMovable(f)
 	frameConfig.ofsx = ofsx
 	frameConfig.ofsy = ofsy
 	end)
+end
+
+function LST:PopulateFAQFrame(frame, frame2)
+	local horizontalPadding = 0;
+	local verticalOffset = -5
+	local lastTextElement = nil;
+	local text = frame:CreateFontString("FAQ_Intro","ARTWORK", "GameFontHighlight");
+	text:SetPoint("TOPLEFT",frame, "TOPLEFT", 5, verticalOffset)
+	text:SetPoint("RIGHT",frame, "RIGHT")
+	text:SetText(L["FAQ_Intro"]);
+	text:SetJustifyH("LEFT");
+	lastTextElement = text;
+	verticalOffset = -10;
+	lastTextElement = LST:AddAnchoredFontString("FAQ_Stock_Title", frame, frame2, horizontalPadding, verticalOffset, "FAQ_Stock_Title", lastTextElement, "GameFontNormal");
+	verticalOffset = -5;
+	lastTextElement = LST:AddAnchoredFontString("FAQ_Stock_Description", frame, frame2, horizontalPadding, verticalOffset, "FAQ_Stock_Description", lastTextElement);
+	verticalOffset = -10;
+	lastTextElement = LST:AddAnchoredFontString("FAQ_Profit_Title", frame, frame2, horizontalPadding, verticalOffset, "FAQ_Profit_Title", lastTextElement, "GameFontNormal");
+	verticalOffset = -5;
+	lastTextElement = LST:AddAnchoredFontString("FAQ_Profit_Description", frame, frame2, horizontalPadding, verticalOffset, "FAQ_Profit_Description", lastTextElement);
+	verticalOffset = -10;
+	lastTextElement = LST:AddAnchoredFontString("FAQ_Restock_Title", frame, frame2, horizontalPadding, verticalOffset, "FAQ_Restock_Title", lastTextElement, "GameFontNormal");
+	verticalOffset = -5;
+	lastTextElement = LST:AddAnchoredFontString("FAQ_Restock_Description", frame, frame2, horizontalPadding, verticalOffset, "FAQ_Restock_Description", lastTextElement);
+	verticalOffset = -10;
+	lastTextElement = LST:AddAnchoredFontString("FAQ_Export_Title", frame, frame2, horizontalPadding, verticalOffset, "FAQ_Export_Title", lastTextElement, "GameFontNormal");
+	verticalOffset = -5;
+	lastTextElement = LST:AddAnchoredFontString("FAQ_Export_Description", frame, frame2, horizontalPadding, verticalOffset, "FAQ_Export_Description", lastTextElement);
+	verticalOffset = -10;
+	lastTextElement = LST:AddAnchoredFontString("FAQ_Syncing_Title", frame, frame2, horizontalPadding, verticalOffset, "FAQ_Syncing_Title", lastTextElement, "GameFontNormal");
+	verticalOffset = -5;
+	lastTextElement = LST:AddAnchoredFontString("FAQ_Syncing_Description", frame, frame2, horizontalPadding, verticalOffset, "FAQ_Syncing_Description", lastTextElement);
+	verticalOffset = -10;
+	lastTextElement = LST:AddAnchoredFontString("FAQ_IncorrectData_Title", frame, frame2, horizontalPadding, verticalOffset, "FAQ_IncorrectData_Title", lastTextElement, "GameFontNormal");
+	verticalOffset = -5;
+	lastTextElement = LST:AddAnchoredFontString("FAQ_IncorrectData_Description", frame, frame2, horizontalPadding, verticalOffset, "FAQ_IncorrectData_Description", lastTextElement);
+	verticalOffset = -10;
+	lastTextElement = LST:AddAnchoredFontString("FAQ_KnowIssues_Title", frame, frame2, horizontalPadding, verticalOffset, "FAQ_KnowIssues_Title", lastTextElement, "GameFontNormal");
+	verticalOffset = -5;
+	lastTextElement = LST:AddAnchoredFontString("FAQ_KnowIssues_Description", frame, frame2, horizontalPadding, verticalOffset, "FAQ_KnowIssues_Description", lastTextElement);
+	verticalOffset = -20;
+	lastTextElement = LST:AddAnchoredFontString("FAQ_Outro", frame, frame2, horizontalPadding, verticalOffset, "FAQ_Outro", lastTextElement);
+end
+
+function LST:AddAnchoredFontString(name, parent, parent2, horizontalOffset, verticalOffset, localizationKey, topAnchor, font)
+	if(font == nil) then
+		font = "GameFontHighlight";
+	end
+	local text = parent:CreateFontString(name,"ARTWORK", font);
+	text:SetPoint("TOPLEFT",topAnchor, "BOTTOMLEFT", horizontalOffset, verticalOffset)
+	text:SetPoint("RIGHT",parent2, "RIGHT", -horizontalOffset)
+	text:SetText(L[localizationKey]);
+	text:SetJustifyH("LEFT");
+	return text;
 end
 
 function LST:TabOnClick(self)
@@ -721,6 +800,14 @@ function LST:AddOptionEditbox(name, parent, setting, description, heightOffset, 
 	eb:SetText(LST.db.profile.settings[eb.setting])
 	eb:SetScript("OnTextChanged", function(self)
 		LST.db.profile.settings[eb.setting] = self:GetText()
+		if(eb.setting == "restockAmount") then
+			if(isfirstRestockAmountInputChange) then
+				isfirstRestockAmountInputChange = false;
+				return;
+			else
+				LST:SetRestockAmountByRank(LST.db.profile.settings.restockAmount, nil, nil, nil);
+			end
+		end
 	end)
 
 	eb:SetScript("OnEscapePressed", function()
@@ -883,6 +970,9 @@ function LST:CountLegendariesByRankWithoutSyncdata()
 	for i=1, #LST.legendaryLinks do
 		local itemID = select(3, strfind(LST.legendaryLinks[i], "item:(%d+)"));
 		local detailedItemLevel = GetDetailedItemLevelInfo(LST.legendaryLinks[i]);
+		if(detailedItemLevel == nil) then
+			print(L["Incorrect itemlevel data received for item "] .. itemID .. L[", skipping data for this rank."])
+		end
 		local rank = LST:GetLegendaryRankByItemLevel(detailedItemLevel);
 		LegendaryItemData[itemID]["stock"][rank] = LegendaryItemData[itemID]["stock"][rank] + 1;
 	end
@@ -909,20 +999,24 @@ function LST:GetUnlockedCraftRank(itemID, includeSyncData)
 end
 
 function LST:UpdateRestockList()
-	RestockList = {}
-	local nameTable = LST:createNameTable()
-	local restockAmount = tonumber(LST.db.profile.settings.restockAmount)
+	RestockList = {};
+	local nameTable = LST:createNameTable();
+	local restockAmount = {};
+	restockAmount[1] = tonumber(LST.db.profile.settings.restockAmountByRank[1]);
+	restockAmount[2] = tonumber(LST.db.profile.settings.restockAmountByRank[2]);
+	restockAmount[3] = tonumber(LST.db.profile.settings.restockAmountByRank[3]);
+	restockAmount[4] = tonumber(LST.db.profile.settings.restockAmountByRank[4]);
 	for item=1, #nameTable do
 		for rank=1, numRanks do
 			if(not LST.db.profile.settings.onlyRestockCraftable or (LST.db.profile.settings.onlyRestockCraftable and LST:GetUnlockedCraftRank(nameTable[item]) >= rank)) then
 				local currentStock = tonumber(LST:GetStockCount(nameTable[item], rank))
-				if currentStock < restockAmount and restockAmount - currentStock >= tonumber(LST.db.profile.settings.minrestockAmount) then 
+				if currentStock < restockAmount[rank] and restockAmount[rank] - currentStock >= tonumber(LST.db.profile.settings.minrestockAmount) then 
 					if(IsTSMLoaded == false or LST.db.profile.settings.showPricing == false) then
-						table.insert(RestockList, {LegendaryItemData[nameTable[item]]["name"] , rank, restockAmount - currentStock, 0, nameTable[item]})
+						table.insert(RestockList, {LegendaryItemData[nameTable[item]]["name"] , rank, restockAmount[rank] - currentStock, 0, nameTable[item]})
 					else
 						if(LST:GetMinBuyoutMinusAuctionOpMin(nameTable[item], rank) ~= L["not scanned"] ) then
 							if tonumber(LST:GetMinBuyoutMinusAuctionOpMin(nameTable[item], rank)) > tonumber(LST.db.profile.settings.minProfit) then
-								table.insert(RestockList, {LegendaryItemData[nameTable[item]]["name"], rank, restockAmount - currentStock, LST:GetMinBuyoutMinusAuctionOpMin(nameTable[item], rank), nameTable[item]})
+								table.insert(RestockList, {LegendaryItemData[nameTable[item]]["name"], rank, restockAmount[rank] - currentStock, LST:GetMinBuyoutMinusAuctionOpMin(nameTable[item], rank), nameTable[item]})
 							end
 						end
 					end
@@ -1022,10 +1116,10 @@ function LST:CreateTableSheet(frame)
 			row = 
 			{
 				LST:CreateTableElement(frame, LegendaryItemData[NameTable[i]]["name"],  1, 1, 1, 1),
-				LST:CreateTableElement(frame, stock[1], LST:GetTableStockFont(stock[1])), 
-				LST:CreateTableElement(frame, stock[2], LST:GetTableStockFont(stock[2])), 
-				LST:CreateTableElement(frame, stock[3], LST:GetTableStockFont(stock[3])), 
-				LST:CreateTableElement(frame, stock[4], LST:GetTableStockFont(stock[4]))
+				LST:CreateTableElement(frame, stock[1], LST:GetTableStockFont(1,stock[1])), 
+				LST:CreateTableElement(frame, stock[2], LST:GetTableStockFont(2,stock[2])), 
+				LST:CreateTableElement(frame, stock[3], LST:GetTableStockFont(3,stock[3])), 
+				LST:CreateTableElement(frame, stock[4], LST:GetTableStockFont(4,stock[4]))
 			}
 			table.insert(sheet, row)
 		end
@@ -1063,10 +1157,10 @@ function LST:CreateTableSheet(frame)
 			row = 
 			{
 				LST:CreateTableElement(frame, LegendaryItemData[NameTable[i]]["name"], 1, 1, 1, 1),
-				LST:CreateTableElement(frame, stock[1], LST:GetTableStockFont(stock[1], tostring(profit[1]))), LST:CreateTableElement(frame, tostring(LST:RoundToInt(profit[1])), LST:GetTablePriceFont(tostring(profit[1]))),
-				LST:CreateTableElement(frame, stock[2], LST:GetTableStockFont(stock[2], tostring(profit[2]))), LST:CreateTableElement(frame, tostring(LST:RoundToInt(profit[2])), LST:GetTablePriceFont(tostring(profit[2]))),
-				LST:CreateTableElement(frame, stock[3], LST:GetTableStockFont(stock[3], tostring(profit[3]))), LST:CreateTableElement(frame, tostring(LST:RoundToInt(profit[3])), LST:GetTablePriceFont(tostring(profit[3]))),
-				LST:CreateTableElement(frame, stock[4], LST:GetTableStockFont(stock[4], tostring(profit[4]))), LST:CreateTableElement(frame, tostring(LST:RoundToInt(profit[4])), LST:GetTablePriceFont(tostring(profit[4])))
+				LST:CreateTableElement(frame, stock[1], LST:GetTableStockFont(1, stock[1], tostring(profit[1]))), LST:CreateTableElement(frame, tostring(LST:RoundToInt(profit[1])), LST:GetTablePriceFont(tostring(profit[1]))),
+				LST:CreateTableElement(frame, stock[2], LST:GetTableStockFont(2, stock[2], tostring(profit[2]))), LST:CreateTableElement(frame, tostring(LST:RoundToInt(profit[2])), LST:GetTablePriceFont(tostring(profit[2]))),
+				LST:CreateTableElement(frame, stock[3], LST:GetTableStockFont(3, stock[3], tostring(profit[3]))), LST:CreateTableElement(frame, tostring(LST:RoundToInt(profit[3])), LST:GetTablePriceFont(tostring(profit[3]))),
+				LST:CreateTableElement(frame, stock[4], LST:GetTableStockFont(4, stock[4], tostring(profit[4]))), LST:CreateTableElement(frame, tostring(LST:RoundToInt(profit[4])), LST:GetTablePriceFont(tostring(profit[4])))
 			}
 			table.insert(sheet, row)		
 		end
@@ -1149,11 +1243,14 @@ function LST:GetTablePriceFont(stringValue)
 	end
 end
 
-function LST:GetTableStockFont(value, price)
+function LST:GetTableStockFont(rank, value, price)
 	if(price == L["not scanned"]) then
 		return 1,1,1,1;
 	end
-	if(value < tonumber(LST.db.profile.settings.restockAmount)) then
+	if (price == nil) then
+		price = 0;
+	end
+	if(value < tonumber(LST.db.profile.settings.restockAmountByRank[rank])) then
 		if(LST.db.profile.settings.showPricing == true and price ~= nil) then
 			if(tonumber(price) > tonumber(LST.db.profile.settings.minProfit)) then 
 				return 0, 0.5, 1, 1
@@ -1236,7 +1333,6 @@ function LST:UpdateMaterialPrices()
 	for materialID, name in	pairs(LST.db.factionrealm.recipeData.materialList) do
 		local matPrice = tonumber(LST:ConvertTsmPriceToValue(TSM_API.GetCustomPriceValue("matPrice", "i:" .. materialID)));
 		if(tonumber(matPrice) == 0 and tonumber(matprice) == nil) then
-			print(L["LST: no material price found in TSM for "] .. name .. L[", defaulting material cost to 0"]);
 			materialPrices[materialID] = 0;
 		else
 			materialPrices[materialID] = matPrice;
@@ -1334,6 +1430,12 @@ function LST:ConvertTsmPriceToValue(value)
 		gold = tonumber(string:sub(1, #string - 4));
 		silver = tonumber(string.sub(string, -4)) / 10000;
 	end
+	--if(gold == nil or silver == nil) then
+	--	print("LST: incorrect price for value: " .. value .. ", defaulting to 0");
+	--	return 0;
+	--end
+	if(gold == nil) then gold = 0; end
+	if(silver == nil) then silver = 0; end
 	local sum = gold + silver;
 	if(sum == nil or sum <= 0) then
 		return 0
