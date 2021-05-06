@@ -28,7 +28,7 @@ local LstockLDB = LibStub("LibDataBroker-1.1"):NewDataObject("LegendaryStockTrac
   end
 })
 
-local LSTVersion = "v2.8.3"
+local LSTVersion = "v2.8.4"
 --local db = nil
 LST.db = nil
 local LstockIcon = LibStub("LibDBIcon-1.0")
@@ -972,6 +972,7 @@ function LST:CountLegendariesByRankWithoutSyncdata()
 		local detailedItemLevel = GetDetailedItemLevelInfo(LST.legendaryLinks[i]);
 		if(detailedItemLevel == nil) then
 			print(L["Incorrect itemlevel data received for item "] .. itemID .. L[", skipping data for this rank."])
+			return;
 		end
 		local rank = LST:GetLegendaryRankByItemLevel(detailedItemLevel);
 		LegendaryItemData[itemID]["stock"][rank] = LegendaryItemData[itemID]["stock"][rank] + 1;
