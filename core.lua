@@ -28,7 +28,7 @@ local LstockLDB = LibStub("LibDataBroker-1.1"):NewDataObject("LegendaryStockTrac
   end
 })
 
-local LSTVersion = "v2.8.4"
+local LSTVersion = "v2.9"
 --local db = nil
 LST.db = nil
 local LstockIcon = LibStub("LibDBIcon-1.0")
@@ -48,44 +48,46 @@ local Rank1BonusIDs = "::2:1487:6716"
 local Rank2BonusIDs = "::2:1507:6717"
 local Rank3BonusIDs = "::2:1522:6718"
 local Rank4BonusIDs = "::2:1532:6758"
+local Rank5BonusIDs = "::2:1256:7450"
+local Rank6BonusIDs = "::2:1257:7451"
 
 local LegendaryItemData = 
 {
-	["171419"] = {["profession"] = 1311, ["recipeUnlocked"] = 0, ["stock"] = {0,0,0,0}, ["recipeID"] = {0,0,0,0}},
-	["171412"] = {["profession"] = 1311, ["recipeUnlocked"] = 0, ["stock"] = {0,0,0,0}, ["recipeID"] = {0,0,0,0}},
-	["171414"] = {["profession"] = 1311, ["recipeUnlocked"] = 0, ["stock"] = {0,0,0,0}, ["recipeID"] = {0,0,0,0}},
-	["171416"] = {["profession"] = 1311, ["recipeUnlocked"] = 0, ["stock"] = {0,0,0,0}, ["recipeID"] = {0,0,0,0}},
-	["171415"] = {["profession"] = 1311, ["recipeUnlocked"] = 0, ["stock"] = {0,0,0,0}, ["recipeID"] = {0,0,0,0}},
-	["171417"] = {["profession"] = 1311, ["recipeUnlocked"] = 0, ["stock"] = {0,0,0,0}, ["recipeID"] = {0,0,0,0}},
-	["171413"] = {["profession"] = 1311, ["recipeUnlocked"] = 0, ["stock"] = {0,0,0,0}, ["recipeID"] = {0,0,0,0}},
-	["171418"] = {["profession"] = 1311, ["recipeUnlocked"] = 0, ["stock"] = {0,0,0,0}, ["recipeID"] = {0,0,0,0}},
-	["178927"] = {["profession"] = 1418, ["recipeUnlocked"] = 0, ["stock"] = {0,0,0,0}, ["recipeID"] = {0,0,0,0}},
-	["178926"] = {["profession"] = 1418, ["recipeUnlocked"] = 0, ["stock"] = {0,0,0,0}, ["recipeID"] = {0,0,0,0}},
-	["173248"] = {["profession"] = 1395, ["recipeUnlocked"] = 0, ["stock"] = {0,0,0,0}, ["recipeID"] = {0,0,0,0}},
-	["173249"] = {["profession"] = 1395, ["recipeUnlocked"] = 0, ["stock"] = {0,0,0,0}, ["recipeID"] = {0,0,0,0}},
-	["173242"] = {["profession"] = 1395, ["recipeUnlocked"] = 0, ["stock"] = {0,0,0,0}, ["recipeID"] = {0,0,0,0}},
-	["173245"] = {["profession"] = 1395, ["recipeUnlocked"] = 0, ["stock"] = {0,0,0,0}, ["recipeID"] = {0,0,0,0}},
-	["173244"] = {["profession"] = 1395, ["recipeUnlocked"] = 0, ["stock"] = {0,0,0,0}, ["recipeID"] = {0,0,0,0}},
-	["173246"] = {["profession"] = 1395, ["recipeUnlocked"] = 0, ["stock"] = {0,0,0,0}, ["recipeID"] = {0,0,0,0}},
-	["173241"] = {["profession"] = 1395, ["recipeUnlocked"] = 0, ["stock"] = {0,0,0,0}, ["recipeID"] = {0,0,0,0}},
-	["173243"] = {["profession"] = 1395, ["recipeUnlocked"] = 0, ["stock"] = {0,0,0,0}, ["recipeID"] = {0,0,0,0}},
-	["173247"] = {["profession"] = 1395, ["recipeUnlocked"] = 0, ["stock"] = {0,0,0,0}, ["recipeID"] = {0,0,0,0}},
-	["172321"] = {["profession"] = 1334, ["recipeUnlocked"] = 0, ["stock"] = {0,0,0,0}, ["recipeID"] = {0,0,0,0}},
-	["172316"] = {["profession"] = 1334, ["recipeUnlocked"] = 0, ["stock"] = {0,0,0,0}, ["recipeID"] = {0,0,0,0}},
-	["172317"] = {["profession"] = 1334, ["recipeUnlocked"] = 0, ["stock"] = {0,0,0,0}, ["recipeID"] = {0,0,0,0}},
-	["172318"] = {["profession"] = 1334, ["recipeUnlocked"] = 0, ["stock"] = {0,0,0,0}, ["recipeID"] = {0,0,0,0}},
-	["172319"] = {["profession"] = 1334, ["recipeUnlocked"] = 0, ["stock"] = {0,0,0,0}, ["recipeID"] = {0,0,0,0}},
-	["172315"] = {["profession"] = 1334, ["recipeUnlocked"] = 0, ["stock"] = {0,0,0,0}, ["recipeID"] = {0,0,0,0}},
-	["172314"] = {["profession"] = 1334, ["recipeUnlocked"] = 0, ["stock"] = {0,0,0,0}, ["recipeID"] = {0,0,0,0}},
-	["172320"] = {["profession"] = 1334, ["recipeUnlocked"] = 0, ["stock"] = {0,0,0,0}, ["recipeID"] = {0,0,0,0}},
-	["172329"] = {["profession"] = 1334, ["recipeUnlocked"] = 0, ["stock"] = {0,0,0,0}, ["recipeID"] = {0,0,0,0}},
-	["172324"] = {["profession"] = 1334, ["recipeUnlocked"] = 0, ["stock"] = {0,0,0,0}, ["recipeID"] = {0,0,0,0}},
-	["172326"] = {["profession"] = 1334, ["recipeUnlocked"] = 0, ["stock"] = {0,0,0,0}, ["recipeID"] = {0,0,0,0}},
-	["172325"] = {["profession"] = 1334, ["recipeUnlocked"] = 0, ["stock"] = {0,0,0,0}, ["recipeID"] = {0,0,0,0}},
-	["172327"] = {["profession"] = 1334, ["recipeUnlocked"] = 0, ["stock"] = {0,0,0,0}, ["recipeID"] = {0,0,0,0}},
-	["172323"] = {["profession"] = 1334, ["recipeUnlocked"] = 0, ["stock"] = {0,0,0,0}, ["recipeID"] = {0,0,0,0}},
-	["172322"] = {["profession"] = 1334, ["recipeUnlocked"] = 0, ["stock"] = {0,0,0,0}, ["recipeID"] = {0,0,0,0}},
-	["172328"] = {["profession"] = 1334, ["recipeUnlocked"] = 0, ["stock"] = {0,0,0,0}, ["recipeID"] = {0,0,0,0}}
+	["171419"] = {["profession"] = 1311, ["recipeUnlocked"] = 0, ["stock"] = {0,0,0,0,0,0}, ["recipeID"] = {0,0,0,0,0,0}},
+	["171412"] = {["profession"] = 1311, ["recipeUnlocked"] = 0, ["stock"] = {0,0,0,0,0,0}, ["recipeID"] = {0,0,0,0,0,0}},
+	["171414"] = {["profession"] = 1311, ["recipeUnlocked"] = 0, ["stock"] = {0,0,0,0,0,0}, ["recipeID"] = {0,0,0,0,0,0}},
+	["171416"] = {["profession"] = 1311, ["recipeUnlocked"] = 0, ["stock"] = {0,0,0,0,0,0}, ["recipeID"] = {0,0,0,0,0,0}},
+	["171415"] = {["profession"] = 1311, ["recipeUnlocked"] = 0, ["stock"] = {0,0,0,0,0,0}, ["recipeID"] = {0,0,0,0,0,0}},
+	["171417"] = {["profession"] = 1311, ["recipeUnlocked"] = 0, ["stock"] = {0,0,0,0,0,0}, ["recipeID"] = {0,0,0,0,0,0}},
+	["171413"] = {["profession"] = 1311, ["recipeUnlocked"] = 0, ["stock"] = {0,0,0,0,0,0}, ["recipeID"] = {0,0,0,0,0,0}},
+	["171418"] = {["profession"] = 1311, ["recipeUnlocked"] = 0, ["stock"] = {0,0,0,0,0,0}, ["recipeID"] = {0,0,0,0,0,0}},
+	["178927"] = {["profession"] = 1418, ["recipeUnlocked"] = 0, ["stock"] = {0,0,0,0,0,0}, ["recipeID"] = {0,0,0,0,0,0}},
+	["178926"] = {["profession"] = 1418, ["recipeUnlocked"] = 0, ["stock"] = {0,0,0,0,0,0}, ["recipeID"] = {0,0,0,0,0,0}},
+	["173248"] = {["profession"] = 1395, ["recipeUnlocked"] = 0, ["stock"] = {0,0,0,0,0,0}, ["recipeID"] = {0,0,0,0,0,0}},
+	["173249"] = {["profession"] = 1395, ["recipeUnlocked"] = 0, ["stock"] = {0,0,0,0,0,0}, ["recipeID"] = {0,0,0,0,0,0}},
+	["173242"] = {["profession"] = 1395, ["recipeUnlocked"] = 0, ["stock"] = {0,0,0,0,0,0}, ["recipeID"] = {0,0,0,0,0,0}},
+	["173245"] = {["profession"] = 1395, ["recipeUnlocked"] = 0, ["stock"] = {0,0,0,0,0,0}, ["recipeID"] = {0,0,0,0,0,0}},
+	["173244"] = {["profession"] = 1395, ["recipeUnlocked"] = 0, ["stock"] = {0,0,0,0,0,0}, ["recipeID"] = {0,0,0,0,0,0}},
+	["173246"] = {["profession"] = 1395, ["recipeUnlocked"] = 0, ["stock"] = {0,0,0,0,0,0}, ["recipeID"] = {0,0,0,0,0,0}},
+	["173241"] = {["profession"] = 1395, ["recipeUnlocked"] = 0, ["stock"] = {0,0,0,0,0,0}, ["recipeID"] = {0,0,0,0,0,0}},
+	["173243"] = {["profession"] = 1395, ["recipeUnlocked"] = 0, ["stock"] = {0,0,0,0,0,0}, ["recipeID"] = {0,0,0,0,0,0}},
+	["173247"] = {["profession"] = 1395, ["recipeUnlocked"] = 0, ["stock"] = {0,0,0,0,0,0}, ["recipeID"] = {0,0,0,0,0,0}},
+	["172321"] = {["profession"] = 1334, ["recipeUnlocked"] = 0, ["stock"] = {0,0,0,0,0,0}, ["recipeID"] = {0,0,0,0,0,0}},
+	["172316"] = {["profession"] = 1334, ["recipeUnlocked"] = 0, ["stock"] = {0,0,0,0,0,0}, ["recipeID"] = {0,0,0,0,0,0}},
+	["172317"] = {["profession"] = 1334, ["recipeUnlocked"] = 0, ["stock"] = {0,0,0,0,0,0}, ["recipeID"] = {0,0,0,0,0,0}},
+	["172318"] = {["profession"] = 1334, ["recipeUnlocked"] = 0, ["stock"] = {0,0,0,0,0,0}, ["recipeID"] = {0,0,0,0,0,0}},
+	["172319"] = {["profession"] = 1334, ["recipeUnlocked"] = 0, ["stock"] = {0,0,0,0,0,0}, ["recipeID"] = {0,0,0,0,0,0}},
+	["172315"] = {["profession"] = 1334, ["recipeUnlocked"] = 0, ["stock"] = {0,0,0,0,0,0}, ["recipeID"] = {0,0,0,0,0,0}},
+	["172314"] = {["profession"] = 1334, ["recipeUnlocked"] = 0, ["stock"] = {0,0,0,0,0,0}, ["recipeID"] = {0,0,0,0,0,0}},
+	["172320"] = {["profession"] = 1334, ["recipeUnlocked"] = 0, ["stock"] = {0,0,0,0,0,0}, ["recipeID"] = {0,0,0,0,0,0}},
+	["172329"] = {["profession"] = 1334, ["recipeUnlocked"] = 0, ["stock"] = {0,0,0,0,0,0}, ["recipeID"] = {0,0,0,0,0,0}},
+	["172324"] = {["profession"] = 1334, ["recipeUnlocked"] = 0, ["stock"] = {0,0,0,0,0,0}, ["recipeID"] = {0,0,0,0,0,0}},
+	["172326"] = {["profession"] = 1334, ["recipeUnlocked"] = 0, ["stock"] = {0,0,0,0,0,0}, ["recipeID"] = {0,0,0,0,0,0}},
+	["172325"] = {["profession"] = 1334, ["recipeUnlocked"] = 0, ["stock"] = {0,0,0,0,0,0}, ["recipeID"] = {0,0,0,0,0,0}},
+	["172327"] = {["profession"] = 1334, ["recipeUnlocked"] = 0, ["stock"] = {0,0,0,0,0,0}, ["recipeID"] = {0,0,0,0,0,0}},
+	["172323"] = {["profession"] = 1334, ["recipeUnlocked"] = 0, ["stock"] = {0,0,0,0,0,0}, ["recipeID"] = {0,0,0,0,0,0}},
+	["172322"] = {["profession"] = 1334, ["recipeUnlocked"] = 0, ["stock"] = {0,0,0,0,0,0}, ["recipeID"] = {0,0,0,0,0,0}},
+	["172328"] = {["profession"] = 1334, ["recipeUnlocked"] = 0, ["stock"] = {0,0,0,0,0,0}, ["recipeID"] = {0,0,0,0,0,0}}
 }
 local SLProfessionsIds =
 {
@@ -99,7 +101,7 @@ local openedProfession = 0;
 local IsTSMLoaded = false;
 local fontStringPool = nil
 local RestockList = {}
-local numRanks = 4
+local numRanks = 6
 
 local activeTab = nil
 local exportTab = nil
@@ -132,8 +134,8 @@ function LST:OnInitialize()
 				relativePoint = "CENTER",
 				ofsx = 0,
 				ofsy = 0,
-				width = 760,
-				height = 590,
+				w = 1115,
+				h = 655,
 			},
 			settings = 
 			{
@@ -146,11 +148,11 @@ function LST:OnInitialize()
 				IncludeSyncData = true,
 				minProfit = 1000,
 				restockAmount = 2,
-				restockAmountByRank = {0,0,0,0},
+				restockAmountByRank = {0,0,0,0,0,0},
 				minrestockAmount = 1,
 				syncTarget = "charactername",
 				onlyRestockCraftable = true,
-				priceSource = L["LST Crafting"]
+				priceSource = L["LST Crafting"],
 			}
 		},
 		factionrealm = {
@@ -219,7 +221,8 @@ function LST:OnInitialize()
 				--			}
 						}
 					}
-				}
+				},
+				vestiges = {}
 			}
 		}
 	});
@@ -404,13 +407,13 @@ end
 
 function LST:GetMainFrame(parent)
 	if not LstockMainFrame then
-		local mainFrameWidth = tonumber(LST.db.profile.frame.width)
-		local mainFrameHeight = tonumber(LST.db.profile.frame.height)
+		local mainFrameWidth = tonumber(LST.db.profile.frame.w)
+		local mainFrameHeight = tonumber(LST.db.profile.frame.h)
 		if(mainFrameWidth == nil) then
-			mainFrameWidth = 760
+			mainFrameWidth = 1115
 		end
 		if(mainFrameHeight == nil) then
-			mainFrameHeight = 590
+			mainFrameHeight = 655
 		end
 		local Backdrop = {
 			bgFile = "Interface\\AddOns\\LegendaryStockTracker\\Assets\\Plain.tga",
@@ -950,6 +953,10 @@ function LST:GetLegendaryRankByItemLevel(itemlevel)
 		rank = 3;
 	elseif itemlevel == 235 then
 		rank = 4;
+	elseif itemlevel == 249 then
+		rank = 5;
+	elseif itemlevel == 262 then
+		rank = 6;
 	end
 	return rank;
 end
@@ -999,6 +1006,18 @@ function LST:GetUnlockedCraftRank(itemID, includeSyncData)
 	return unlockedRank;
 end
 
+function LST:CanCraft(itemID, rank)
+	local unlockedRank = LST:GetUnlockedCraftRank(itemID);
+	if(rank <= 4) then
+		return unlockedRank >= rank;
+	else
+		if(LST.db.factionrealm.recipeData.vestiges[LegendaryItemData[itemID]["profession"]] ~= nil) then
+			return unlockedRank + 2 >= rank
+		end
+	end
+		
+end
+
 function LST:UpdateRestockList()
 	RestockList = {};
 	local nameTable = LST:createNameTable();
@@ -1007,9 +1026,11 @@ function LST:UpdateRestockList()
 	restockAmount[2] = tonumber(LST.db.profile.settings.restockAmountByRank[2]);
 	restockAmount[3] = tonumber(LST.db.profile.settings.restockAmountByRank[3]);
 	restockAmount[4] = tonumber(LST.db.profile.settings.restockAmountByRank[4]);
+	restockAmount[5] = tonumber(LST.db.profile.settings.restockAmountByRank[5]);
+	restockAmount[6] = tonumber(LST.db.profile.settings.restockAmountByRank[6]);
 	for item=1, #nameTable do
 		for rank=1, numRanks do
-			if(not LST.db.profile.settings.onlyRestockCraftable or (LST.db.profile.settings.onlyRestockCraftable and LST:GetUnlockedCraftRank(nameTable[item]) >= rank)) then
+			if(not LST.db.profile.settings.onlyRestockCraftable or (LST.db.profile.settings.onlyRestockCraftable and LST:CanCraft(nameTable[item], rank))) then
 				local currentStock = tonumber(LST:GetStockCount(nameTable[item], rank))
 				if currentStock < restockAmount[rank] and restockAmount[rank] - currentStock >= tonumber(LST.db.profile.settings.minrestockAmount) then 
 					if(IsTSMLoaded == false or LST.db.profile.settings.showPricing == false) then
@@ -1031,25 +1052,29 @@ function LST:GenerateExportText()
 	local NameTable = LST:createNameTable()
 	local text = ""
 	if(IsTSMLoaded == false or LST.db.profile.settings.showPricing == false) then
-		text = L["Item name, Rank 1, Rank 2, Rank 3,  Rank 4\n"]
+		text = L["Item name, Rank 1, Rank 2, Rank 3, Rank 4, Rank 5, Rank 6\n"]
 		for i=1, #NameTable do 
 			text = text .. LegendaryItemData[NameTable[i]]["name"] .. "," 
 			.. LST:GetStockCount(NameTable[i], 1) .. "," 
 			.. LST:GetStockCount(NameTable[i], 2) .. "," 
 			.. LST:GetStockCount(NameTable[i], 3) .. "," 
-			.. LST:GetStockCount(NameTable[i], 4) .. "\n" 
+			.. LST:GetStockCount(NameTable[i], 4) .. "," 
+			.. LST:GetStockCount(NameTable[i], 5) .. "," 
+			.. LST:GetStockCount(NameTable[i], 6) .. "\n" 
 		end
 	else
-		text = L["Item name, Rank 1, Profit Rank 1, Rank 2, Profit Rank 2, Rank 3, Profit Rank 3, Rank 4, Profit Rank 4\n"]
+		text = L["Item name, Rank 1, Profit Rank 1, Rank 2, Profit Rank 2, Rank 3, Profit Rank 3, Rank 4, Profit Rank 4, Rank 5, Profit Rank 5, Rank 6, Profit Rank 6\n"]
 		for i=1, #NameTable do 
 			text = text .. LegendaryItemData[NameTable[i]]["name"] .. "," 
 			.. LST:GetStockCount(NameTable[i], 1) .. "," .. tostring(LST:RoundToInt(LST:GetMinBuyoutMinusAuctionOpMin(NameTable[i], 1))) .. ","
 			.. LST:GetStockCount(NameTable[i], 2) .. "," .. tostring(LST:RoundToInt(LST:GetMinBuyoutMinusAuctionOpMin(NameTable[i], 2))) .. ","
 			.. LST:GetStockCount(NameTable[i], 3) .. "," .. tostring(LST:RoundToInt(LST:GetMinBuyoutMinusAuctionOpMin(NameTable[i], 3))) .. ","
-			.. LST:GetStockCount(NameTable[i], 4) .. "," .. tostring(LST:RoundToInt(LST:GetMinBuyoutMinusAuctionOpMin(NameTable[i], 4))) .. "\n"
+			.. LST:GetStockCount(NameTable[i], 4) .. "," .. tostring(LST:RoundToInt(LST:GetMinBuyoutMinusAuctionOpMin(NameTable[i], 4))) .. ","
+			.. LST:GetStockCount(NameTable[i], 5) .. "," .. tostring(LST:RoundToInt(LST:GetMinBuyoutMinusAuctionOpMin(NameTable[i], 5))) .. ","
+			.. LST:GetStockCount(NameTable[i], 6) .. "," .. tostring(LST:RoundToInt(LST:GetMinBuyoutMinusAuctionOpMin(NameTable[i], 6))) .. "\n"
 		end
 	end
-	return text
+	return text;
 end
 
 function LST:createNameTable()
@@ -1084,9 +1109,9 @@ function LST:CreateRestockSheet(frame)
 	for i=1, #RestockList do 
 		row = 
 		{
-			LST:CreateTableElement(frame, RestockList[i][1] .. " - " .. L["Rank"] .. " " .. RestockList[i][2],  1, 1, 1, 1),
-			LST:CreateTableElement(frame, RestockList[i][3],  1, 1, 1, 1),
-			LST:CreateTableElement(frame, LST:RoundToInt(RestockList[i][4]),  1, 1, 1, 1)
+			LST:CreateTableElement(frame, RestockList[i][1] .. " - " .. L["Rank"] .. " " .. RestockList[i][2], 1, 1, 1, 1),
+			LST:CreateTableElement(frame, RestockList[i][3], 1, 1, 1, 1),
+			LST:CreateTableElement(frame, LST:RoundToInt(RestockList[i][4]), 1, 1, 1, 1)
 		}
 		table.insert(sheet, row)
 	end
@@ -1104,48 +1129,53 @@ function LST:CreateTableSheet(frame)
 	local sheet = {}
 	local maxwidth = {};
 	if(IsTSMLoaded == false or LST.db.profile.settings.showPricing == false) then
-		local titles = {LST:CreateTableTitle(frame, L["Item name"]), LST:CreateTableTitle(frame, L["Rank 1"]), LST:CreateTableTitle(frame, L["Rank 2"]), LST:CreateTableTitle(frame, L["Rank 3"]), LST:CreateTableTitle(frame, L["Rank 4"])}
+		local titles = {LST:CreateTableTitle(frame, L["Item name"]), LST:CreateTableTitle(frame, L["Rank 1"]), LST:CreateTableTitle(frame, L["Rank 2"]), LST:CreateTableTitle(frame, L["Rank 3"]), LST:CreateTableTitle(frame, L["Rank 4"]), LST:CreateTableTitle(frame, L["Rank 5"]), LST:CreateTableTitle(frame, L["Rank 6"])}
 		table.insert(sheet, titles)
-		maxWidth = {0,0,0,0,0}
-		local stockSum = {0,0,0,0}
+		maxWidth = {0,0,0,0,0,0,0}
+		local stockSum = {0,0,0,0,0,0}
 		for i=1, #NameTable do 
-			local stock = {0,0,0,0}
-			for j=1, 4 do
+			local stock = {0,0,0,0,0,0}
+			for j=1, 6 do
 				stock[j] = LST:GetStockCount(NameTable[i], j);
 				stockSum[j] = stockSum[j] + stock[j];
 			end
 			row = 
 			{
-				LST:CreateTableElement(frame, LegendaryItemData[NameTable[i]]["name"],  1, 1, 1, 1),
+				LST:CreateTableElement(frame, LegendaryItemData[NameTable[i]]["name"], 1, 1, 1, 1),
 				LST:CreateTableElement(frame, stock[1], LST:GetTableStockFont(1,stock[1])), 
 				LST:CreateTableElement(frame, stock[2], LST:GetTableStockFont(2,stock[2])), 
 				LST:CreateTableElement(frame, stock[3], LST:GetTableStockFont(3,stock[3])), 
-				LST:CreateTableElement(frame, stock[4], LST:GetTableStockFont(4,stock[4]))
+				LST:CreateTableElement(frame, stock[4], LST:GetTableStockFont(4,stock[4])),
+				LST:CreateTableElement(frame, stock[5], LST:GetTableStockFont(5,stock[5])),
+				LST:CreateTableElement(frame, stock[6], LST:GetTableStockFont(6,stock[6]))
 			}
 			table.insert(sheet, row)
 		end
 		row = 
 		{
-			LST:CreateTableElement(frame, L["Total"] .. (stockSum[1] + stockSum[2] + stockSum[3] + stockSum[4]),  1, 1, 1, 1),
+			LST:CreateTableElement(frame, L["Total"] .. (stockSum[1] + stockSum[2] + stockSum[3] + stockSum[4] + stockSum[5] + stockSum[6]), 1, 1, 1, 1),
 			LST:CreateTableElement(frame, stockSum[1], 1, 1, 1, 1), 
 			LST:CreateTableElement(frame, stockSum[2], 1, 1, 1, 1), 
 			LST:CreateTableElement(frame, stockSum[3], 1, 1, 1, 1), 
-			LST:CreateTableElement(frame, stockSum[4], 1, 1, 1, 1)
+			LST:CreateTableElement(frame, stockSum[4], 1, 1, 1, 1),
+			LST:CreateTableElement(frame, stockSum[5], 1, 1, 1, 1),
+			LST:CreateTableElement(frame, stockSum[6], 1, 1, 1, 1)
 		}
 		table.insert(sheet, row)
 	else
-		local titles = {LST:CreateTableTitle(frame, L["Item name"]), LST:CreateTableTitle(frame, L["R1"]), LST:CreateTableTitle(frame, L["Profit R1"]), LST:CreateTableTitle(frame, L["R2"]),
-			LST:CreateTableTitle(frame, L["Profit R2"]), LST:CreateTableTitle(frame, L["R3"]), LST:CreateTableTitle(frame, L["Profit R3"]), LST:CreateTableTitle(frame, L["R4"]), LST:CreateTableTitle(frame, "Profit R4")}
+		local titles = {LST:CreateTableTitle(frame, L["Item name"]), LST:CreateTableTitle(frame, L["R1"]), LST:CreateTableTitle(frame, L["Profit R1"]), LST:CreateTableTitle(frame, L["R2"]), LST:CreateTableTitle(frame, L["Profit R2"]), 
+		LST:CreateTableTitle(frame, L["R3"]), LST:CreateTableTitle(frame, L["Profit R3"]), LST:CreateTableTitle(frame, L["R4"]), LST:CreateTableTitle(frame, "Profit R4"), 
+		LST:CreateTableTitle(frame, L["R5"]), LST:CreateTableTitle(frame, L["Profit R5"]), LST:CreateTableTitle(frame, L["R6"]), LST:CreateTableTitle(frame, "Profit R6")}
 		table.insert(sheet, titles)
-		maxWidth = {0,0,0,0,0,0,0,0,0}
-		local stockSum = {0,0,0,0}
-		local priceSum = {0,0,0,0}
-		local profitSum = {0,0,0,0}
+		maxWidth = {0,0,0,0,0,0,0,0,0,0,0,0,0}
+		local stockSum = {0,0,0,0,0,0}
+		local priceSum = {0,0,0,0,0,0}
+		local profitSum = {0,0,0,0,0,0}
 		for i=1, #NameTable do 
-			local stock = {0,0,0,0}
-			local price = {0,0,0,0}
-			local profit = {0,0,0,0}
-			for j=1, 4 do
+			local stock = {0,0,0,0,0,0}
+			local price = {0,0,0,0,0,0}
+			local profit = {0,0,0,0,0,0}
+			for j=1, 6 do
 				stock[j] = LST:GetStockCount(NameTable[i], j);
 				price[j] = LST:GetMinBuyout(NameTable[i], j);
 				profit[j] = LST:GetMinBuyoutMinusAuctionOpMin(NameTable[i], j);
@@ -1161,14 +1191,16 @@ function LST:CreateTableSheet(frame)
 				LST:CreateTableElement(frame, stock[1], LST:GetTableStockFont(1, stock[1], tostring(profit[1]))), LST:CreateTableElement(frame, tostring(LST:RoundToInt(profit[1])), LST:GetTablePriceFont(tostring(profit[1]))),
 				LST:CreateTableElement(frame, stock[2], LST:GetTableStockFont(2, stock[2], tostring(profit[2]))), LST:CreateTableElement(frame, tostring(LST:RoundToInt(profit[2])), LST:GetTablePriceFont(tostring(profit[2]))),
 				LST:CreateTableElement(frame, stock[3], LST:GetTableStockFont(3, stock[3], tostring(profit[3]))), LST:CreateTableElement(frame, tostring(LST:RoundToInt(profit[3])), LST:GetTablePriceFont(tostring(profit[3]))),
-				LST:CreateTableElement(frame, stock[4], LST:GetTableStockFont(4, stock[4], tostring(profit[4]))), LST:CreateTableElement(frame, tostring(LST:RoundToInt(profit[4])), LST:GetTablePriceFont(tostring(profit[4])))
+				LST:CreateTableElement(frame, stock[4], LST:GetTableStockFont(4, stock[4], tostring(profit[4]))), LST:CreateTableElement(frame, tostring(LST:RoundToInt(profit[4])), LST:GetTablePriceFont(tostring(profit[4]))),
+				LST:CreateTableElement(frame, stock[5], LST:GetTableStockFont(5, stock[5], tostring(profit[5]))), LST:CreateTableElement(frame, tostring(LST:RoundToInt(profit[5])), LST:GetTablePriceFont(tostring(profit[5]))),
+				LST:CreateTableElement(frame, stock[6], LST:GetTableStockFont(6, stock[6], tostring(profit[6]))), LST:CreateTableElement(frame, tostring(LST:RoundToInt(profit[6])), LST:GetTablePriceFont(tostring(profit[6])))
 			}
 			table.insert(sheet, row)		
 		end
-		table.insert(sheet, LST:CreateTablePriceRowWhite(frame, L["Total per rank (profit): "], stockSum[1], LST:AddComasEveryThousand(LST:RoundToInt(profitSum[1])), stockSum[2], LST:AddComasEveryThousand(LST:RoundToInt(profitSum[2])), stockSum[3], LST:AddComasEveryThousand(LST:RoundToInt(profitSum[3])), stockSum[4], LST:AddComasEveryThousand(LST:RoundToInt(profitSum[4]))))
-		table.insert(sheet, LST:CreateTablePriceRowWhite(frame, L["Total per rank (min price): "], stockSum[1], LST:AddComasEveryThousand(LST:RoundToInt(priceSum[1])), stockSum[2], LST:AddComasEveryThousand(LST:RoundToInt(priceSum[2])), stockSum[3], LST:AddComasEveryThousand(LST:RoundToInt(priceSum[3])), stockSum[4], LST:AddComasEveryThousand(LST:RoundToInt(priceSum[4]))))
-		table.insert(sheet, LST:CreateTablePriceRowWhite(frame, L["Total (profit): "], (stockSum[1] + stockSum[2] + stockSum[3] + stockSum[4]), LST:AddComasEveryThousand(LST:RoundToInt(profitSum[1] + profitSum[2] + profitSum[3] + profitSum[4])), "","","","","",""))
-		table.insert(sheet, LST:CreateTablePriceRowWhite(frame, L["Total (min price): "], (stockSum[1] + stockSum[2] + stockSum[3] + stockSum[4]), LST:AddComasEveryThousand(LST:RoundToInt(priceSum[1] + priceSum[2] + priceSum[3] + priceSum[4])), "","","","","",""))
+		table.insert(sheet, LST:CreateTablePriceRowWhite(frame, L["Total per rank (profit): "], stockSum[1], LST:AddComasEveryThousand(LST:RoundToInt(profitSum[1])), stockSum[2], LST:AddComasEveryThousand(LST:RoundToInt(profitSum[2])), stockSum[3], LST:AddComasEveryThousand(LST:RoundToInt(profitSum[3])), stockSum[4], LST:AddComasEveryThousand(LST:RoundToInt(profitSum[4])), stockSum[5], LST:AddComasEveryThousand(LST:RoundToInt(profitSum[5])), stockSum[6], LST:AddComasEveryThousand(LST:RoundToInt(profitSum[6]))))
+		table.insert(sheet, LST:CreateTablePriceRowWhite(frame, L["Total per rank (min price): "], stockSum[1], LST:AddComasEveryThousand(LST:RoundToInt(priceSum[1])), stockSum[2], LST:AddComasEveryThousand(LST:RoundToInt(priceSum[2])), stockSum[3], LST:AddComasEveryThousand(LST:RoundToInt(priceSum[3])), stockSum[4], LST:AddComasEveryThousand(LST:RoundToInt(priceSum[4])), stockSum[5], LST:AddComasEveryThousand(LST:RoundToInt(priceSum[5])), stockSum[6], LST:AddComasEveryThousand(LST:RoundToInt(priceSum[6]))))
+		table.insert(sheet, LST:CreateTablePriceRowWhite(frame, L["Total (profit): "], (stockSum[1] + stockSum[2] + stockSum[3] + stockSum[4] + stockSum[5] + stockSum[6]), LST:AddComasEveryThousand(LST:RoundToInt(profitSum[1] + profitSum[2] + profitSum[3] + profitSum[4] + profitSum[5] + profitSum[6])), "","","","","","","","","",""))
+		table.insert(sheet, LST:CreateTablePriceRowWhite(frame, L["Total (min price): "], (stockSum[1] + stockSum[2] + stockSum[3] + stockSum[4] + stockSum[5] + stockSum[6]), LST:AddComasEveryThousand(LST:RoundToInt(priceSum[1] + priceSum[2] + priceSum[3] + priceSum[4] + priceSum[5] + priceSum[6])), "","","","","","","","","",""))
 	end
 	LST:CreateFrameSheet(frame, sheet, #maxWidth)
 end
@@ -1177,26 +1209,30 @@ function LST:GetColorWhite()
 	return 1, 1, 1, 1
 end
 
-function LST:CreateTablePriceRowWhite(frame, title, text1, text2, text3, text4, text5, text6, text7, text8)
+function LST:CreateTablePriceRowWhite(frame, title, text1, text2, text3, text4, text5, text6, text7, text8, text9, text10, text11, text12)
 	row = 
 	{
 		LST:CreateTableElement(frame, title, LST:GetColorWhite()),
 		LST:CreateTableElement(frame, text1, LST:GetColorWhite()), LST:CreateTableElement(frame, text2, LST:GetColorWhite()),
 		LST:CreateTableElement(frame, text3, LST:GetColorWhite()), LST:CreateTableElement(frame, text4, LST:GetColorWhite()),
 		LST:CreateTableElement(frame, text5, LST:GetColorWhite()), LST:CreateTableElement(frame, text6, LST:GetColorWhite()),
-		LST:CreateTableElement(frame, text7, LST:GetColorWhite()), LST:CreateTableElement(frame, text8, LST:GetColorWhite())
+		LST:CreateTableElement(frame, text7, LST:GetColorWhite()), LST:CreateTableElement(frame, text8, LST:GetColorWhite()),
+		LST:CreateTableElement(frame, text9, LST:GetColorWhite()), LST:CreateTableElement(frame, text10, LST:GetColorWhite()),
+		LST:CreateTableElement(frame, text11, LST:GetColorWhite()), LST:CreateTableElement(frame, text12, LST:GetColorWhite())
 	}
 	return row;
 end
 
-function LST:CreateTableRowWhite(frame, title, text1, text2, text3, text4)
+function LST:CreateTableRowWhite(frame, title, text1, text2, text3, text4, text5, text6)
 	row = 
 	{
 		LST:CreateTableElement(frame, title, LST:GetColorWhite()),
 		LST:CreateTableElement(frame, text1, LST:GetColorWhite()),
 		LST:CreateTableElement(frame, text2, LST:GetColorWhite()),
 		LST:CreateTableElement(frame, text3, LST:GetColorWhite()),
-		LST:CreateTableElement(frame, text4, LST:GetColorWhite())
+		LST:CreateTableElement(frame, text4, LST:GetColorWhite()),
+		LST:CreateTableElement(frame, text5, LST:GetColorWhite()),
+		LST:CreateTableElement(frame, text6, LST:GetColorWhite())
 	}
 	return row;
 
@@ -1342,12 +1378,40 @@ function LST:UpdateMaterialPrices()
 	--isMaterialPriceUpdated = true;
 end
 
-function LST:GetLSTCraftCostForItem(itemID, rank)
-	if(LST.db.factionrealm.recipeData.recipes[itemID] == nil or LST.db.factionrealm.recipeData.recipes[itemID]["ranks"] == nil or LST.db.factionrealm.recipeData.recipes[itemID]["ranks"][rank] == nil) then
+function LST:GetLSTCraftCostForLegendary(itemID, rank)
+	if(rank <= 4) then
+		if(LST.db.factionrealm.recipeData.recipes[itemID] == nil or LST.db.factionrealm.recipeData.recipes[itemID]["ranks"] == nil or LST.db.factionrealm.recipeData.recipes[itemID]["ranks"][rank] == nil) then
+			return L["not scanned"];
+		else
+			return LST:GetMaterialPriceSum(LST.db.factionrealm.recipeData.recipes[itemID]["ranks"][rank])
+		end
+	else
+		if(LST.db.factionrealm.recipeData.recipes[itemID] == nil or LST.db.factionrealm.recipeData.vestiges[LegendaryItemData[itemID]["profession"]] == nil) then
+			return L["not scanned"];
+		else
+			return LST:GetMaterialPriceSum(LST.db.factionrealm.recipeData.recipes[itemID]["ranks"][rank - 2]) + LST:GetMaterialPriceSum(LST.db.factionrealm.recipeData.vestiges[LegendaryItemData[itemID]["profession"]])
+		end
+	end
+end
+
+function LST:GetMaterialPriceSum(table)
+	local price = 0;
+	for materialID, data in pairs(table) do
+		if(materialPrices[materialID] == nil) then
+			price = price + 0;
+		else
+			price = price + (materialPrices[materialID] * data["numRequired"]);
+		end
+	end
+	return price;
+end
+
+function LST:GetLSTCraftCostForVestige(professionID)
+	if(LST.db.factionrealm.recipeData.vestiges[professionID] == nil) then
 		return L["not scanned"];
 	end
 	local price = 0;
-	for materialID, data in pairs(LST.db.factionrealm.recipeData.recipes[itemID]["ranks"][rank]) do
+	for materialID, data in pairs(LST.db.factionrealm.recipeData.vestiges[professionID]) do
 		if(materialPrices[materialID] == nil) then
 			price = price + 0;
 		else
@@ -1362,6 +1426,8 @@ function LST:UpdateTsmPriceForAllRanks(itemName)
 	LST:UpdateTsmPrices(itemName, 2)
 	LST:UpdateTsmPrices(itemName, 3)
 	LST:UpdateTsmPrices(itemName, 4)
+	LST:UpdateTsmPrices(itemName, 5)
+	LST:UpdateTsmPrices(itemName, 6)
 end
 
 function LST:UpdateTsmPrices(itemName, rank)
@@ -1382,13 +1448,17 @@ function LST:UpdateTsmPrices(itemName, rank)
 		tsmString = tsmString .. Rank3BonusIDs
 	elseif(rank == 4) then
 		tsmString = tsmString .. Rank4BonusIDs
+	elseif(rank == 5) then
+		tsmString = tsmString .. Rank5BonusIDs
+	elseif(rank == 6) then
+		tsmString = tsmString .. Rank6BonusIDs
 	end
 	tsmstring = TSM_API.ToItemString(tsmString)
 	ItemPrices[rank][1] = LST:ConvertTsmPriceToValue(TSM_API.GetCustomPriceValue("DBMinBuyout", tsmString));
 	if(LST.db.profile.settings.priceSource == L["TSM operations"]) then 
 		ItemPrices[rank][2] = LST:ConvertTsmPriceToValue(TSM_API.GetCustomPriceValue("AuctioningOpMin", tsmString))
 	elseif(LST.db.profile.settings.priceSource == L["LST Crafting"]) then
-		local craftCost = LST:GetLSTCraftCostForItem(itemName, rank);
+		local craftCost = LST:GetLSTCraftCostForLegendary(itemName, rank);
 		if(craftCost ~= L["not scanned"]) then
 			craftCost = LST:RoundToInt(craftCost);
 		end
@@ -1510,6 +1580,22 @@ function LST:GetCraftResultItemId(recipeInfo)
 	--return itemID;
 end
 
+function LST:GetMaterialListFromRecipe(recipeID)
+	local materials = {};
+	for i = 1, C_TradeSkillUI.GetRecipeNumReagents(recipeID) do
+		local reagentName, reagentIcon, reagentNumRequired, reagentNumOwned = C_TradeSkillUI.GetRecipeReagentInfo(recipeID, i, 1);
+		local materialID = LST:GetItemIDFromItemLink(C_TradeSkillUI.GetRecipeReagentItemLink(recipeID, i));
+		materials[materialID] = 
+		{
+			name = reagentName,
+			itemid = materialID,
+			numRequired = reagentNumRequired
+		}
+		LST.db.factionrealm.recipeData.materialList[materialID] = reagentName;
+	end
+	return materials;
+end
+
 function LST:GetItemIDFromItemLink(itemlink)
 	return select(3, strfind(itemlink, "item:(%d+)"));
 end
@@ -1535,23 +1621,10 @@ function LST:UpdateLegendaryRecipes()
 				LST.db.factionrealm.characters[LST.playerName].unlockedLegendaryCraftRanks[itemID] = unlockedLevel;
 				LegendaryItemData[itemID]["recipeUnlocked"] = unlockedLevel;
 				LegendaryItemData[itemID]["recipeID"][rank] = recipeID;
-				
-				local recipeData = {}
-				local materials = {}
-				for i = 1, C_TradeSkillUI.GetRecipeNumReagents(recipeID) do
-					local reagentName, reagentIcon, reagentNumRequired, reagentNumOwned = C_TradeSkillUI.GetRecipeReagentInfo(recipeID, i, 1);
-					local materialID = LST:GetItemIDFromItemLink(C_TradeSkillUI.GetRecipeReagentItemLink(recipeID, i));
-					materials[materialID] = 
-					{
-						name = reagentName,
-						itemid = materialID,
-						numRequired = reagentNumRequired
-					}
-					LST.db.factionrealm.recipeData.materialList[materialID] = reagentName;
-				end
 				LST.db.factionrealm.recipeData.recipes[itemID]["name"] = recipeInfo["name"];
-				LST.db.factionrealm.recipeData.recipes[itemID]["ranks"][rank] = materials;
-				
+				LST.db.factionrealm.recipeData.recipes[itemID]["ranks"][rank] = LST:GetMaterialListFromRecipe(recipeID);
+			elseif(LST:GetCraftResultItemId(recipeInfo) == "185960") then
+				LST.db.factionrealm.recipeData.vestiges[SLID] = LST:GetMaterialListFromRecipe(recipeID);
 			end
 		end
 	end
@@ -1572,7 +1645,7 @@ function LST:CraftNextRestockItem()
 	end;
 	for index, restockData in ipairs(RestockList) do
 		local itemID = restockData[5];
-		if(LegendaryItemData[itemID]["profession"] == openedProfession) then
+		if(LegendaryItemData[itemID]["profession"] == openedProfession and restockData[2] < 5) then
 			local recipeID = LegendaryItemData[tostring(itemID)]["recipeID"][restockData[2]];
 			if(recipeID ~= 0) then
 				local recipeInfo = C_TradeSkillUI.GetRecipeInfo(recipeID, 1);
@@ -1587,6 +1660,9 @@ function LST:CraftNextRestockItem()
 					print(L["LST: Not enough materials to craft "] .. restockData[1])
 				end
 			end
+		end
+		if(restockData[2] > 4 and restockData[2] < 7) then
+			print(L["LST: Crafting is not yet supported for rank 5 and 6, please craft these manually for now"])
 		end
 	end
 end
@@ -1610,10 +1686,15 @@ function LST:OnCommReceived(prefix, payload, distribution, sender)
 		}
 	end
 	LST.db.factionrealm.recipeData.materialList = data.recipeData["materialList"];
+	for materialId, materialName in pairs(data.recipeData.materialList) do
+		LST.db.factionrealm.recipeData.materialList[materialId] = materialName;
+	end
 	for recipeID, recipeData in pairs(data.recipeData.recipes) do
 		LST.db.factionrealm.recipeData.recipes[recipeID] = recipeData;
 	end
-
+	for professionID, vestigeData in pairs(data.recipeData.vestiges) do
+		LST.db.factionrealm.recipeData.vestiges[professionID] = vestigeData;
+	end
 end
 
 function LST:SendDataToSyncTarget()

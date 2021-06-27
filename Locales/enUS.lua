@@ -92,8 +92,8 @@ L["Mail: "] = "Mail: "
 L["Guild: "] = "Guild: "
 
 --Data Export
-L["Item name, Rank 1, Rank 2, Rank 3,  Rank 4\n"] = "Item name, Rank 1, Rank 2, Rank 3,  Rank 4\n"
-L["Item name, Rank 1, Profit Rank 1, Rank 2, Profit Rank 2, Rank 3, Profit Rank 3, Rank 4, Profit Rank 4\n"] = "Item name, Rank 1, Profit Rank 1, Rank 2, Profit Rank 2, Rank 3, Profit Rank 3, Rank 4, Profit Rank 4\n"
+L["Item name, Rank 1, Rank 2, Rank 3, Rank 4, Rank 5, Rank 6\n"] = "Item name, Rank 1, Rank 2, Rank 3, Rank 4, Rank 5, Rank 6\n"
+L["Item name, Rank 1, Profit Rank 1, Rank 2, Profit Rank 2, Rank 3, Profit Rank 3, Rank 4, Profit Rank 4, Rank 5, Profit Rank 5, Rank 6, Profit Rank 6\n"] = "Item name, Rank 1, Profit Rank 1, Rank 2, Profit Rank 2, Rank 3, Profit Rank 3, Rank 4, Profit Rank 4, Rank 5, Profit Rank 5, Rank 6, Profit Rank 6\n"
 
 -- Table view
 L["Item name"] = "Item name"
@@ -101,14 +101,20 @@ L["Rank 1"] = "Rank 1"
 L["Rank 2"] = "Rank 2"
 L["Rank 3"] = "Rank 3"
 L["Rank 4"] = "Rank 4"
+L["Rank 5"] = "Rank 5"
+L["Rank 6"] = "Rank 6"
 L["R1"] = "R1"
 L["R2"] = "R2"
 L["R3"] = "R3"
 L["R4"] = "R4"
+L["R5"] = "R5"
+L["R6"] = "R6"
 L["Profit R1"] = "Profit R1"
 L["Profit R2"] = "Profit R2"
 L["Profit R3"] = "Profit R3"
 L["Profit R4"] = "Profit R4"
+L["Profit R5"] = "Profit R5"
+L["Profit R6"] = "Profit R6"
 
 -- Restock
 L["Item"] = "Item"
@@ -151,3 +157,4 @@ L["FAQ_Outro"] = "If you still have any questions, feedback or need support, ple
 L["Incorrect itemlevel data received for item "] = "LST: Incorrect itemlevel data received for item "
 L[", skipping data for this rank."] = ", skipping data for this rank."
 L["LST: Error, incorrect input"] = "LST: Error, incorrect input"
+L["LST: Crafting is not yet supported for rank 5 and 6, please craft these manually for now"] = "LST: Crafting is not yet supported for rank 5 and 6, please craft these manually for now"
