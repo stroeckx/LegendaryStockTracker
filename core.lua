@@ -53,41 +53,41 @@ local Rank6BonusIDs = "::2:1257:7451"
 
 local LegendaryItemData = 
 {
-	["171419"] = {["profession"] = 1311, ["recipeUnlocked"] = 0, ["stock"] = {0,0,0,0,0,0}, ["recipeID"] = {0,0,0,0,0,0}},
-	["171412"] = {["profession"] = 1311, ["recipeUnlocked"] = 0, ["stock"] = {0,0,0,0,0,0}, ["recipeID"] = {0,0,0,0,0,0}},
-	["171414"] = {["profession"] = 1311, ["recipeUnlocked"] = 0, ["stock"] = {0,0,0,0,0,0}, ["recipeID"] = {0,0,0,0,0,0}},
-	["171416"] = {["profession"] = 1311, ["recipeUnlocked"] = 0, ["stock"] = {0,0,0,0,0,0}, ["recipeID"] = {0,0,0,0,0,0}},
-	["171415"] = {["profession"] = 1311, ["recipeUnlocked"] = 0, ["stock"] = {0,0,0,0,0,0}, ["recipeID"] = {0,0,0,0,0,0}},
-	["171417"] = {["profession"] = 1311, ["recipeUnlocked"] = 0, ["stock"] = {0,0,0,0,0,0}, ["recipeID"] = {0,0,0,0,0,0}},
-	["171413"] = {["profession"] = 1311, ["recipeUnlocked"] = 0, ["stock"] = {0,0,0,0,0,0}, ["recipeID"] = {0,0,0,0,0,0}},
-	["171418"] = {["profession"] = 1311, ["recipeUnlocked"] = 0, ["stock"] = {0,0,0,0,0,0}, ["recipeID"] = {0,0,0,0,0,0}},
-	["178927"] = {["profession"] = 1418, ["recipeUnlocked"] = 0, ["stock"] = {0,0,0,0,0,0}, ["recipeID"] = {0,0,0,0,0,0}},
-	["178926"] = {["profession"] = 1418, ["recipeUnlocked"] = 0, ["stock"] = {0,0,0,0,0,0}, ["recipeID"] = {0,0,0,0,0,0}},
-	["173248"] = {["profession"] = 1395, ["recipeUnlocked"] = 0, ["stock"] = {0,0,0,0,0,0}, ["recipeID"] = {0,0,0,0,0,0}},
-	["173249"] = {["profession"] = 1395, ["recipeUnlocked"] = 0, ["stock"] = {0,0,0,0,0,0}, ["recipeID"] = {0,0,0,0,0,0}},
-	["173242"] = {["profession"] = 1395, ["recipeUnlocked"] = 0, ["stock"] = {0,0,0,0,0,0}, ["recipeID"] = {0,0,0,0,0,0}},
-	["173245"] = {["profession"] = 1395, ["recipeUnlocked"] = 0, ["stock"] = {0,0,0,0,0,0}, ["recipeID"] = {0,0,0,0,0,0}},
-	["173244"] = {["profession"] = 1395, ["recipeUnlocked"] = 0, ["stock"] = {0,0,0,0,0,0}, ["recipeID"] = {0,0,0,0,0,0}},
-	["173246"] = {["profession"] = 1395, ["recipeUnlocked"] = 0, ["stock"] = {0,0,0,0,0,0}, ["recipeID"] = {0,0,0,0,0,0}},
-	["173241"] = {["profession"] = 1395, ["recipeUnlocked"] = 0, ["stock"] = {0,0,0,0,0,0}, ["recipeID"] = {0,0,0,0,0,0}},
-	["173243"] = {["profession"] = 1395, ["recipeUnlocked"] = 0, ["stock"] = {0,0,0,0,0,0}, ["recipeID"] = {0,0,0,0,0,0}},
-	["173247"] = {["profession"] = 1395, ["recipeUnlocked"] = 0, ["stock"] = {0,0,0,0,0,0}, ["recipeID"] = {0,0,0,0,0,0}},
-	["172321"] = {["profession"] = 1334, ["recipeUnlocked"] = 0, ["stock"] = {0,0,0,0,0,0}, ["recipeID"] = {0,0,0,0,0,0}},
-	["172316"] = {["profession"] = 1334, ["recipeUnlocked"] = 0, ["stock"] = {0,0,0,0,0,0}, ["recipeID"] = {0,0,0,0,0,0}},
-	["172317"] = {["profession"] = 1334, ["recipeUnlocked"] = 0, ["stock"] = {0,0,0,0,0,0}, ["recipeID"] = {0,0,0,0,0,0}},
-	["172318"] = {["profession"] = 1334, ["recipeUnlocked"] = 0, ["stock"] = {0,0,0,0,0,0}, ["recipeID"] = {0,0,0,0,0,0}},
-	["172319"] = {["profession"] = 1334, ["recipeUnlocked"] = 0, ["stock"] = {0,0,0,0,0,0}, ["recipeID"] = {0,0,0,0,0,0}},
-	["172315"] = {["profession"] = 1334, ["recipeUnlocked"] = 0, ["stock"] = {0,0,0,0,0,0}, ["recipeID"] = {0,0,0,0,0,0}},
-	["172314"] = {["profession"] = 1334, ["recipeUnlocked"] = 0, ["stock"] = {0,0,0,0,0,0}, ["recipeID"] = {0,0,0,0,0,0}},
-	["172320"] = {["profession"] = 1334, ["recipeUnlocked"] = 0, ["stock"] = {0,0,0,0,0,0}, ["recipeID"] = {0,0,0,0,0,0}},
-	["172329"] = {["profession"] = 1334, ["recipeUnlocked"] = 0, ["stock"] = {0,0,0,0,0,0}, ["recipeID"] = {0,0,0,0,0,0}},
-	["172324"] = {["profession"] = 1334, ["recipeUnlocked"] = 0, ["stock"] = {0,0,0,0,0,0}, ["recipeID"] = {0,0,0,0,0,0}},
-	["172326"] = {["profession"] = 1334, ["recipeUnlocked"] = 0, ["stock"] = {0,0,0,0,0,0}, ["recipeID"] = {0,0,0,0,0,0}},
-	["172325"] = {["profession"] = 1334, ["recipeUnlocked"] = 0, ["stock"] = {0,0,0,0,0,0}, ["recipeID"] = {0,0,0,0,0,0}},
-	["172327"] = {["profession"] = 1334, ["recipeUnlocked"] = 0, ["stock"] = {0,0,0,0,0,0}, ["recipeID"] = {0,0,0,0,0,0}},
-	["172323"] = {["profession"] = 1334, ["recipeUnlocked"] = 0, ["stock"] = {0,0,0,0,0,0}, ["recipeID"] = {0,0,0,0,0,0}},
-	["172322"] = {["profession"] = 1334, ["recipeUnlocked"] = 0, ["stock"] = {0,0,0,0,0,0}, ["recipeID"] = {0,0,0,0,0,0}},
-	["172328"] = {["profession"] = 1334, ["recipeUnlocked"] = 0, ["stock"] = {0,0,0,0,0,0}, ["recipeID"] = {0,0,0,0,0,0}}
+	["171419"] = {["profession"] = 1311, ["recipeUnlocked"] = 0, ["stock"] = {0,0,0,0,0,0}, ["recipeID"] = {0,0,0,0,0,0}, ["dominationSlot"] = true},
+	["171412"] = {["profession"] = 1311, ["recipeUnlocked"] = 0, ["stock"] = {0,0,0,0,0,0}, ["recipeID"] = {0,0,0,0,0,0}, ["dominationSlot"] = true},
+	["171414"] = {["profession"] = 1311, ["recipeUnlocked"] = 0, ["stock"] = {0,0,0,0,0,0}, ["recipeID"] = {0,0,0,0,0,0}, ["dominationSlot"] = true},
+	["171416"] = {["profession"] = 1311, ["recipeUnlocked"] = 0, ["stock"] = {0,0,0,0,0,0}, ["recipeID"] = {0,0,0,0,0,0}, ["dominationSlot"] = false},
+	["171415"] = {["profession"] = 1311, ["recipeUnlocked"] = 0, ["stock"] = {0,0,0,0,0,0}, ["recipeID"] = {0,0,0,0,0,0}, ["dominationSlot"] = true},
+	["171417"] = {["profession"] = 1311, ["recipeUnlocked"] = 0, ["stock"] = {0,0,0,0,0,0}, ["recipeID"] = {0,0,0,0,0,0}, ["dominationSlot"] = true },
+	["171413"] = {["profession"] = 1311, ["recipeUnlocked"] = 0, ["stock"] = {0,0,0,0,0,0}, ["recipeID"] = {0,0,0,0,0,0}, ["dominationSlot"] = false},
+	["171418"] = {["profession"] = 1311, ["recipeUnlocked"] = 0, ["stock"] = {0,0,0,0,0,0}, ["recipeID"] = {0,0,0,0,0,0}, ["dominationSlot"] = false},
+	["178927"] = {["profession"] = 1418, ["recipeUnlocked"] = 0, ["stock"] = {0,0,0,0,0,0}, ["recipeID"] = {0,0,0,0,0,0}, ["dominationSlot"] = false},
+	["178926"] = {["profession"] = 1418, ["recipeUnlocked"] = 0, ["stock"] = {0,0,0,0,0,0}, ["recipeID"] = {0,0,0,0,0,0}, ["dominationSlot"] = true},
+	["173248"] = {["profession"] = 1395, ["recipeUnlocked"] = 0, ["stock"] = {0,0,0,0,0,0}, ["recipeID"] = {0,0,0,0,0,0}, ["dominationSlot"] = true},
+	["173249"] = {["profession"] = 1395, ["recipeUnlocked"] = 0, ["stock"] = {0,0,0,0,0,0}, ["recipeID"] = {0,0,0,0,0,0}, ["dominationSlot"] = false},
+	["173242"] = {["profession"] = 1395, ["recipeUnlocked"] = 0, ["stock"] = {0,0,0,0,0,0}, ["recipeID"] = {0,0,0,0,0,0}, ["dominationSlot"] = false},
+	["173245"] = {["profession"] = 1395, ["recipeUnlocked"] = 0, ["stock"] = {0,0,0,0,0,0}, ["recipeID"] = {0,0,0,0,0,0}, ["dominationSlot"] = true},
+	["173244"] = {["profession"] = 1395, ["recipeUnlocked"] = 0, ["stock"] = {0,0,0,0,0,0}, ["recipeID"] = {0,0,0,0,0,0}, ["dominationSlot"] = false},
+	["173246"] = {["profession"] = 1395, ["recipeUnlocked"] = 0, ["stock"] = {0,0,0,0,0,0}, ["recipeID"] = {0,0,0,0,0,0}, ["dominationSlot"] = false},
+	["173241"] = {["profession"] = 1395, ["recipeUnlocked"] = 0, ["stock"] = {0,0,0,0,0,0}, ["recipeID"] = {0,0,0,0,0,0}, ["dominationSlot"] = true},
+	["173243"] = {["profession"] = 1395, ["recipeUnlocked"] = 0, ["stock"] = {0,0,0,0,0,0}, ["recipeID"] = {0,0,0,0,0,0}, ["dominationSlot"] = false},
+	["173247"] = {["profession"] = 1395, ["recipeUnlocked"] = 0, ["stock"] = {0,0,0,0,0,0}, ["recipeID"] = {0,0,0,0,0,0}, ["dominationSlot"] = true},
+	["172321"] = {["profession"] = 1334, ["recipeUnlocked"] = 0, ["stock"] = {0,0,0,0,0,0}, ["recipeID"] = {0,0,0,0,0,0}, ["dominationSlot"] = false},
+	["172316"] = {["profession"] = 1334, ["recipeUnlocked"] = 0, ["stock"] = {0,0,0,0,0,0}, ["recipeID"] = {0,0,0,0,0,0}, ["dominationSlot"] = true},
+	["172317"] = {["profession"] = 1334, ["recipeUnlocked"] = 0, ["stock"] = {0,0,0,0,0,0}, ["recipeID"] = {0,0,0,0,0,0}, ["dominationSlot"] = true},
+	["172318"] = {["profession"] = 1334, ["recipeUnlocked"] = 0, ["stock"] = {0,0,0,0,0,0}, ["recipeID"] = {0,0,0,0,0,0}, ["dominationSlot"] = false},
+	["172319"] = {["profession"] = 1334, ["recipeUnlocked"] = 0, ["stock"] = {0,0,0,0,0,0}, ["recipeID"] = {0,0,0,0,0,0}, ["dominationSlot"] = true},
+	["172315"] = {["profession"] = 1334, ["recipeUnlocked"] = 0, ["stock"] = {0,0,0,0,0,0}, ["recipeID"] = {0,0,0,0,0,0}, ["dominationSlot"] = true},
+	["172314"] = {["profession"] = 1334, ["recipeUnlocked"] = 0, ["stock"] = {0,0,0,0,0,0}, ["recipeID"] = {0,0,0,0,0,0}, ["dominationSlot"] = true},
+	["172320"] = {["profession"] = 1334, ["recipeUnlocked"] = 0, ["stock"] = {0,0,0,0,0,0}, ["recipeID"] = {0,0,0,0,0,0}, ["dominationSlot"] = false},
+	["172329"] = {["profession"] = 1334, ["recipeUnlocked"] = 0, ["stock"] = {0,0,0,0,0,0}, ["recipeID"] = {0,0,0,0,0,0}, ["dominationSlot"] = false},
+	["172324"] = {["profession"] = 1334, ["recipeUnlocked"] = 0, ["stock"] = {0,0,0,0,0,0}, ["recipeID"] = {0,0,0,0,0,0}, ["dominationSlot"] = false},
+	["172326"] = {["profession"] = 1334, ["recipeUnlocked"] = 0, ["stock"] = {0,0,0,0,0,0}, ["recipeID"] = {0,0,0,0,0,0}, ["dominationSlot"] = false},
+	["172325"] = {["profession"] = 1334, ["recipeUnlocked"] = 0, ["stock"] = {0,0,0,0,0,0}, ["recipeID"] = {0,0,0,0,0,0}, ["dominationSlot"] = true},
+	["172327"] = {["profession"] = 1334, ["recipeUnlocked"] = 0, ["stock"] = {0,0,0,0,0,0}, ["recipeID"] = {0,0,0,0,0,0}, ["dominationSlot"] = true},
+	["172323"] = {["profession"] = 1334, ["recipeUnlocked"] = 0, ["stock"] = {0,0,0,0,0,0}, ["recipeID"] = {0,0,0,0,0,0}, ["dominationSlot"] = true},
+	["172322"] = {["profession"] = 1334, ["recipeUnlocked"] = 0, ["stock"] = {0,0,0,0,0,0}, ["recipeID"] = {0,0,0,0,0,0}, ["dominationSlot"] = true},
+	["172328"] = {["profession"] = 1334, ["recipeUnlocked"] = 0, ["stock"] = {0,0,0,0,0,0}, ["recipeID"] = {0,0,0,0,0,0}, ["dominationSlot"] = true}
 }
 local SLProfessionsIds =
 {
@@ -153,6 +153,7 @@ function LST:OnInitialize()
 				syncTarget = "charactername",
 				onlyRestockCraftable = true,
 				priceSource = L["LST Crafting"],
+				restockDominationSlots = true,
 			}
 		},
 		factionrealm = {
@@ -536,6 +537,7 @@ function LST:GetMainFrame(parent)
 		heightOffset = LST:AddOptionEditbox("RestockAmountEditBox", LSTSettingsScrollChild, "restockAmount", L["Restock amount"], heightOffset, 25)
 		heightOffset = LST:AddOptionEditbox("MinRestockAmountEditBox", LSTSettingsScrollChild, "minrestockAmount", L["Min restock amount"], heightOffset, 25)
 		heightOffset = LST:AddOptionCheckbox("onlyRestockCraftableEditBox", LSTSettingsScrollChild, "onlyRestockCraftable", L["Only restock items I can craft"], heightOffset, 25)
+		heightOffset = LST:AddOptionCheckbox("restockDominationSlots", LSTSettingsScrollChild, "restockDominationSlots", L["Restock domination slots"], heightOffset, 25)
 		heightOffset = LST:AddDropdownMenu("LSTPriceSourceDropdown", LSTSettingsScrollChild, heightOffset);
 		heightOffset = heightOffset - 25
 		local text = LSTSettingsScrollChild:CreateFontString(nil,"ARTWORK", "GameFontHighlight") 
@@ -1037,8 +1039,16 @@ function LST:UpdateRestockList()
 						table.insert(RestockList, {LegendaryItemData[nameTable[item]]["name"] , rank, restockAmount[rank] - currentStock, 0, nameTable[item]})
 					else
 						if(LST:GetMinBuyoutMinusAuctionOpMin(nameTable[item], rank) ~= L["not scanned"] ) then
-							if tonumber(LST:GetMinBuyoutMinusAuctionOpMin(nameTable[item], rank)) > tonumber(LST.db.profile.settings.minProfit) then
-								table.insert(RestockList, {LegendaryItemData[nameTable[item]]["name"], rank, restockAmount[rank] - currentStock, LST:GetMinBuyoutMinusAuctionOpMin(nameTable[item], rank), nameTable[item]})
+							if(not LST.db.profile.settings.restockDominationSlots) then
+								if(not LST:GetDominationSlotStatus(nameTable[item])) then
+									if tonumber(LST:GetMinBuyoutMinusAuctionOpMin(nameTable[item], rank)) > tonumber(LST.db.profile.settings.minProfit) then
+										table.insert(RestockList, {LegendaryItemData[nameTable[item]]["name"], rank, restockAmount[rank] - currentStock, LST:GetMinBuyoutMinusAuctionOpMin(nameTable[item], rank), nameTable[item]})
+									end
+								end	
+							else
+								if tonumber(LST:GetMinBuyoutMinusAuctionOpMin(nameTable[item], rank)) > tonumber(LST.db.profile.settings.minProfit) then
+									table.insert(RestockList, {LegendaryItemData[nameTable[item]]["name"], rank, restockAmount[rank] - currentStock, LST:GetMinBuyoutMinusAuctionOpMin(nameTable[item], rank), nameTable[item]})
+								end
 							end
 						end
 					end
@@ -1522,6 +1532,16 @@ function LST:GetStockCount(itemID, rank)
 		end
 	end
 	return count;
+end
+
+function LST:GetDominationSlotStatus(itemID)
+	local isDominationSlot = false
+	if (LegendaryItemData[itemID] ~= nil) then
+		if (LegendaryItemData[itemID]["dominationSlot"] ~= nil) then 
+			isDominationSlot = LegendaryItemData[itemID].dominationSlot
+		end
+	end
+	return isDominationSlot
 end
 
 function LST:CheckIfTSMIsRunning()
