@@ -82,6 +82,7 @@ L["Include Synced Data"] = "Synchrone Daten berücksichtigen"
 L["Send data to this alt"] = "Daten an diesen Twink senden"
 L["clear cache"] = "Cache löschen"
 L["LST: Cleared item cache"] = "LST: Artikel-Cache geleert"
+L["Restock domination slots"] = "Dominanz-Slots wieder auffüllen"
 
 -- Minimap Icon
 L["Click or type /lst to show the main panel"] =  "Klicken Sie oder geben Sie /lst ein, um das Hauptfenster anzuzeigen"

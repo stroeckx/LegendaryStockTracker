@@ -28,7 +28,7 @@ local LstockLDB = LibStub("LibDataBroker-1.1"):NewDataObject("LegendaryStockTrac
   end
 })
 
-local LSTVersion = "v2.9"
+local LSTVersion = "v2.10"
 --local db = nil
 LST.db = nil
 local LstockIcon = LibStub("LibDBIcon-1.0")
@@ -511,8 +511,8 @@ function LST:GetMainFrame(parent)
 			self:GetHighlightTexture():Show()
 			contentFrame:SetSize(f:GetWidth() - tabWidth, f:GetHeight())
 			-- save size between sessions
-			frameConfig.width = f:GetWidth()
-			frameConfig.height = f:GetHeight()
+			frameConfig.w = f:GetWidth()
+			frameConfig.h = f:GetHeight()
 		end)
 		
 		--settings frame
@@ -1040,7 +1040,7 @@ function LST:UpdateRestockList()
 					else
 						if(LST:GetMinBuyoutMinusAuctionOpMin(nameTable[item], rank) ~= L["not scanned"] ) then
 							if(not LST.db.profile.settings.restockDominationSlots) then
-								if(not LST:GetDominationSlotStatus(nameTable[item])) then
+								if(not LST:IsDominationSlot(nameTable[item])) then
 									if tonumber(LST:GetMinBuyoutMinusAuctionOpMin(nameTable[item], rank)) > tonumber(LST.db.profile.settings.minProfit) then
 										table.insert(RestockList, {LegendaryItemData[nameTable[item]]["name"], rank, restockAmount[rank] - currentStock, LST:GetMinBuyoutMinusAuctionOpMin(nameTable[item], rank), nameTable[item]})
 									end
@@ -1152,12 +1152,12 @@ function LST:CreateTableSheet(frame)
 			row = 
 			{
 				LST:CreateTableElement(frame, LegendaryItemData[NameTable[i]]["name"], 1, 1, 1, 1),
-				LST:CreateTableElement(frame, stock[1], LST:GetTableStockFont(1,stock[1])), 
-				LST:CreateTableElement(frame, stock[2], LST:GetTableStockFont(2,stock[2])), 
-				LST:CreateTableElement(frame, stock[3], LST:GetTableStockFont(3,stock[3])), 
-				LST:CreateTableElement(frame, stock[4], LST:GetTableStockFont(4,stock[4])),
-				LST:CreateTableElement(frame, stock[5], LST:GetTableStockFont(5,stock[5])),
-				LST:CreateTableElement(frame, stock[6], LST:GetTableStockFont(6,stock[6]))
+				LST:CreateTableElement(frame, stock[1], LST:GetTableStockFont(1,stock[1]),nil, NameTable[i]), 
+				LST:CreateTableElement(frame, stock[2], LST:GetTableStockFont(2,stock[2]),nil, NameTable[i]), 
+				LST:CreateTableElement(frame, stock[3], LST:GetTableStockFont(3,stock[3]),nil, NameTable[i]), 
+				LST:CreateTableElement(frame, stock[4], LST:GetTableStockFont(4,stock[4]),nil, NameTable[i]),
+				LST:CreateTableElement(frame, stock[5], LST:GetTableStockFont(5,stock[5]),nil, NameTable[i]),
+				LST:CreateTableElement(frame, stock[6], LST:GetTableStockFont(6,stock[6]),nil, NameTable[i])
 			}
 			table.insert(sheet, row)
 		end
@@ -1198,12 +1198,12 @@ function LST:CreateTableSheet(frame)
 			row = 
 			{
 				LST:CreateTableElement(frame, LegendaryItemData[NameTable[i]]["name"], 1, 1, 1, 1),
-				LST:CreateTableElement(frame, stock[1], LST:GetTableStockFont(1, stock[1], tostring(profit[1]))), LST:CreateTableElement(frame, tostring(LST:RoundToInt(profit[1])), LST:GetTablePriceFont(tostring(profit[1]))),
-				LST:CreateTableElement(frame, stock[2], LST:GetTableStockFont(2, stock[2], tostring(profit[2]))), LST:CreateTableElement(frame, tostring(LST:RoundToInt(profit[2])), LST:GetTablePriceFont(tostring(profit[2]))),
-				LST:CreateTableElement(frame, stock[3], LST:GetTableStockFont(3, stock[3], tostring(profit[3]))), LST:CreateTableElement(frame, tostring(LST:RoundToInt(profit[3])), LST:GetTablePriceFont(tostring(profit[3]))),
-				LST:CreateTableElement(frame, stock[4], LST:GetTableStockFont(4, stock[4], tostring(profit[4]))), LST:CreateTableElement(frame, tostring(LST:RoundToInt(profit[4])), LST:GetTablePriceFont(tostring(profit[4]))),
-				LST:CreateTableElement(frame, stock[5], LST:GetTableStockFont(5, stock[5], tostring(profit[5]))), LST:CreateTableElement(frame, tostring(LST:RoundToInt(profit[5])), LST:GetTablePriceFont(tostring(profit[5]))),
-				LST:CreateTableElement(frame, stock[6], LST:GetTableStockFont(6, stock[6], tostring(profit[6]))), LST:CreateTableElement(frame, tostring(LST:RoundToInt(profit[6])), LST:GetTablePriceFont(tostring(profit[6])))
+				LST:CreateTableElement(frame, stock[1], LST:GetTableStockFont(1, stock[1], tostring(profit[1]), NameTable[i])), LST:CreateTableElement(frame, tostring(LST:RoundToInt(profit[1])), LST:GetTablePriceFont(tostring(profit[1]))),
+				LST:CreateTableElement(frame, stock[2], LST:GetTableStockFont(2, stock[2], tostring(profit[2]), NameTable[i])), LST:CreateTableElement(frame, tostring(LST:RoundToInt(profit[2])), LST:GetTablePriceFont(tostring(profit[2]))),
+				LST:CreateTableElement(frame, stock[3], LST:GetTableStockFont(3, stock[3], tostring(profit[3]), NameTable[i])), LST:CreateTableElement(frame, tostring(LST:RoundToInt(profit[3])), LST:GetTablePriceFont(tostring(profit[3]))),
+				LST:CreateTableElement(frame, stock[4], LST:GetTableStockFont(4, stock[4], tostring(profit[4]), NameTable[i])), LST:CreateTableElement(frame, tostring(LST:RoundToInt(profit[4])), LST:GetTablePriceFont(tostring(profit[4]))),
+				LST:CreateTableElement(frame, stock[5], LST:GetTableStockFont(5, stock[5], tostring(profit[5]), NameTable[i])), LST:CreateTableElement(frame, tostring(LST:RoundToInt(profit[5])), LST:GetTablePriceFont(tostring(profit[5]))),
+				LST:CreateTableElement(frame, stock[6], LST:GetTableStockFont(6, stock[6], tostring(profit[6]), NameTable[i])), LST:CreateTableElement(frame, tostring(LST:RoundToInt(profit[6])), LST:GetTablePriceFont(tostring(profit[6])))
 			}
 			table.insert(sheet, row)		
 		end
@@ -1290,7 +1290,7 @@ function LST:GetTablePriceFont(stringValue)
 	end
 end
 
-function LST:GetTableStockFont(rank, value, price)
+function LST:GetTableStockFont(rank, value, price, itemID)
 	if(price == L["not scanned"]) then
 		return 1,1,1,1;
 	end
@@ -1300,7 +1300,15 @@ function LST:GetTableStockFont(rank, value, price)
 	if(value < tonumber(LST.db.profile.settings.restockAmountByRank[rank])) then
 		if(LST.db.profile.settings.showPricing == true and price ~= nil) then
 			if(tonumber(price) > tonumber(LST.db.profile.settings.minProfit)) then 
-				return 0, 0.5, 1, 1
+				if(LST.db.profile.settings.restockDominationSlots) then 
+					return 0, 0.75, 1, 1
+				else
+					if(LST:IsDominationSlot(itemID)) then
+						return 0, 0.75, 1, 1
+					else
+						return 1, 1, 1, 1
+					end
+				end
 			else 
 				return 1, 1, 1, 1
 			end
@@ -1534,7 +1542,7 @@ function LST:GetStockCount(itemID, rank)
 	return count;
 end
 
-function LST:GetDominationSlotStatus(itemID)
+function LST:IsDominationSlot(itemID)
 	local isDominationSlot = false
 	if (LegendaryItemData[itemID] ~= nil) then
 		if (LegendaryItemData[itemID]["dominationSlot"] ~= nil) then 
