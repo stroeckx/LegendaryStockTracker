@@ -28,7 +28,7 @@ local LstockLDB = LibStub("LibDataBroker-1.1"):NewDataObject("LegendaryStockTrac
   end
 })
 
-local LSTVersion = "v2.10"
+local LSTVersion = "v2.10.1"
 --local db = nil
 LST.db = nil
 local LstockIcon = LibStub("LibDBIcon-1.0")
@@ -48,8 +48,8 @@ local Rank1BonusIDs = "::2:1487:6716"
 local Rank2BonusIDs = "::2:1507:6717"
 local Rank3BonusIDs = "::2:1522:6718"
 local Rank4BonusIDs = "::2:1532:6758"
-local Rank5BonusIDs = "::2:1256:7450"
-local Rank6BonusIDs = "::2:1257:7451"
+local Rank5BonusIDs = "::1:1546"
+local Rank6BonusIDs = "::1:1559"
 
 local LegendaryItemData = 
 {
@@ -297,7 +297,16 @@ function LST:OnItemInfoReceived(event, itemID, success)
 end
 
 function LST:Test()
-	
+	for bag=0,NUM_BAG_SLOTS do
+        for slot=1,GetContainerNumSlots(bag) do
+			if not (GetContainerItemID(bag,slot) == nil) then 
+                local itemLink = (select(7,GetContainerItemInfo(bag,slot)));
+
+                print(itemLink .. ": " .. TSM_API.ToItemString(itemLink));
+			end
+        end
+	end
+	--C_TradeSkillUI.CraftRecipe(310898, 1, { itemID = 173382, count = 1, slot = 3}, 1);
 end
 
 function LST:SetMainFrameSize(value1, value2)
@@ -1404,7 +1413,7 @@ function LST:GetLSTCraftCostForLegendary(itemID, rank)
 			return LST:GetMaterialPriceSum(LST.db.factionrealm.recipeData.recipes[itemID]["ranks"][rank])
 		end
 	else
-		if(LST.db.factionrealm.recipeData.recipes[itemID] == nil or LST.db.factionrealm.recipeData.vestiges[LegendaryItemData[itemID]["profession"]] == nil) then
+		if(LST.db.factionrealm.recipeData.recipes[itemID] == nil or LST.db.factionrealm.recipeData.recipes[itemID]["ranks"][rank - 2] == nil or LST.db.factionrealm.recipeData.vestiges[LegendaryItemData[itemID]["profession"]] == nil) then
 			return L["not scanned"];
 		else
 			return LST:GetMaterialPriceSum(LST.db.factionrealm.recipeData.recipes[itemID]["ranks"][rank - 2]) + LST:GetMaterialPriceSum(LST.db.factionrealm.recipeData.vestiges[LegendaryItemData[itemID]["profession"]])
