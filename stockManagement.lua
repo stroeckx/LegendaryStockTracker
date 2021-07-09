@@ -1,20 +1,30 @@
 local addonName, globalTable = ...
 local GUILD_BANK_SLOTS_PER_TAB = 98
 
+local vestigesInBags = 0;
+
 function LST:GetAllItemsInBags()
 	LST.db.factionrealm.characters[LST.playerName].bagItemLegendaryLinks = {}
 	LST.db.factionrealm.characters[LST.playerName].bagItemLegendaryCount = 0
+	vestigesInBags = 0;
     for bag=0,NUM_BAG_SLOTS do
         for slot=1,GetContainerNumSlots(bag) do
 			if not (GetContainerItemID(bag,slot) == nil) then 
                 local itemLink = (select(7,GetContainerItemInfo(bag,slot)));
+				local itemID = select(3, strfind(itemLink, "item:(%d+)"));
                 if(LST:IsItemASLLegendary(itemLink) == true) then
 				    LST.db.factionrealm.characters[LST.playerName].bagItemLegendaryLinks[#LST.db.factionrealm.characters[LST.playerName].bagItemLegendaryLinks + 1] = itemLink;
 				    LST.db.factionrealm.characters[LST.playerName].bagItemLegendaryCount = LST.db.factionrealm.characters[LST.playerName].bagItemLegendaryCount + 1;
+				elseif(itemID == "185960") then
+					vestigesInBags = vestigesInBags + 1;
                 end
 			end
         end
 	end
+end
+
+function LST:GetVestigesInBags()
+	return vestigesInBags;
 end
 
 function LST:GetAllItemsInBank(event)

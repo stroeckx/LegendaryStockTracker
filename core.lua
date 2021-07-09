@@ -28,7 +28,7 @@ local LstockLDB = LibStub("LibDataBroker-1.1"):NewDataObject("LegendaryStockTrac
   end
 })
 
-local LSTVersion = "v2.10.1"
+local LSTVersion = "v2.11"
 --local db = nil
 LST.db = nil
 local LstockIcon = LibStub("LibDBIcon-1.0")
@@ -297,16 +297,18 @@ function LST:OnItemInfoReceived(event, itemID, success)
 end
 
 function LST:Test()
-	for bag=0,NUM_BAG_SLOTS do
-        for slot=1,GetContainerNumSlots(bag) do
-			if not (GetContainerItemID(bag,slot) == nil) then 
-                local itemLink = (select(7,GetContainerItemInfo(bag,slot)));
-
-                print(itemLink .. ": " .. TSM_API.ToItemString(itemLink));
-			end
-        end
-	end
-	--C_TradeSkillUI.CraftRecipe(310898, 1, { itemID = 173382, count = 1, slot = 3}, 1);
+	--for bag=0,NUM_BAG_SLOTS do
+    --    for slot=1,GetContainerNumSlots(bag) do
+	--		if not (GetContainerItemID(bag,slot) == nil) then 
+    --            local itemLink = (select(7,GetContainerItemInfo(bag,slot)));
+--
+    --            print(itemLink .. ": " .. TSM_API.ToItemString(itemLink));
+	--		end
+    --    end
+	--end
+	local test = LST:GetVestigesInBags()
+	print(test);
+	--C_TradeSkillUI.CraftRecipe(310898, 1, {{itemID = 173382, count = 1, slot = 3}}, 1);
 end
 
 function LST:SetMainFrameSize(value1, value2)
@@ -1309,13 +1311,13 @@ function LST:GetTableStockFont(rank, value, price, itemID)
 	if(value < tonumber(LST.db.profile.settings.restockAmountByRank[rank])) then
 		if(LST.db.profile.settings.showPricing == true and price ~= nil) then
 			if(tonumber(price) > tonumber(LST.db.profile.settings.minProfit)) then 
-				if(LST.db.profile.settings.restockDominationSlots) then 
+				if(LST.db.profile.settings.restockDominationSlots == true) then 
 					return 0, 0.75, 1, 1
 				else
 					if(LST:IsDominationSlot(itemID)) then
-						return 0, 0.75, 1, 1
-					else
 						return 1, 1, 1, 1
+					else
+						return 0, 0.75, 1, 1
 					end
 				end
 			else 
@@ -1682,24 +1684,32 @@ function LST:CraftNextRestockItem()
 	end;
 	for index, restockData in ipairs(RestockList) do
 		local itemID = restockData[5];
-		if(LegendaryItemData[itemID]["profession"] == openedProfession and restockData[2] < 5) then
-			local recipeID = LegendaryItemData[tostring(itemID)]["recipeID"][restockData[2]];
+		local rank = restockData[2];
+		local addVestige = rank > 4;
+		local optionalReagents = nil;
+		if(addVestige == true) then 
+			rank = rank - 2;
+			optionalReagents = {{itemID = 185960, count = 1, slot = 1}};
+		end
+		if(LegendaryItemData[itemID]["profession"] == openedProfession and restockData[2]) then
+			local recipeID = LegendaryItemData[tostring(itemID)]["recipeID"][rank];
 			if(recipeID ~= 0) then
 				local recipeInfo = C_TradeSkillUI.GetRecipeInfo(recipeID, 1);
 				local availableCraftCount = recipeInfo["numAvailable"];
-				if(availableCraftCount >= restockData[3]) then
-					C_TradeSkillUI.CraftRecipe(recipeID, restockData[3], nil, 1);
+				local craftCount = 0;
+				if(availableCraftCount >= restockData[3] and (addVestige == false or LST:GetVestigesInBags() > restockData[3])) then
+					craftCount = restockData[3];
+				elseif(availableCraftCount > 0 and (addVestige == false or LST:GetVestigesInBags() > 0)) then
+					craftCount = 1;
+				end
+
+				if(craftCount > 0) then
+					C_TradeSkillUI.CraftRecipe(recipeID, craftCount, optionalReagents, 1);
 					return nil;
-				elseif(availableCraftCount > 0) then
-					C_TradeSkillUI.CraftRecipe(recipeID, availableCraftCount, nil, 1);
-					return nil;
-				else 
+				else
 					print(L["LST: Not enough materials to craft "] .. restockData[1])
 				end
 			end
-		end
-		if(restockData[2] > 4 and restockData[2] < 7) then
-			print(L["LST: Crafting is not yet supported for rank 5 and 6, please craft these manually for now"])
 		end
 	end
 end
@@ -1719,7 +1729,7 @@ function LST:OnCommReceived(prefix, payload, distribution, sender)
 		table[id] = 
 		{
 			["canCraft"] = data[1],
-			["stock"] = {data[2],  data[3], data[4], data[5]}
+			["stock"] = {data[2],  data[3], data[4], data[5], data[6], data[7]}
 		}
 	end
 	LST.db.factionrealm.recipeData.materialList = data.recipeData["materialList"];
@@ -1754,7 +1764,7 @@ function LST:SendDataToPlayer(player)
 		end
 		count = count + LST:GetUnlockedCraftRank(id, false); --save in separate var if "count" is ever used
 		if(count > 0 ) then
-			syncData["legendaries"][id] = {LST:GetUnlockedCraftRank(id, false), LegendaryItemData[id]["stock"][1], LegendaryItemData[id]["stock"][2], LegendaryItemData[id]["stock"][3], LegendaryItemData[id]["stock"][4]}
+			syncData["legendaries"][id] = {LST:GetUnlockedCraftRank(id, false), LegendaryItemData[id]["stock"][1], LegendaryItemData[id]["stock"][2], LegendaryItemData[id]["stock"][3], LegendaryItemData[id]["stock"][4], LegendaryItemData[id]["stock"][5], LegendaryItemData[id]["stock"][6]}
 		end
 	end
 
