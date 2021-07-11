@@ -3,7 +3,10 @@ local GUILD_BANK_SLOTS_PER_TAB = 98
 
 local vestigesInBags = 0;
 
+local bagUpdateCount = 0;
 function LST:GetAllItemsInBags()
+	bagUpdateCount = bagUpdateCount + 1;
+	--print("LST: Updating bags, #" .. bagUpdateCount)
 	LST.db.factionrealm.characters[LST.playerName].bagItemLegendaryLinks = {}
 	LST.db.factionrealm.characters[LST.playerName].bagItemLegendaryCount = 0
 	vestigesInBags = 0;
@@ -16,7 +19,7 @@ function LST:GetAllItemsInBags()
 				    LST.db.factionrealm.characters[LST.playerName].bagItemLegendaryLinks[#LST.db.factionrealm.characters[LST.playerName].bagItemLegendaryLinks + 1] = itemLink;
 				    LST.db.factionrealm.characters[LST.playerName].bagItemLegendaryCount = LST.db.factionrealm.characters[LST.playerName].bagItemLegendaryCount + 1;
 				elseif(itemID == "185960") then
-					vestigesInBags = vestigesInBags + 1;
+					vestigesInBags = vestigesInBags + select(2,GetContainerItemInfo(bag,slot));
                 end
 			end
         end

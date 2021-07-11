@@ -59,13 +59,14 @@ L["Total (profit): "] =  "Total (profit): "
 L["Total (min price): "] =  "Total (min price): "
 L["Total per rank (profit): "] =  "Total per rank (profit): "
 L["Total per rank (min price): "] =  "Total per rank (min price): "
+L["Vestige"] = "Vestige"
 
 -- Export Frame
 L["Paste this data into your copy of the spreadsheet"] = "Paste this data into your copy of the spreadsheet"
 
 -- Settings Frame
 L["Show all legendaries"] = "Show all legendaries"
-L["Show profit (requires TSM operations)"] = "Show profit (requires TSM operations)"
+L["Show profit"] = "Show profit"
 L["Include Cached items"] = "Include Cached items"
 L["Min profit before restocking"] = "Min profit before restocking"
 L["Restock amount"] = "Restock amount"

@@ -59,13 +59,14 @@ L["Total (profit): "] =  "Total (bénéfice): "
 L["Total (min price): "] =  "Total (prix min.): "
 L["Total per rank (profit): "] =  "Total par rang (profit): "
 L["Total per rank (min price): "] =  "Total par rang (prix min): "
+L["Vestige"] = "Vestige"
 
 -- Export Frame
 L["Paste this data into your copy of the spreadsheet"] = "Coller les données dans votre copie du tableur"
 
 -- Settings Frame
 L["Show all legendaries"] = "Montrer tous les légendaires"
-L["Show profit (requires TSM operations)"] = "Montrer les profits (données TSM utilisées)"
+L["Show profit"] = "Montrer les profits"
 L["Include Cached items"] = "Inclure les objets mis en cache"
 L["Min profit before restocking"] = "Bénéfice minimum avant le réapprovisionnement"
 L["Restock amount"] = "Montant de réapprovisionnement"

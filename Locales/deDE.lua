@@ -60,13 +60,14 @@ L["Total (min price): "] =  "Gesamt (Mindestpreis): "
 L["Total per rank (profit): "] =  "Gesamt pro Rang (Gewinn): "
 L["Total per rank (min price): "] =  "Gesamt pro Rang (Mindestpreis): "
 L["LST: Clearing item cache"] = "LST: Clearing item cache"
+L["Vestige"] = "Vestige"
 
 -- Export Frame
 L["Paste this data into your copy of the spreadsheet"] = "Füge diese Daten in deine Kopie des Tabellenblatts ein"
 
 --Settings Frame
 L["Show all legendaries"] = "Zeige alle Legendaries"
-L["Show profit (requires TSM operations)"] = "Gewinn anzeigen (erfordert TSM-Operationen)"
+L["Show profit"] = "Gewinn anzeigen"
 L["Include Cached items"] = "Zwischengespeicherte Elemente einbeziehen"
 L["Min profit before restocking"] = "Minimaler Gewinn zum Auffüllen"
 L["Restock amount"] = "Maximale Auffüllmenge"
