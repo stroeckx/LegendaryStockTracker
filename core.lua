@@ -28,7 +28,7 @@ local LstockLDB = LibStub("LibDataBroker-1.1"):NewDataObject("LegendaryStockTrac
   end
 })
 
-local LSTVersion = "v2.11"
+local LSTVersion = "v2.12.1"
 --local db = nil
 LST.db = nil
 local LstockIcon = LibStub("LibDBIcon-1.0")
@@ -151,8 +151,8 @@ function LST:OnInitialize()
 				IncludeGuild = true,
 				IncludeSyncData = true,
 				minProfit = 1000,
-				restockAmount = 2,
-				restockAmountByRank = {0,0,0,0,0,0},
+				restockAmount = 1,
+				restockAmountByRank = {1,1,1,1,1,1},
 				minrestockAmount = 1,
 				syncTarget = "charactername",
 				onlyRestockCraftable = true,
@@ -275,7 +275,10 @@ function LST:OnInitialize()
 	if(LST.db.factionrealm.accountUUID == nil or LST.db.factionrealm.accountUUID == "") then
 		LST.db.factionrealm.accountUUID = LST:GenerateUUID();
 	end
-	if(LST.db.profile.settings.restockAmountByRank[1] == 0 and LST.db.profile.settings.restockAmountByRank[2] == 0 and LST.db.profile.settings.restockAmountByRank[3] == 0 and LST.db.profile.settings.restockAmountByRank[4] == 0) then
+	if(LST.db.profile.settings.restockAmountByRank[1] == 0 and LST.db.profile.settings.restockAmountByRank[2] == 0 and LST.db.profile.settings.restockAmountByRank[3] == 0 and LST.db.profile.settings.restockAmountByRank[4] == 0 and LST.db.profile.settings.restockAmountByRank[5] == 0 and LST.db.profile.settings.restockAmountByRank[6] == 0) then
+		LST:SetRestockAmountByRank(LST.db.profile.settings.restockAmount, nil, nil, nil);
+	end
+	if(LST.db.profile.settings.restockAmountByRank[1] == nil or LST.db.profile.settings.restockAmountByRank[2] == nil or LST.db.profile.settings.restockAmountByRank[3] == nil or LST.db.profile.settings.restockAmountByRank[4] == nil or LST.db.profile.settings.restockAmountByRank[5] == nil or LST.db.profile.settings.restockAmountByRank[6] == nil) then
 		LST:SetRestockAmountByRank(LST.db.profile.settings.restockAmount, nil, nil, nil);
 	end
 end
@@ -1367,7 +1370,7 @@ function LST:GetTableStockFont(rank, value, price, itemID)
 		price = 0;
 	end
 	if(value < tonumber(LST.db.profile.settings.restockAmountByRank[rank])) then
-		if(LST.db.profile.settings.showPricing == true and price ~= nil) then
+		if(LST.db.profile.settings.showPricing == true and price ~= nil and LST.db.profile.settings.minProfit ~= nil) then
 			if(tonumber(price) > tonumber(LST.db.profile.settings.minProfit)) then 
 				if(LST.db.profile.settings.restockDominationSlots == true) then 
 					return 0, 0.75, 1, 1
