@@ -28,7 +28,7 @@ local LstockLDB = LibStub("LibDataBroker-1.1"):NewDataObject("LegendaryStockTrac
   end
 })
 
-local LSTVersion = "v2.12.1"
+local LSTVersion = "v2.12.2"
 --local db = nil
 LST.db = nil
 local LstockIcon = LibStub("LibDBIcon-1.0")
@@ -271,6 +271,13 @@ function LST:OnInitialize()
 		if(iteminfo ~= nil ) then
 			LST:ProcessItemInfo(id, true)
 		end
+	end
+	if(tonumber(LST.db.profile.settings.minProfit) == nil) then
+		local profit = string.match(LST.db.profile.settings.minProfit, "%d+");
+		if(tonumber(profit) == nil) then
+			profit = 1000;
+		end
+		LST.db.profile.settings.minProfit = profit;
 	end
 	if(LST.db.factionrealm.accountUUID == nil or LST.db.factionrealm.accountUUID == "") then
 		LST.db.factionrealm.accountUUID = LST:GenerateUUID();
@@ -1370,7 +1377,7 @@ function LST:GetTableStockFont(rank, value, price, itemID)
 		price = 0;
 	end
 	if(value < tonumber(LST.db.profile.settings.restockAmountByRank[rank])) then
-		if(LST.db.profile.settings.showPricing == true and price ~= nil and LST.db.profile.settings.minProfit ~= nil) then
+		if(LST.db.profile.settings.showPricing == true and price ~= nil) then
 			if(tonumber(price) > tonumber(LST.db.profile.settings.minProfit)) then 
 				if(LST.db.profile.settings.restockDominationSlots == true) then 
 					return 0, 0.75, 1, 1
@@ -1456,6 +1463,7 @@ function LST:GetMinBuyout(name, rank)
 end
 
 function LST:UpdateMaterialPrices()
+	if(not IsTSMLoaded) then return 0 end;
 	--if(isMaterialPriceUpdated == true) then return nil end
 	for materialID, name in	pairs(LST.db.factionrealm.recipeData.materialList) do
 		local matPrice = tonumber(LST:ConvertTsmPriceToValue(TSM_API.GetCustomPriceValue("matPrice", "i:" .. materialID)));

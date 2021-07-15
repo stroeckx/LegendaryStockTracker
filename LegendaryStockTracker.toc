@@ -3,7 +3,7 @@
 ## Notes: Helps keeping track of your stock of shadowlands legendaries
 ## Author: Stroeckx
 ## Contributors: Bullseye, Andran, Voldoroc
-## Version: 2.12.1
+## Version: 2.12.2
 ## SavedVariables: LegendaryStockTrackerDB
 ## OptionalDeps: TradeSkillMaster
 
@@ -17,6 +17,10 @@ libs\AceLocale-3.0\AceLocale-3.0.xml
 libs\AceDB-3.0\AceDB-3.0.xml
 libs\LibDataBroker-1.1\LibDataBroker-1.1.lua
 Libs\LibDBIcon-1.0\lib.xml
+Libs\AceSerializer-3.0\AceSerializer-3.0.xml
+Libs\LibSerialize\lib.xml
+Libs\LibDeflate\lib.xml
+Libs\AceComm-3.0\AceComm-3.0.xml
 #@end-no-lib-strip@
 
 #--Locale Translations
