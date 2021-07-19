@@ -66,6 +66,7 @@ L["Paste this data into your copy of the spreadsheet"] = "Paste this data into y
 
 -- Settings Frame
 L["Show all legendaries"] = "Show all legendaries"
+L["Show values as percentages"] = "Show values as percentages"
 L["Show profit"] = "Show profit"
 L["Include Cached items"] = "Include Cached items"
 L["Min profit before restocking"] = "Min profit before restocking"

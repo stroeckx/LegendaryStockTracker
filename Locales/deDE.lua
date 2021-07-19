@@ -67,6 +67,7 @@ L["Paste this data into your copy of the spreadsheet"] = "Füge diese Daten in d
 
 --Settings Frame
 L["Show all legendaries"] = "Zeige alle Legendaries"
+L["Show values as percentages"] = "Werte als Prozentwerte anzeigen"
 L["Show profit"] = "Gewinn anzeigen"
 L["Include Cached items"] = "Zwischengespeicherte Elemente einbeziehen"
 L["Min profit before restocking"] = "Minimaler Gewinn zum Auffüllen"
