@@ -28,7 +28,7 @@ local LstockLDB = LibStub("LibDataBroker-1.1"):NewDataObject("LegendaryStockTrac
   end
 })
 
-local LSTVersion = "v2.13"
+local LSTVersion = "v2.13.1"
 --local db = nil
 LST.db = nil
 local LstockIcon = LibStub("LibDBIcon-1.0")
@@ -42,7 +42,7 @@ local exportFrame = nil
 --all collections of items are stored separately for future expandability
 LST.legendaryLinks = {}
 local isBankOpen = false
-local TSMPriceDataByRank = {}
+local PriceDataByRank = {}
 local materialPrices = {}
 local Rank1BonusIDs = "::2:1487:6716"
 local Rank2BonusIDs = "::2:1507:6717"
@@ -281,6 +281,7 @@ function LST:OnInitialize()
 		end
 		LST.db.profile.settings.minProfit = profit;
 	end
+	LST.db.profile.settings.priceSource = L["LST Crafting"];
 	if(LST.db.factionrealm.accountUUID == nil or LST.db.factionrealm.accountUUID == "") then
 		LST.db.factionrealm.accountUUID = LST:GenerateUUID();
 	end
@@ -1015,9 +1016,7 @@ end
 
 function LST:CountLegendariesByRank()
 	LST:CountLegendariesByRankWithoutSyncdata();
-	if(LST.db.profile.settings.priceSource == L["LST Crafting"]) then 
-		LST:UpdateMaterialPrices();
-	end
+	LST:UpdateMaterialPrices();
 	if(LST.db.profile.settings.IncludeSyncData) then
 		for account, accountdata in pairs(LST.db.factionrealm.syncData) do
 			for id, data in pairs (accountdata["legendaries"]) do
@@ -1055,11 +1054,9 @@ function LST:CountLegendariesByRankWithoutSyncdata()
 	end
 	
 	--if(isTSMPriceUpdated == false) then
-		TSMPriceDataByRank = {}
+		PriceDataByRank = {}
 	--end
-	if(LST.db.profile.settings.priceSource == L["LST Crafting"]) then 
-		LST:UpdateMaterialPrices();
-	end
+	LST:UpdateMaterialPrices();
 	for i=1, #LST.legendaryLinks do
 		local itemID = select(3, strfind(LST.legendaryLinks[i], "item:(%d+)"));
 		local detailedItemLevel = GetDetailedItemLevelInfo(LST.legendaryLinks[i]);
@@ -1219,11 +1216,9 @@ end
 function LST:createNameTable()
 	local NameTable = {} --nametable is now "list of items to export"
 	--if(isTSMPriceUpdated == false) then
-		TSMPriceDataByRank = {}
+		PriceDataByRank = {}
 	--end
-	if(LST.db.profile.settings.priceSource == L["LST Crafting"]) then 
-		LST:UpdateMaterialPrices();
-	end
+	LST:UpdateMaterialPrices();
 	for id, data in pairs(LegendaryItemData) do 
 		table.insert(NameTable, id);
 		LST:UpdateTsmPriceForAllRanks(id);
@@ -1529,23 +1524,23 @@ function LST:AddTableLine(frame, yPosition)
 end
 
 function LST:AddEmptyTsmPriceDataEntryIfNotPresent(itemName)
-	if (TSMPriceDataByRank[itemName] == nil) then
-		TSMPriceDataByRank[itemName] = {{dbminbuyout = 0, dbmarket = 0,0,0,0},{dbminbuyout = 0, dbmarket = 0,0,0,0},{dbminbuyout = 0, dbmarket = 0,0,0,0},{dbminbuyout = 0, dbmarket = 0,0,0,0},{dbminbuyout = 0, dbmarket = 0,0,0,0},{dbminbuyout = 0, dbmarket = 0,0,0,0},{dbminbuyout = 0, dbmarket = 0,0,0,0},{dbminbuyout = 0, dbmarket = 0,0,0,0},{dbminbuyout = 0, dbmarket = 0,0,0,0},{dbminbuyout = 0, dbmarket = 0,0,0,0}} --leaving room for up to 10 legendary ranks
+	if (PriceDataByRank[itemName] == nil) then
+		PriceDataByRank[itemName] = {{dbminbuyout = 0, dbmarket = 0,0,0,0},{dbminbuyout = 0, dbmarket = 0,0,0,0},{dbminbuyout = 0, dbmarket = 0,0,0,0},{dbminbuyout = 0, dbmarket = 0,0,0,0},{dbminbuyout = 0, dbmarket = 0,0,0,0},{dbminbuyout = 0, dbmarket = 0,0,0,0},{dbminbuyout = 0, dbmarket = 0,0,0,0},{dbminbuyout = 0, dbmarket = 0,0,0,0},{dbminbuyout = 0, dbmarket = 0,0,0,0},{dbminbuyout = 0, dbmarket = 0,0,0,0}} --leaving room for up to 10 legendary ranks
 	end
 end
 
 function LST:GetMinBuyoutMinusAuctionOpMin(name, rank)
-	if(TSMPriceDataByRank[name][rank]["craftCost"] == L["not scanned"]) then
+	if(PriceDataByRank[name][rank]["craftCost"] == L["not scanned"]) then
 		return L["not scanned"];
 	end
-	return tonumber(TSMPriceDataByRank[name][rank]["dbminbuyout"] - TSMPriceDataByRank[name][rank]["craftCost"]);
+	return tonumber(PriceDataByRank[name][rank]["dbminbuyout"] - PriceDataByRank[name][rank]["craftCost"]);
 end
 
 function LST:GetProfitPercentage(name, rank)
-	if(TSMPriceDataByRank[name][rank]["craftCost"] == L["not scanned"]) then
+	if(PriceDataByRank[name][rank]["craftCost"] == L["not scanned"]) then
 		return L["not scanned"];
 	end
-	local fraction = TSMPriceDataByRank[name][rank]["dbminbuyout"] / TSMPriceDataByRank[name][rank]["craftCost"]
+	local fraction = PriceDataByRank[name][rank]["dbminbuyout"] / PriceDataByRank[name][rank]["craftCost"]
 	return LST:FractionToPercentage(fraction);
 end
 
@@ -1554,14 +1549,14 @@ function LST:FractionToPercentage(fraction)
 end
 
 function LST:GetMinBuyout(name, rank)
-	return tonumber(TSMPriceDataByRank[name][rank]["dbminbuyout"]);
+	return tonumber(PriceDataByRank[name][rank]["dbminbuyout"]);
 end
 
 function LST:GetCraftCost(name, rank)
-	if(TSMPriceDataByRank[name][rank]["craftCost"] == L["not scanned"]) then
+	if(PriceDataByRank[name][rank]["craftCost"] == L["not scanned"]) then
 		return L["not scanned"];
 	end
-	return tonumber(TSMPriceDataByRank[name][rank]["craftCost"]);
+	return tonumber(PriceDataByRank[name][rank]["craftCost"]);
 end
 
 function LST:UpdateMaterialPrices()
@@ -1655,7 +1650,7 @@ end
 function LST:UpdateTsmPrices(itemName, rank)
 	--if(isTSMPriceUpdated == true) then return nil end
 	LST:AddEmptyTsmPriceDataEntryIfNotPresent(itemName)
-	local ItemPrices = TSMPriceDataByRank[itemName]
+	local ItemPrices = PriceDataByRank[itemName]
 	if(IsTSMLoaded ~= true) then
 		ItemPrices[rank]["dbminbuyout"] = 0
 		ItemPrices[rank]["craftCost"] = 0
@@ -1690,10 +1685,10 @@ function LST:UpdateTsmPrices(itemName, rank)
 	if(ItemPrices[rank]["dbminbuyout"] == nil or ItemPrices[rank]["craftCost"] == nil) then
 		ItemPrices[rank]["dbminbuyout"] = 0
 		ItemPrices[rank]["craftCost"] = 0
-	elseif(LST.db.profile.settings.priceSource == L["LST Crafting"]) then
+	else
 		ItemPrices[rank]["dbminbuyout"] = ItemPrices[rank]["dbminbuyout"] * 0.95;
 	end
-	TSMPriceDataByRank[itemName] = ItemPrices
+	PriceDataByRank[itemName] = ItemPrices
 end
 
 function LST:ConvertTsmPriceToGold(value)
