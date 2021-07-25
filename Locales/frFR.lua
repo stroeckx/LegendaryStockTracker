@@ -84,6 +84,7 @@ L["Send data to this alt"] = "Send data to this alt"
 L["clear cache"] = "effacer le cache"
 L["LST: Cleared item cache"] = "LST: Effacement du cache des éléments"
 L["Restock domination slots"] = "Réapprovisionnement des créneaux de domination"
+L["Show ranks"] = "Afficher les rangs: "
 
 -- Minimap Icon
 L["Click or type /lst to show the main panel"] =  "Cliquer ou saisir /lst pour montrer le panneau principal"

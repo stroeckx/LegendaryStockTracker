@@ -28,7 +28,7 @@ local LstockLDB = LibStub("LibDataBroker-1.1"):NewDataObject("LegendaryStockTrac
   end
 })
 
-local LSTVersion = "v2.13.2"
+local LSTVersion = "v2.14"
 --local db = nil
 LST.db = nil
 local LstockIcon = LibStub("LibDBIcon-1.0")
@@ -155,6 +155,7 @@ function LST:OnInitialize()
 				percentageMinProfit = 1,
 				restockAmount = 1,
 				restockAmountByRank = {1,1,1,1,1,1},
+				IsRankEnabled = {true, true, true, true, true, true},
 				minrestockAmount = 1,
 				syncTarget = "charactername",
 				onlyRestockCraftable = true,
@@ -602,6 +603,7 @@ function LST:GetMainFrame(parent)
 		heightOffset = LST:AddOptionEditbox("MinRestockAmountEditBox", LSTSettingsScrollChild, "minrestockAmount", L["Min restock amount"], heightOffset, 25)
 		heightOffset = LST:AddOptionCheckbox("onlyRestockCraftableEditBox", LSTSettingsScrollChild, "onlyRestockCraftable", L["Only restock items I can craft"], heightOffset, 25)
 		heightOffset = LST:AddOptionCheckbox("restockDominationSlots", LSTSettingsScrollChild, "restockDominationSlots", L["Restock domination slots"], heightOffset, 25)
+		heightOffset = LST:AddOptionCheckboxList("restockDominationSlots", LSTSettingsScrollChild, "IsRankEnabled", L["Show ranks"], heightOffset, {L["R1"], L["R2"], L["R3"], L["R4"], L["R5"], L["R6"]}, 6)
 		--heightOffset = LST:AddDropdownMenu("LSTPriceSourceDropdown", LSTSettingsScrollChild, heightOffset);
 		heightOffset = heightOffset - 25
 		local text = LSTSettingsScrollChild:CreateFontString(nil,"ARTWORK", "GameFontHighlight") 
@@ -849,6 +851,47 @@ function LST:AddOptionCheckbox(name, parent, setting, description, heightOffset)
 	text:SetPoint("LEFT", cb, "RIGHT", 0, 1)
 	text:SetText(description)
 	return heightOffset - 20, cb
+end
+
+function LST:AddOptionCheckboxList(name, parent, setting, description, heightOffset, subDescriptions, numItems)
+	local f = CreateFrame("Frame", name, parent, BackdropTemplateMixin and "BackdropTemplate")
+	f:SetPoint("TOPLEFT", parent, "TOPLEFT", 0, heightOffset)
+	f:SetSize(20,20)
+
+	local text = f:CreateFontString(nil ,"ARTWORK" ,"GameFontHighlight" ) 
+	text:SetPoint("LEFT", f, "LEFT", 0, 1)
+	text:SetText(description)
+
+	f:SetWidth(text:GetStringWidth());
+
+	local frame = f;
+	for i=1, numItems do
+		local cb = CreateFrame("CheckButton", name .. i, parent, "OptionsCheckButtonTemplate");
+		cb:SetSize(20,20);
+		cb:SetPoint("TOPLEFT", frame, "TOPRIGHT", 0, 0);
+		cb.setting = setting;
+		cb.index = i;
+		cb:SetHitRectInsets(0, 0, 0, 0);
+		cb:SetChecked(LST.db.profile.settings[cb.setting][cb.index]);
+		cb:SetScript("OnClick", function(cb)
+			if cb:GetChecked() then
+				LST.db.profile.settings[cb.setting][cb.index] = true;
+			else
+				LST.db.profile.settings[cb.setting][cb.index] = false;
+			end
+		end)
+		frame = CreateFrame("Frame", nil, parent, BackdropTemplateMixin and "BackdropTemplate")
+		frame:SetPoint("TOPLEFT", cb, "TOPRIGHT", 0, 0)
+		frame:SetSize(20,20)
+
+		local text = frame:CreateFontString(nil,"ARTWORK", "GameFontHighlight");
+		text:SetPoint("LEFT", frame, "LEFT", 0, 0);
+		text:SetHeight(20);
+		text:SetText(subDescriptions[i]);
+		frame:SetSize(text:GetStringWidth(),20)
+end
+	
+	return heightOffset - 20
 end
 
 function LST:AddOptionEditbox(name, parent, setting, description, heightOffset, width)
@@ -1114,7 +1157,7 @@ function LST:UpdateRestockList()
 	restockAmount[6] = tonumber(LST.db.profile.settings.restockAmountByRank[6]);
 	for item=1, #nameTable do
 		for rank=1, numRanks do
-			if(not LST.db.profile.settings.onlyRestockCraftable or (LST.db.profile.settings.onlyRestockCraftable and LST:CanCraft(nameTable[item], rank))) then
+			if(not LST.db.profile.settings.onlyRestockCraftable or (LST.db.profile.settings.onlyRestockCraftable and LST:CanCraft(nameTable[item], rank)) and LST.db.profile.settings.IsRankEnabled[rank] == true) then
 				local currentStock = tonumber(LST:GetStockCount(nameTable[item], rank))
 				if currentStock < restockAmount[rank] and restockAmount[rank] - currentStock >= tonumber(LST.db.profile.settings.minrestockAmount) then 
 					if(IsTSMLoaded == false or LST.db.profile.settings.showPricing == false) then
@@ -1274,7 +1317,14 @@ function LST:CreateTableSheet(frame)
 	local sheet = {}
 	local maxwidth = {};
 	if(IsTSMLoaded == false or LST.db.profile.settings.showPricing == false) then
-		local titles = {LST:CreateTableTitle(frame, L["Item name"]), LST:CreateTableTitle(frame, L["Rank 1"]), LST:CreateTableTitle(frame, L["Rank 2"]), LST:CreateTableTitle(frame, L["Rank 3"]), LST:CreateTableTitle(frame, L["Rank 4"]), LST:CreateTableTitle(frame, L["Rank 5"]), LST:CreateTableTitle(frame, L["Rank 6"])}
+		local titles = {};
+		table.insert(titles, LST:CreateTableTitle(frame, L["Item name"]))
+		for r=1, numRanks do
+			if(LST.db.profile.settings.IsRankEnabled[r] == true) then
+				table.insert(titles, LST:CreateTableTitle(frame, L["R" .. r]))
+			end
+		end
+		--local titles = {LST:CreateTableTitle(frame, L["Item name"]), LST:CreateTableTitle(frame, L["Rank 1"]), LST:CreateTableTitle(frame, L["Rank 2"]), LST:CreateTableTitle(frame, L["Rank 3"]), LST:CreateTableTitle(frame, L["Rank 4"]), LST:CreateTableTitle(frame, L["Rank 5"]), LST:CreateTableTitle(frame, L["Rank 6"])}
 		table.insert(sheet, titles)
 		maxWidth = {0,0,0,0,0,0,0}
 		local stockSum = {0,0,0,0,0,0}
@@ -1284,33 +1334,51 @@ function LST:CreateTableSheet(frame)
 				stock[j] = LST:GetStockCount(NameTable[i], j);
 				stockSum[j] = stockSum[j] + stock[j];
 			end
-			row = 
-			{
-				LST:CreateTableElement(frame, LegendaryItemData[NameTable[i]]["name"], 1, 1, 1, 1),
-				LST:CreateTableElement(frame, stock[1], LST:GetTableStockFont(1,stock[1], nil, nil, NameTable[i])), 
-				LST:CreateTableElement(frame, stock[2], LST:GetTableStockFont(2,stock[2], nil, nil, NameTable[i])), 
-				LST:CreateTableElement(frame, stock[3], LST:GetTableStockFont(3,stock[3], nil, nil, NameTable[i])), 
-				LST:CreateTableElement(frame, stock[4], LST:GetTableStockFont(4,stock[4], nil, nil, NameTable[i])),
-				LST:CreateTableElement(frame, stock[5], LST:GetTableStockFont(5,stock[5], nil, nil, NameTable[i])),
-				LST:CreateTableElement(frame, stock[6], LST:GetTableStockFont(6,stock[6], nil, nil, NameTable[i]))
-			}
+
+			local row = {}
+			row[1] = LST:CreateTableElement(frame, LegendaryItemData[NameTable[i]]["name"], 1, 1, 1, 1);
+			local rowIndex = 2;
+			for r=1, numRanks do
+				if(LST.db.profile.settings.IsRankEnabled[r] == true) then
+					row[rowIndex] = LST:CreateTableElement(frame, stock[r], LST:GetTableStockFont(r,stock[r], nil, nil, NameTable[i]))
+					rowIndex = rowIndex + 1;
+				end
+			end
 			table.insert(sheet, row)
 		end
-		row = 
-		{
-			LST:CreateTableElement(frame, L["Total"] .. (stockSum[1] + stockSum[2] + stockSum[3] + stockSum[4] + stockSum[5] + stockSum[6]), 1, 1, 1, 1),
-			LST:CreateTableElement(frame, stockSum[1], 1, 1, 1, 1), 
-			LST:CreateTableElement(frame, stockSum[2], 1, 1, 1, 1), 
-			LST:CreateTableElement(frame, stockSum[3], 1, 1, 1, 1), 
-			LST:CreateTableElement(frame, stockSum[4], 1, 1, 1, 1),
-			LST:CreateTableElement(frame, stockSum[5], 1, 1, 1, 1),
-			LST:CreateTableElement(frame, stockSum[6], 1, 1, 1, 1)
-		}
+		local totalStock = 0;
+		for r=1, numRanks do
+			if(LST.db.profile.settings.IsRankEnabled[r] == true) then
+				totalStock = totalStock + stockSum[r];
+			end
+		end
+		local row = {};
+		table.insert( row, LST:CreateTableElement(frame, L["Total"] .. totalStock, 1, 1, 1, 1));
+		for r=1, numRanks do
+			if(LST.db.profile.settings.IsRankEnabled[r] == true) then
+				table.insert( row, LST:CreateTableElement(frame, stockSum[r], 1, 1, 1, 1)); 
+			end
+		end
+		--row = 
+		--{
+		--	LST:CreateTableElement(frame, L["Total"] .. (stockSum[1] + stockSum[2] + stockSum[3] + stockSum[4] + stockSum[5] + stockSum[6]), 1, 1, 1, 1),
+		--	LST:CreateTableElement(frame, stockSum[1], 1, 1, 1, 1), 
+		--	LST:CreateTableElement(frame, stockSum[2], 1, 1, 1, 1), 
+		--	LST:CreateTableElement(frame, stockSum[3], 1, 1, 1, 1), 
+		--	LST:CreateTableElement(frame, stockSum[4], 1, 1, 1, 1),
+		--	LST:CreateTableElement(frame, stockSum[5], 1, 1, 1, 1),
+		--	LST:CreateTableElement(frame, stockSum[6], 1, 1, 1, 1)
+		--}
 		table.insert(sheet, row)
 	else
-		local titles = {LST:CreateTableTitle(frame, L["Item name"]), LST:CreateTableTitle(frame, L["R1"]), LST:CreateTableTitle(frame, L["Profit R1"]), LST:CreateTableTitle(frame, L["R2"]), LST:CreateTableTitle(frame, L["Profit R2"]), 
-		LST:CreateTableTitle(frame, L["R3"]), LST:CreateTableTitle(frame, L["Profit R3"]), LST:CreateTableTitle(frame, L["R4"]), LST:CreateTableTitle(frame, "Profit R4"), 
-		LST:CreateTableTitle(frame, L["R5"]), LST:CreateTableTitle(frame, L["Profit R5"]), LST:CreateTableTitle(frame, L["R6"]), LST:CreateTableTitle(frame, "Profit R6")}
+		local titles = {};
+		table.insert(titles, LST:CreateTableTitle(frame, L["Item name"]))
+		for r=1, numRanks do
+			if(LST.db.profile.settings.IsRankEnabled[r] == true) then
+				table.insert(titles, LST:CreateTableTitle(frame, L["R" .. r]))
+				table.insert(titles, LST:CreateTableTitle(frame, L["Profit R" .. r]))
+			end
+		end
 		table.insert(sheet, titles)
 		maxWidth = {0,0,0,0,0,0,0,0,0,0,0,0,0}
 		local stockSum = {0,0,0,0,0,0}
@@ -1322,43 +1390,60 @@ function LST:CreateTableSheet(frame)
 			local profit = {0,0,0,0,0,0}
 			local profitText = {0,0,0,0,0,0}
 			for j=1, 6 do
-				stock[j] = LST:GetStockCount(NameTable[i], j);
-				profit[j] = LST:GetMinBuyoutMinusAuctionOpMin(NameTable[i], j);
-				if(profit[j] ~= L["not scanned"]) then
-					if(LST.db.profile.settings.UsePercentages == true) then
-						profitText[j] = LST:RoundToInt(LST:GetProfitPercentage(NameTable[i], j)) .. "%";
+				if(LST.db.profile.settings.IsRankEnabled[j] == true) then
+					stock[j] = LST:GetStockCount(NameTable[i], j);
+					profit[j] = LST:GetMinBuyoutMinusAuctionOpMin(NameTable[i], j);
+					if(profit[j] ~= L["not scanned"]) then
+						if(LST.db.profile.settings.UsePercentages == true) then
+							profitText[j] = LST:RoundToInt(LST:GetProfitPercentage(NameTable[i], j)) .. "%";
+						else
+							profitText[j] = LST:AddDecimalSeparator(LST:RoundToInt(profit[j]));
+						end
 					else
-						profitText[j] = LST:AddDecimalSeparator(LST:RoundToInt(profit[j]));
+						profitText[j] = L["not scanned"];
 					end
-				else
-					profitText[j] = L["not scanned"];
-				end
-				stockSum[j] = stockSum[j] + stock[j];
-				cost[j] = LST:GetCraftCost(NameTable[i], j)
-				priceSum[j] = priceSum[j] + (stock[j] * LST:GetMinBuyout(NameTable[i], j));
-				local cost = LST:GetCraftCost(NameTable[i], j);
-				if(cost ~= L["not scanned"]) then
-					costSum[j] = costSum[j] + (stock[j] * cost);
+					stockSum[j] = stockSum[j] + stock[j];
+					cost[j] = LST:GetCraftCost(NameTable[i], j)
+					priceSum[j] = priceSum[j] + (stock[j] * LST:GetMinBuyout(NameTable[i], j));
+					local cost = LST:GetCraftCost(NameTable[i], j);
+					if(cost ~= L["not scanned"]) then
+						costSum[j] = costSum[j] + (stock[j] * cost);
+					end
 				end
 			end
-			row = 
-			{
-				LST:CreateTableElement(frame, LegendaryItemData[NameTable[i]]["name"], 1, 1, 1, 1),
-				LST:CreateTableElement(frame, stock[1], LST:GetTableStockFont(1, stock[1], tostring(profit[1]), cost[1], NameTable[i])), LST:CreateTableElement(frame, profitText[1], LST:GetTablePriceFont(profit[1], cost[1])),
-				LST:CreateTableElement(frame, stock[2], LST:GetTableStockFont(2, stock[2], tostring(profit[2]), cost[2], NameTable[i])), LST:CreateTableElement(frame, profitText[2], LST:GetTablePriceFont(profit[2], cost[2])),
-				LST:CreateTableElement(frame, stock[3], LST:GetTableStockFont(3, stock[3], tostring(profit[3]), cost[3], NameTable[i])), LST:CreateTableElement(frame, profitText[3], LST:GetTablePriceFont(profit[3], cost[3])),
-				LST:CreateTableElement(frame, stock[4], LST:GetTableStockFont(4, stock[4], tostring(profit[4]), cost[4], NameTable[i])), LST:CreateTableElement(frame, profitText[4], LST:GetTablePriceFont(profit[4], cost[4])),
-				LST:CreateTableElement(frame, stock[5], LST:GetTableStockFont(5, stock[5], tostring(profit[5]), cost[5], NameTable[i])), LST:CreateTableElement(frame, profitText[5], LST:GetTablePriceFont(profit[5], cost[5])),
-				LST:CreateTableElement(frame, stock[6], LST:GetTableStockFont(6, stock[6], tostring(profit[6]), cost[6], NameTable[i])), LST:CreateTableElement(frame, profitText[6], LST:GetTablePriceFont(profit[6], cost[6]))
-			}
+			local row = {}
+			row[1] = LST:CreateTableElement(frame, LegendaryItemData[NameTable[i]]["name"], 1, 1, 1, 1);
+			local rowIndex = 2;
+			for r=1, numRanks do
+				if(LST.db.profile.settings.IsRankEnabled[r] == true) then
+					row[rowIndex] = LST:CreateTableElement(frame, stock[r], LST:GetTableStockFont(r, stock[r], tostring(profit[r]), cost[r], NameTable[i]));
+					row[rowIndex + 1] = LST:CreateTableElement(frame, profitText[r], LST:GetTablePriceFont(profit[r], cost[r]));
+					rowIndex = rowIndex + 2;
+				end
+			end
 			table.insert(sheet, row)		
 		end
 		local profitSum = {0,0,0,0,0,0}
 		for r = 1, 6 do
 			profitSum[r] = priceSum[r] - costSum[r];
 		end
-		table.insert(sheet, LST:CreateTablePriceRowWhite(frame, L["Total per rank (profit): "], stockSum[1], LST:AddDecimalSeparator(LST:RoundToInt(profitSum[1])), stockSum[2], LST:AddDecimalSeparator(LST:RoundToInt(profitSum[2])), stockSum[3], LST:AddDecimalSeparator(LST:RoundToInt(profitSum[3])), stockSum[4], LST:AddDecimalSeparator(LST:RoundToInt(profitSum[4])), stockSum[5], LST:AddDecimalSeparator(LST:RoundToInt(profitSum[5])), stockSum[6], LST:AddDecimalSeparator(LST:RoundToInt(profitSum[6]))))
-		table.insert(sheet, LST:CreateTablePriceRowWhite(frame, L["Total per rank (min price): "], stockSum[1], LST:AddDecimalSeparator(LST:RoundToInt(priceSum[1])), stockSum[2], LST:AddDecimalSeparator(LST:RoundToInt(priceSum[2])), stockSum[3], LST:AddDecimalSeparator(LST:RoundToInt(priceSum[3])), stockSum[4], LST:AddDecimalSeparator(LST:RoundToInt(priceSum[4])), stockSum[5], LST:AddDecimalSeparator(LST:RoundToInt(priceSum[5])), stockSum[6], LST:AddDecimalSeparator(LST:RoundToInt(priceSum[6]))))
+		
+		local totalProfit = {};
+		local totalPrice = {};
+		totalProfit[1] = LST:CreateTableElement(frame, L["Total per rank (profit): "], 1, 1, 1, 1);
+		totalPrice[1] = LST:CreateTableElement(frame, L["Total per rank (min price): "], 1, 1, 1, 1);
+		local rowIndex = 2;
+		for r=1, numRanks do
+			if(LST.db.profile.settings.IsRankEnabled[r] == true) then
+				totalProfit[rowIndex] = LST:CreateTableElement(frame, stockSum[r], 1, 1, 1, 1);
+				totalProfit[rowIndex + 1] = LST:CreateTableElement(frame, LST:AddDecimalSeparator(LST:RoundToInt(profitSum[r])), 1, 1, 1, 1);
+				totalPrice[rowIndex] = LST:CreateTableElement(frame, stockSum[r], 1, 1, 1, 1);
+				totalPrice[rowIndex + 1] = LST:CreateTableElement(frame, LST:AddDecimalSeparator(LST:RoundToInt(priceSum[r])), 1, 1, 1, 1);
+				rowIndex = rowIndex + 2;
+			end
+		end
+		table.insert(sheet, totalProfit)
+		table.insert(sheet, totalPrice)
 		table.insert(sheet, LST:CreateTablePriceRowWhite(frame, L["Total (profit): "], (stockSum[1] + stockSum[2] + stockSum[3] + stockSum[4] + stockSum[5] + stockSum[6]), LST:AddDecimalSeparator(LST:RoundToInt(profitSum[1] + profitSum[2] + profitSum[3] + profitSum[4] + profitSum[5] + profitSum[6])), "","","","","","","","","",""))
 		table.insert(sheet, LST:CreateTablePriceRowWhite(frame, L["Total (min price): "], (stockSum[1] + stockSum[2] + stockSum[3] + stockSum[4] + stockSum[5] + stockSum[6]), LST:AddDecimalSeparator(LST:RoundToInt(priceSum[1] + priceSum[2] + priceSum[3] + priceSum[4] + priceSum[5] + priceSum[6])), "","","","","","","","","",""))
 	end
