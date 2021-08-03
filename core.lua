@@ -28,7 +28,7 @@ local LstockLDB = LibStub("LibDataBroker-1.1"):NewDataObject("LegendaryStockTrac
   end
 })
 
-local LSTVersion = "v2.14"
+local LSTVersion = "v2.14.1"
 --local db = nil
 LST.db = nil
 local LstockIcon = LibStub("LibDBIcon-1.0")
@@ -1491,6 +1491,13 @@ function LST:CreateFrameSheet(frame, table, numColumns)
 	local yPosition = 0
 	local YDIFF = 15
 	local XDIFF = 15
+	local ScrollChildWidth = frame:GetWidth();
+	local Backdrop = {
+		bgFile = "Interface\\AddOns\\LegendaryStockTracker\\Assets\\Plain.tga",
+		--edgeFile = temp,
+		tile = false, tileSize = 0, edgeSize = 1,
+		insets = {left = 0, right = 0, top = 0, bottom = 1},
+	}
 	maxWidth = {}
 	for i=1, numColumns do
 		maxWidth[i] = 0
@@ -1502,13 +1509,19 @@ function LST:CreateFrameSheet(frame, table, numColumns)
 		end
 	end
 	for i=1, #table do
+		local parent = CreateFrame("Frame", "LSTTableRow" .. i, frame, BackdropTemplateMixin and "BackdropTemplate");
+		parent:SetPoint("TOPLEFT", 0, yPosition);
+		parent:SetSize(ScrollChildWidth, YDIFF);
+		parent:SetBackdrop(Backdrop);
+		parent:SetBackdropColor(0.2,0.2,0.2,((i+1)%2) * 0.5);
 		for j=1, #table[i] do
-			LST:SetElementPosition(table[i][j][1], xPosition, yPosition)
-			xPosition = xPosition + XDIFF + maxWidth[j]
+			table[i][j][1]:SetParent(parent);
+			LST:SetElementPosition(table[i][j][1], xPosition, 0);
+			xPosition = xPosition + XDIFF + maxWidth[j];
 		end
-		xPosition = xStartValue
-		yPosition = yPosition - YDIFF
-		--LST:AddTableLine(frame, yPosition)
+		xPosition = xStartValue;
+		yPosition = yPosition - YDIFF;
+		--LST:AddTableLine(frame, yPosition);
 	end
 end
 
