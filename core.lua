@@ -28,7 +28,7 @@ local LstockLDB = LibStub("LibDataBroker-1.1"):NewDataObject("LegendaryStockTrac
   end
 })
 
-local LSTVersion = "v2.14.1"
+local LSTVersion = "v2.14.2"
 --local db = nil
 LST.db = nil
 local LstockIcon = LibStub("LibDBIcon-1.0")
@@ -102,6 +102,7 @@ local leggoProf2 = nil;
 
 local IsTSMLoaded = false;
 local fontStringPool = nil
+local backgroundLinePool = nil
 local RestockList = {}
 local NumVestigesToCraft = 0;
 local numRanks = 6
@@ -1280,6 +1281,11 @@ function LST:CreateRestockSheet(frame)
 	else
 		fontStringPool:ReleaseAll()
 	end
+	if(backgroundLinePool == nil) then
+		backgroundLinePool = CreateFramePool("Frame", nil, BackdropTemplateMixin and "BackdropTemplate")
+	else
+		backgroundLinePool:ReleaseAll()
+	end
 	local sheet = {}
 	local titles = {LST:CreateTableTitle(frame, L["Item"]), LST:CreateTableTitle(frame, L["Amount"]), LST:CreateTableTitle(frame, L["Profit"]), LST:CreateTableTitle(frame, L["Profit"] .. " (%)")}
 	table.insert(sheet, titles)
@@ -1313,6 +1319,11 @@ function LST:CreateTableSheet(frame)
 		fontStringPool = CreateFontStringPool(frame, "OVERLAY", nil, "GameFontNormal", FontStringPool_Hide)
 	else
 		fontStringPool:ReleaseAll()
+	end
+	if(backgroundLinePool == nil) then
+		backgroundLinePool = CreateFramePool("Frame", nil, BackdropTemplateMixin and "BackdropTemplate")
+	else
+		backgroundLinePool:ReleaseAll()
 	end
 	local sheet = {}
 	local maxwidth = {};
@@ -1509,20 +1520,28 @@ function LST:CreateFrameSheet(frame, table, numColumns)
 		end
 	end
 	for i=1, #table do
-		local parent = CreateFrame("Frame", "LSTTableRow" .. i, frame, BackdropTemplateMixin and "BackdropTemplate");
-		parent:SetPoint("TOPLEFT", 0, yPosition);
-		parent:SetSize(ScrollChildWidth, YDIFF);
-		parent:SetBackdrop(Backdrop);
-		parent:SetBackdropColor(0.2,0.2,0.2,((i+1)%2) * 0.5);
+		--local backgroundLine = CreateFrame("Frame", "LSTTableRow" .. i, frame, BackdropTemplateMixin and "BackdropTemplate");
+		local backgroundLine = backgroundLinePool:Acquire();
+		backgroundLine:SetParent(frame);
+		backgroundLine:Show();
+		backgroundLine:SetPoint("TOPLEFT", 0, yPosition);
+		--backgroundLine:SetPoint("BOTTOMRIGHT");
+		backgroundLine:SetHeight(YDIFF);
+		--backgroundLine:SetPoint("RIGHT");
+		backgroundLine:SetBackdrop(Backdrop);
+		backgroundLine:SetBackdropColor(0.2,0.2,0.2,((i+1)%2) * 0.5);
+
 		for j=1, #table[i] do
-			table[i][j][1]:SetParent(parent);
+			table[i][j][1]:SetParent(backgroundLine);
 			LST:SetElementPosition(table[i][j][1], xPosition, 0);
 			xPosition = xPosition + XDIFF + maxWidth[j];
 		end
+		backgroundLine:SetWidth(xPosition - XDIFF);
 		xPosition = xStartValue;
 		yPosition = yPosition - YDIFF;
 		--LST:AddTableLine(frame, yPosition);
 	end
+
 end
 
 function LST:GetTablePriceFont(profit, price)
