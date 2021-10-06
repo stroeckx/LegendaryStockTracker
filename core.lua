@@ -28,7 +28,7 @@ local LstockLDB = LibStub("LibDataBroker-1.1"):NewDataObject("LegendaryStockTrac
   end
 })
 
-local LSTVersion = "v2.14.2"
+local LSTVersion = "v2.15"
 --local db = nil
 LST.db = nil
 local LstockIcon = LibStub("LibDBIcon-1.0")
@@ -1216,9 +1216,16 @@ function LST:UpdateRestockList()
 end
 
 function LST:AddVestigeToRestock(rank, itemID) 
-	if(rank < 5 or rank > 6) then return end;
-	if(LST:DoesThisCharacterHaveProfession(LegendaryItemData[itemID].profession)) then
-		NumVestigesToCraft = NumVestigesToCraft + 1;
+	if(rank < 3 or rank > 6) then return end;
+	if(rank == 3 or rank == 4) then
+		if(LST:IsVestigeCraftCheaper(itemID, rank) and LST:DoesThisCharacterHaveProfession(LegendaryItemData[itemID].profession)) then
+			NumVestigesToCraft = NumVestigesToCraft + 1;
+		end
+	end
+	if(rank > 5) then
+		if(LST:DoesThisCharacterHaveProfession(LegendaryItemData[itemID].profession)) then
+			NumVestigesToCraft = NumVestigesToCraft + 1;
+		end
 	end
 end
 
@@ -1683,6 +1690,19 @@ function LST:GetCraftCost(name, rank)
 	return tonumber(PriceDataByRank[name][rank]["craftCost"]);
 end
 
+function LST:IsVestigeCraftCheaper(itemID, rank)
+	if(rank < 3 or rank > 4) then return false end;
+	if(LST.db.factionrealm.recipeData.recipes[itemID] == nil or LST.db.factionrealm.recipeData.recipes[itemID]["ranks"][rank - 2] == nil or LST.db.factionrealm.recipeData.vestiges[LegendaryItemData[itemID]["profession"]] == nil) then
+		return false;
+	else
+		local defaultCraftCost = LST:GetLSTCraftCostForLegendary(itemID, rank);
+		local vestigePrice, VestigeProfession = LST:GetCheapestVestige();
+		local vestigeCraftCost = LST:GetMaterialPriceSum(LST.db.factionrealm.recipeData.recipes[itemID]["ranks"][rank - 2]) + vestigePrice;
+		if(vestigeCraftCost < defaultCraftCost) then return true;
+		else return false end;
+	end
+end
+
 function LST:UpdateMaterialPrices()
 	if(not IsTSMLoaded) then return 0 end;
 	--if(isMaterialPriceUpdated == true) then return nil end
@@ -2012,7 +2032,12 @@ function LST:CraftNextRestockItem()
 	for index, restockData in ipairs(RestockList) do
 		local itemID = restockData["itemID"];
 		local rank = restockData["rank"];
-		local addVestige = rank > 4;
+		local addVestige =  false;
+		if(rank > 4 ) then 
+			addVestige = true;
+		elseif(rank > 2 and LST:IsVestigeCraftCheaper(itemID, rank)) then
+			addVestige = true;
+		end
 		local optionalReagents = nil;
 		if(addVestige == true) then 
 			rank = rank - 2;
