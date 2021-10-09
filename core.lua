@@ -1169,10 +1169,10 @@ function LST:UpdateRestockList()
 							amountToRestock = restockAmount[rank] - currentStock, 
 							profit = 0, 
 							itemID = nameTable[item],
-							profitPercentage = 0
+							profitPercentage = 0,
+							usesVestige = LST:AddVestigeToRestock(rank, nameTable[item])
 						}
 						table.insert(RestockList, itemToRestock);
-						LST:AddVestigeToRestock(rank, nameTable[item]);
 					else
 						if(LST:GetMinBuyoutMinusAuctionOpMin(nameTable[item], rank) ~= L["not scanned"] ) then
 							if(not LST.db.profile.settings.restockDominationSlots) then
@@ -1185,10 +1185,10 @@ function LST:UpdateRestockList()
 											amountToRestock = restockAmount[rank] - currentStock, 
 											profit = LST:GetMinBuyoutMinusAuctionOpMin(nameTable[item], rank), 
 											itemID = nameTable[item],
-											profitPercentage = LST:GetProfitPercentage(nameTable[item], rank)
+											profitPercentage = LST:GetProfitPercentage(nameTable[item], rank),
+											usesVestige = LST:AddVestigeToRestock(rank, nameTable[item])
 										}
 										table.insert(RestockList, itemToRestock);
-										LST:AddVestigeToRestock(rank, nameTable[item]);
 									end
 								end	
 							else
@@ -1200,10 +1200,10 @@ function LST:UpdateRestockList()
 										amountToRestock = restockAmount[rank] - currentStock, 
 										profit = LST:GetMinBuyoutMinusAuctionOpMin(nameTable[item], rank), 
 										itemID = nameTable[item],
-										profitPercentage = LST:GetProfitPercentage(nameTable[item], rank)
+										profitPercentage = LST:GetProfitPercentage(nameTable[item], rank),
+										usesVestige = LST:AddVestigeToRestock(rank, nameTable[item])
 									}
 									table.insert(RestockList, itemToRestock);
-									LST:AddVestigeToRestock(rank, nameTable[item]);
 								end
 							end
 						end
@@ -1216,17 +1216,22 @@ function LST:UpdateRestockList()
 end
 
 function LST:AddVestigeToRestock(rank, itemID) 
-	if(rank < 3 or rank > 6) then return end;
+	if(rank < 3 or rank > 6) then return false end;
 	if(rank == 3 or rank == 4) then
-		if(LST:IsVestigeCraftCheaper(itemID, rank) and LST:DoesThisCharacterHaveProfession(LegendaryItemData[itemID].profession)) then
-			NumVestigesToCraft = NumVestigesToCraft + 1;
+		if(LST:IsVestigeCraftCheaper(itemID, rank)) then
+			if(LST:DoesThisCharacterHaveProfession(LegendaryItemData[itemID].profession)) then
+				NumVestigesToCraft = NumVestigesToCraft + 1;
+			end
+			return true;
 		end
 	end
-	if(rank > 5) then
+	if(rank >= 5) then
 		if(LST:DoesThisCharacterHaveProfession(LegendaryItemData[itemID].profession)) then
 			NumVestigesToCraft = NumVestigesToCraft + 1;
 		end
+		return true;
 	end
+	return false;
 end
 
 function LST:DoesThisCharacterHaveProfession(slid)
@@ -1294,13 +1299,15 @@ function LST:CreateRestockSheet(frame)
 		backgroundLinePool:ReleaseAll()
 	end
 	local sheet = {}
-	local titles = {LST:CreateTableTitle(frame, L["Item"]), LST:CreateTableTitle(frame, L["Amount"]), LST:CreateTableTitle(frame, L["Profit"]), LST:CreateTableTitle(frame, L["Profit"] .. " (%)")}
+	--
+	local titles = {LST:CreateTableTitle(frame, L["Item"]), LST:CreateTableTitle(frame, L["Amount"]), LST:CreateTableTitle(frame, L["Vestige"]), LST:CreateTableTitle(frame, L["Profit"]), LST:CreateTableTitle(frame, L["Profit"] .. " (%)")}
 	table.insert(sheet, titles)
 	if(NumVestigesToCraft > 0) then
 		row = 
 		{
 			LST:CreateTableElement(frame, L["Vestige"], 1, 1, 1, 1),
 			LST:CreateTableElement(frame, NumVestigesToCraft, 1, 1, 1, 1),
+			LST:CreateTableElement(frame, "", 1, 1, 1, 1),
 			LST:CreateTableElement(frame, "", 1, 1, 1, 1),
 			LST:CreateTableElement(frame, "", 1, 1, 1, 1)
 		}
@@ -1311,13 +1318,30 @@ function LST:CreateRestockSheet(frame)
 		{
 			LST:CreateTableElement(frame, RestockList[i]["name"] .. " - " .. L["Rank"] .. " " .. RestockList[i]["rank"], 1, 1, 1, 1),
 			LST:CreateTableElement(frame, RestockList[i]["amountToRestock"], 1, 1, 1, 1),
+			LST:CreateTableElement(frame, LST:GetUsesVestigeCheckmark(RestockList[i]["usesVestige"]), 1, 1, 1, 1),
 			LST:CreateTableElement(frame, LST:RoundToInt(RestockList[i]["profit"]), 1, 1, 1, 1),
 			LST:CreateTableElement(frame, LST:RoundToInt(RestockList[i]["profitPercentage"]) .. "%", 1, 1, 1, 1)
 		}
+		--print(row[1][1])
+		--print(row[1][2])
+		--local texture = frame:CreateTexture()
+		----texture:SetParent(row[1][1])
+		--texture:SetDrawLayer("OVERLAY")
+		--texture:SetTexture(GetItemIcon(185960))
+		--texture:SetPoint("CENTER")
+		--texture:SetSize(36, 36)
 		table.insert(sheet, row)
 	end
 
-	LST:CreateFrameSheet(frame, sheet, 4)
+	LST:CreateFrameSheet(frame, sheet, 5)
+end
+
+function LST:GetUsesVestigeCheckmark(usesVestige)
+	if(usesVestige) then
+		return "v";
+	else
+		return "";
+	end
 end
 
 function LST:CreateTableSheet(frame)
@@ -2032,12 +2056,7 @@ function LST:CraftNextRestockItem()
 	for index, restockData in ipairs(RestockList) do
 		local itemID = restockData["itemID"];
 		local rank = restockData["rank"];
-		local addVestige =  false;
-		if(rank > 4 ) then 
-			addVestige = true;
-		elseif(rank > 2 and LST:IsVestigeCraftCheaper(itemID, rank)) then
-			addVestige = true;
-		end
+		local addVestige =  restockData["usesVestige"];
 		local optionalReagents = nil;
 		if(addVestige == true) then 
 			rank = rank - 2;
