@@ -28,7 +28,7 @@ local LstockLDB = LibStub("LibDataBroker-1.1"):NewDataObject("LegendaryStockTrac
   end
 })
 
-local LSTVersion = "v2.15.1"
+local LSTVersion = "v2.16"
 --local db = nil
 LST.db = nil
 local LstockIcon = LibStub("LibDBIcon-1.0")
@@ -153,7 +153,9 @@ function LST:OnInitialize()
 				IncludeSyncData = true,
 				UsePercentages = true,
 				minProfit = 1000,
+				minProfitWhenLeveling = 1000,
 				percentageMinProfit = 1,
+				percentageMinProfitWhenLeveling = 1,
 				restockAmount = 1,
 				restockAmountByRank = {1,1,1,1,1,1},
 				IsRankEnabled = {true, true, true, true, true, true},
@@ -282,6 +284,27 @@ function LST:OnInitialize()
 			profit = 1000;
 		end
 		LST.db.profile.settings.minProfit = profit;
+	end
+	if(tonumber(LST.db.profile.settings.percentageMinProfit) == nil) then
+		local profit = string.match(LST.db.profile.settings.percentageMinProfit, "%d+");
+		if(tonumber(profit) == nil) then
+			profit = 1;
+		end
+		LST.db.profile.settings.percentageMinProfit = profit;
+	end
+	if(tonumber(LST.db.profile.settings.minProfitWhenLeveling) == nil) then
+		local profit = string.match(LST.db.profile.settings.minProfitWhenLeveling, "%d+");
+		if(tonumber(profit) == nil) then
+			profit = 1000;
+		end
+		LST.db.profile.settings.minProfitWhenLeveling = profit;
+	end
+	if(tonumber(LST.db.profile.settings.percentageMinProfitWhenLeveling) == nil) then
+		local profit = string.match(LST.db.profile.settings.percentageMinProfitWhenLeveling, "%d+");
+		if(tonumber(profit) == nil) then
+			profit = 1;
+		end
+		LST.db.profile.settings.percentageMinProfitWhenLeveling = profit;
 	end
 	LST.db.profile.settings.priceSource = L["LST Crafting"];
 	if(LST.db.factionrealm.accountUUID == nil or LST.db.factionrealm.accountUUID == "") then
@@ -585,18 +608,25 @@ function LST:GetMainFrame(parent)
 		--settings options
 		local heightOffset = 0
 		heightOffset = LST:AddOptionCheckbox("ShowPricingCheckButton", LSTSettingsScrollChild, "showPricing", L["Show profit"], heightOffset)
-		local percentagesCheckBox, minProfitEditBox = nil
+		local percentagesCheckBox, minProfitEditBox, minProfitWhenLevelingEditBox = nil
 		heightOffset, percentagesCheckBox = LST:AddOptionCheckbox("LSTUsePercentagesCheckButton", LSTSettingsScrollChild, "UsePercentages", L["Show values as percentages"], heightOffset)
 		local minProfitSetting = "minProfit";
-		if(LST.db.profile.settings.UsePercentages == true) then minProfitSetting = "percentageMinProfit" end;
+		local minProfitWhenLevelingSetting = "minProfitWhenLeveling";
+		if(LST.db.profile.settings.UsePercentages == true) then 
+			minProfitSetting = "percentageMinProfit";
+			minProfitWhenLevelingSetting = "percentageMinProfitWhenLeveling";
+		end
 		heightOffset, minProfitEditBox = LST:AddOptionEditbox("MinProfitEditBox", LSTSettingsScrollChild, minProfitSetting, L["Min profit before restocking"], heightOffset, 45)
+		heightOffset, minProfitWhenLevelingEditBox = LST:AddOptionEditbox("minProfitWhenLevelingEditBox", LSTSettingsScrollChild, minProfitWhenLevelingSetting, L["Min profit when not max exp"], heightOffset, 45)
 		percentagesCheckBox:SetScript("OnClick", function(cb)
 			if cb:GetChecked() then
 				LST.db.profile.settings[cb.setting] = true;
 				LST:RebindOptionEditbox(minProfitEditBox, "percentageMinProfit");
+				LST:RebindOptionEditbox(minProfitWhenLevelingEditBox, "percentageMinProfitWhenLeveling");
 			else
 				LST.db.profile.settings[cb.setting] = false;
 				LST:RebindOptionEditbox(minProfitEditBox, "minProfit");
+				LST:RebindOptionEditbox(minProfitWhenLevelingEditBox, "minProfitWhenLeveling");
 
 			end
 		end)
@@ -1135,7 +1165,7 @@ end
 
 function LST:CanCraft(itemID, rank)
 	local unlockedRank = LST:GetUnlockedCraftRank(itemID);
-	if(rank <= 4) then
+	if(rank <= 2) then
 		return unlockedRank >= rank;
 	else
 		if(LST.db.factionrealm.recipeData.vestiges[LegendaryItemData[itemID]["profession"]] ~= nil) then
@@ -1143,6 +1173,14 @@ function LST:CanCraft(itemID, rank)
 		end
 	end
 		
+end
+
+function LST:IsRecipeMaxLevel(itemID)
+	if(LST:GetUnlockedCraftRank(itemID) < 4) then
+		return false;
+	else
+		return true;
+	end
 end
 
 function LST:UpdateRestockList()
@@ -1162,48 +1200,18 @@ function LST:UpdateRestockList()
 				local currentStock = tonumber(LST:GetStockCount(nameTable[item], rank))
 				if currentStock < restockAmount[rank] and restockAmount[rank] - currentStock >= tonumber(LST.db.profile.settings.minrestockAmount) then 
 					if(IsTSMLoaded == false or LST.db.profile.settings.showPricing == false) then
-						local itemToRestock = 
-						{
-							name = LegendaryItemData[nameTable[item]]["name"], 
-							rank = rank,
-							amountToRestock = restockAmount[rank] - currentStock, 
-							profit = 0, 
-							itemID = nameTable[item],
-							profitPercentage = 0,
-							usesVestige = LST:AddVestigeToRestock(rank, nameTable[item])
-						}
-						table.insert(RestockList, itemToRestock);
+						LST:AddItemToRestockList(nameTable[item], rank, restockAmount[rank] - currentStock);
 					else
-						if(LST:GetMinBuyoutMinusAuctionOpMin(nameTable[item], rank) ~= L["not scanned"] ) then
+						if(LST:GetMinBuyoutMinusAuctionOpMin(nameTable[item], rank, true) ~= L["not scanned"] ) then
 							if(not LST.db.profile.settings.restockDominationSlots) then
 								if(not LST:IsDominationSlot(nameTable[item])) then
-									if tonumber(LST:GetMinBuyoutMinusAuctionOpMin(nameTable[item], rank)) > LST:GetMinProfit(LST:GetCraftCost(nameTable[item], rank)) then
-										local itemToRestock = 
-										{
-											name = LegendaryItemData[nameTable[item]]["name"], 
-											rank = rank,
-											amountToRestock = restockAmount[rank] - currentStock, 
-											profit = LST:GetMinBuyoutMinusAuctionOpMin(nameTable[item], rank), 
-											itemID = nameTable[item],
-											profitPercentage = LST:GetProfitPercentage(nameTable[item], rank),
-											usesVestige = LST:AddVestigeToRestock(rank, nameTable[item])
-										}
-										table.insert(RestockList, itemToRestock);
+									if tonumber(LST:GetMinBuyoutMinusAuctionOpMin(nameTable[item], rank, true)) > LST:GetMinProfit(LST:GetCraftCost(nameTable[item], rank), nameTable[item]) then
+										LST:AddItemToRestockList(nameTable[item], rank, restockAmount[rank] - currentStock);
 									end
 								end	
 							else
-								if tonumber(LST:GetMinBuyoutMinusAuctionOpMin(nameTable[item], rank)) > LST:GetMinProfit(LST:GetCraftCost(nameTable[item], rank)) then
-									local itemToRestock = 
-									{
-										name = LegendaryItemData[nameTable[item]]["name"], 
-										rank = rank,
-										amountToRestock = restockAmount[rank] - currentStock, 
-										profit = LST:GetMinBuyoutMinusAuctionOpMin(nameTable[item], rank), 
-										itemID = nameTable[item],
-										profitPercentage = LST:GetProfitPercentage(nameTable[item], rank),
-										usesVestige = LST:AddVestigeToRestock(rank, nameTable[item])
-									}
-									table.insert(RestockList, itemToRestock);
+								if tonumber(LST:GetMinBuyoutMinusAuctionOpMin(nameTable[item], rank, true)) > LST:GetMinProfit(LST:GetCraftCost(nameTable[item], rank), nameTable[item]) then
+										LST:AddItemToRestockList(nameTable[item], rank, restockAmount[rank] - currentStock);
 								end
 							end
 						end
@@ -1215,10 +1223,30 @@ function LST:UpdateRestockList()
 	NumVestigesToCraft = NumVestigesToCraft - LST:GetVestigesInBags();
 end
 
+function LST:AddItemToRestockList(itemID, rank, restockCount)
+	local localProfit =  0;
+	local localProfitPercentage =  0;
+	if(LST.db.profile.settings.showPricing == true and IsTSMLoaded == true) then
+		localProfit = LST:GetMinBuyoutMinusAuctionOpMin(itemID, rank, true);
+		localProfitPercentage = LST:GetProfitPercentage(itemID, rank);
+	end
+	local itemToRestock = 
+	{
+		name = LegendaryItemData[itemID]["name"], 
+		rank = rank,
+		amountToRestock = restockCount, 
+		profit = localProfit, 
+		itemID = itemID,
+		profitPercentage = localProfitPercentage,
+		usesVestige = LST:AddVestigeToRestock(rank, itemID)
+	}
+	table.insert(RestockList, itemToRestock);
+end
+
 function LST:AddVestigeToRestock(rank, itemID) 
 	if(rank < 3 or rank > 6) then return false end;
 	if(rank == 3 or rank == 4) then
-		if(LST:IsVestigeCraftCheaper(itemID, rank)) then
+		if(LST:IsVestigeCraftCheaper(itemID, rank) or LST:GetUnlockedCraftRank(itemID) < rank) then
 			if(LST:DoesThisCharacterHaveProfession(LegendaryItemData[itemID].profession)) then
 				NumVestigesToCraft = NumVestigesToCraft + 1;
 			end
@@ -1258,12 +1286,12 @@ function LST:GenerateExportText()
 		text = L["Item name, Rank 1, Profit Rank 1, Rank 2, Profit Rank 2, Rank 3, Profit Rank 3, Rank 4, Profit Rank 4, Rank 5, Profit Rank 5, Rank 6, Profit Rank 6\n"]
 		for i=1, #NameTable do 
 			text = text .. LegendaryItemData[NameTable[i]]["name"] .. "," 
-			.. LST:GetStockCount(NameTable[i], 1) .. "," .. tostring(LST:RoundToInt(LST:GetMinBuyoutMinusAuctionOpMin(NameTable[i], 1))) .. ","
-			.. LST:GetStockCount(NameTable[i], 2) .. "," .. tostring(LST:RoundToInt(LST:GetMinBuyoutMinusAuctionOpMin(NameTable[i], 2))) .. ","
-			.. LST:GetStockCount(NameTable[i], 3) .. "," .. tostring(LST:RoundToInt(LST:GetMinBuyoutMinusAuctionOpMin(NameTable[i], 3))) .. ","
-			.. LST:GetStockCount(NameTable[i], 4) .. "," .. tostring(LST:RoundToInt(LST:GetMinBuyoutMinusAuctionOpMin(NameTable[i], 4))) .. ","
-			.. LST:GetStockCount(NameTable[i], 5) .. "," .. tostring(LST:RoundToInt(LST:GetMinBuyoutMinusAuctionOpMin(NameTable[i], 5))) .. ","
-			.. LST:GetStockCount(NameTable[i], 6) .. "," .. tostring(LST:RoundToInt(LST:GetMinBuyoutMinusAuctionOpMin(NameTable[i], 6))) .. "\n"
+			.. LST:GetStockCount(NameTable[i], 1) .. "," .. tostring(LST:RoundToInt(LST:GetMinBuyoutMinusAuctionOpMin(NameTable[i], 1, false))) .. ","
+			.. LST:GetStockCount(NameTable[i], 2) .. "," .. tostring(LST:RoundToInt(LST:GetMinBuyoutMinusAuctionOpMin(NameTable[i], 2, false))) .. ","
+			.. LST:GetStockCount(NameTable[i], 3) .. "," .. tostring(LST:RoundToInt(LST:GetMinBuyoutMinusAuctionOpMin(NameTable[i], 3, false))) .. ","
+			.. LST:GetStockCount(NameTable[i], 4) .. "," .. tostring(LST:RoundToInt(LST:GetMinBuyoutMinusAuctionOpMin(NameTable[i], 4, false))) .. ","
+			.. LST:GetStockCount(NameTable[i], 5) .. "," .. tostring(LST:RoundToInt(LST:GetMinBuyoutMinusAuctionOpMin(NameTable[i], 5, false))) .. ","
+			.. LST:GetStockCount(NameTable[i], 6) .. "," .. tostring(LST:RoundToInt(LST:GetMinBuyoutMinusAuctionOpMin(NameTable[i], 6, false))) .. "\n"
 		end
 	end
 	return text;
@@ -1434,7 +1462,7 @@ function LST:CreateTableSheet(frame)
 			for j=1, 6 do
 				if(LST.db.profile.settings.IsRankEnabled[j] == true) then
 					stock[j] = LST:GetStockCount(NameTable[i], j);
-					profit[j] = LST:GetMinBuyoutMinusAuctionOpMin(NameTable[i], j);
+					profit[j] = LST:GetMinBuyoutMinusAuctionOpMin(NameTable[i], j, false);
 					if(profit[j] ~= L["not scanned"]) then
 						if(LST.db.profile.settings.UsePercentages == true) then
 							profitText[j] = LST:RoundToInt(LST:GetProfitPercentage(NameTable[i], j)) .. "%";
@@ -1445,11 +1473,11 @@ function LST:CreateTableSheet(frame)
 						profitText[j] = L["not scanned"];
 					end
 					stockSum[j] = stockSum[j] + stock[j];
-					cost[j] = LST:GetCraftCost(NameTable[i], j)
+					local craftCost = PriceDataByRank[NameTable[i]][j]["craftCost"];
+					cost[j] = craftCost;
 					priceSum[j] = priceSum[j] + (stock[j] * LST:GetMinBuyout(NameTable[i], j));
-					local cost = LST:GetCraftCost(NameTable[i], j);
-					if(cost ~= L["not scanned"]) then
-						costSum[j] = costSum[j] + (stock[j] * cost);
+					if(craftCost ~= L["not scanned"]) then
+						costSum[j] = costSum[j] + (stock[j] * craftCost);
 					end
 				end
 			end
@@ -1459,7 +1487,7 @@ function LST:CreateTableSheet(frame)
 			for r=1, numRanks do
 				if(LST.db.profile.settings.IsRankEnabled[r] == true) then
 					row[rowIndex] = LST:CreateTableElement(frame, stock[r], LST:GetTableStockFont(r, stock[r], tostring(profit[r]), cost[r], NameTable[i]));
-					row[rowIndex + 1] = LST:CreateTableElement(frame, profitText[r], LST:GetTablePriceFont(profit[r], cost[r]));
+					row[rowIndex + 1] = LST:CreateTableElement(frame, profitText[r], LST:GetTablePriceFont(profit[r], cost[r], NameTable[i]));
 					rowIndex = rowIndex + 2;
 				end
 			end
@@ -1575,26 +1603,34 @@ function LST:CreateFrameSheet(frame, table, numColumns)
 
 end
 
-function LST:GetTablePriceFont(profit, price)
+function LST:GetTablePriceFont(profit, price, itemID)
 	if(profit == L["not scanned"]) then
 		return 1,1,1,1;
 	end
-	local minProfit = LST:GetMinProfit(price);
-	if(minProfit > 0 and tonumber(profit) >= minProfit) then
-		return 0.15, 1, 0.15, 1
+	local minProfit = LST:GetMinProfit(price, itemID);
+	if(tonumber(profit) >= minProfit) then
+		return 0.15, 1, 0.15, 1 --green
 	elseif(tonumber(profit) < 0) then
-		return 1, 0.15, 0.15, 1
+		return 1, 0.15, 0.15, 1 -- red
 	else 
 		return 1, 1, 1, 1
 	end
 end
 
-function LST:GetMinProfit(price)
+function LST:GetMinProfit(price, itemID)
 	local minProfit = 1;
 	if(LST.db.profile.settings.UsePercentages == true) then
-		minProfit = (tonumber(LST.db.profile.settings.percentageMinProfit) / 100) * price;
+		if(LST:IsRecipeMaxLevel(itemID) == true) then
+			minProfit = (tonumber(LST.db.profile.settings.percentageMinProfit) / 100) * price;
+		else
+			minProfit = (tonumber(LST.db.profile.settings.percentageMinProfitWhenLeveling) / 100) * price;
+		end
 	else
-		minProfit = tonumber(LST.db.profile.settings.minProfit);
+		if(LST:IsRecipeMaxLevel(itemID) == true) then
+			minProfit = tonumber(LST.db.profile.settings.minProfit);
+		else
+			minProfit = tonumber(LST.db.profile.settings.minProfitWhenLeveling);
+		end
 	end
 	return minProfit;
 end
@@ -1611,7 +1647,7 @@ function LST:GetTableStockFont(rank, value, profit, price, itemID)
 	end
 	if(value < tonumber(LST.db.profile.settings.restockAmountByRank[rank])) then
 		if(LST.db.profile.settings.showPricing == true and profit ~= nil) then
-			if(tonumber(profit) > LST:GetMinProfit(price)) then 
+			if(tonumber(profit) > LST:GetMinProfit(price, itemID)) then 
 				if(LST.db.profile.settings.restockDominationSlots == true) then 
 					return 0, 0.75, 1, 1
 				else
@@ -1684,11 +1720,15 @@ function LST:AddEmptyTsmPriceDataEntryIfNotPresent(itemName)
 	end
 end
 
-function LST:GetMinBuyoutMinusAuctionOpMin(name, rank)
+function LST:GetMinBuyoutMinusAuctionOpMin(name, rank, useSubTsmCraftCost)
 	if(PriceDataByRank[name][rank]["craftCost"] == L["not scanned"]) then
 		return L["not scanned"];
 	end
-	return tonumber(PriceDataByRank[name][rank]["dbminbuyout"] - PriceDataByRank[name][rank]["craftCost"]);
+	if(useSubTsmCraftCost == true) then
+		return tonumber(PriceDataByRank[name][rank]["dbminbuyout"] - LST:GetCraftCost(name, rank));
+	else
+		return tonumber(PriceDataByRank[name][rank]["dbminbuyout"] - PriceDataByRank[name][rank]["craftCost"]);
+	end
 end
 
 function LST:GetProfitPercentage(name, rank)
@@ -1707,11 +1747,19 @@ function LST:GetMinBuyout(name, rank)
 	return tonumber(PriceDataByRank[name][rank]["dbminbuyout"]);
 end
 
-function LST:GetCraftCost(name, rank)
-	if(PriceDataByRank[name][rank]["craftCost"] == L["not scanned"]) then
+function LST:GetCraftCost(itemID, rank)
+	if(PriceDataByRank[itemID][rank]["craftCost"] == L["not scanned"]) then
 		return L["not scanned"];
 	end
-	return tonumber(PriceDataByRank[name][rank]["craftCost"]);
+	if((rank == 3 or rank == 4) and LST:GetUnlockedCraftRank(itemID) < rank) then
+		return LST:GetCraftCostWithVestige(itemID, rank);
+	end
+	return tonumber(PriceDataByRank[itemID][rank]["craftCost"]);
+end
+
+function LST:GetCraftCostWithVestige(itemID, rank)
+	local vestigePrice, VestigeProfession = LST:GetCheapestVestige();
+	return LST:GetMaterialPriceSum(LST.db.factionrealm.recipeData.recipes[itemID]["ranks"][rank - 2]) + vestigePrice;
 end
 
 function LST:IsVestigeCraftCheaper(itemID, rank)
@@ -1720,8 +1768,7 @@ function LST:IsVestigeCraftCheaper(itemID, rank)
 		return false;
 	else
 		local defaultCraftCost = LST:GetLSTCraftCostForLegendary(itemID, rank);
-		local vestigePrice, VestigeProfession = LST:GetCheapestVestige();
-		local vestigeCraftCost = LST:GetMaterialPriceSum(LST.db.factionrealm.recipeData.recipes[itemID]["ranks"][rank - 2]) + vestigePrice;
+		local vestigeCraftCost = LST:GetCraftCostWithVestige(itemID, rank)
 		if(vestigeCraftCost < defaultCraftCost) then return true;
 		else return false end;
 	end
@@ -2068,6 +2115,10 @@ function LST:CraftNextRestockItem()
 				local recipeInfo = C_TradeSkillUI.GetRecipeInfo(recipeID, 1);
 				local availableCraftCount = recipeInfo["numAvailable"];
 				local craftCount = 0;
+				--print("availableCraftCount: " .. availableCraftCount);
+				--print("restockData[amountToRestock]: " .. restockData["amountToRestock"]);
+				--print("addVestige: " .. addVestige);
+				--print("LST:GetVestigesInBags(): " .. LST:GetVestigesInBags());
 				if(availableCraftCount >= restockData["amountToRestock"] and (addVestige == false or LST:GetVestigesInBags() > restockData["amountToRestock"])) then
 					craftCount = restockData["amountToRestock"];
 				elseif(availableCraftCount > 0 and (addVestige == false or LST:GetVestigesInBags() > 0)) then

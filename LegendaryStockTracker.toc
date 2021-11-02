@@ -1,9 +1,9 @@
-## Interface: 90100
+## Interface: 90105
 ## Title: LegendaryStockTracker
 ## Notes: Helps keeping track of your stock of shadowlands legendaries
 ## Author: Stroeckx
 ## Contributors: Bullseye, Andran, Voldoroc
-## Version: 2.15.1
+## Version: 2.16
 ## SavedVariables: LegendaryStockTrackerDB
 ## OptionalDeps: TradeSkillMaster
 

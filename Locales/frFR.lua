@@ -70,6 +70,7 @@ L["Show values as percentages"] = "Afficher les valeurs sous forme de pourcentag
 L["Show profit"] = "Montrer les profits"
 L["Include Cached items"] = "Inclure les objets mis en cache"
 L["Min profit before restocking"] = "Bénéfice minimum avant le réapprovisionnement"
+L["Min profit when not max exp"] = "Bénéfice minimum quand pas max exp"
 L["Restock amount"] = "Montant de réapprovisionnement"
 L["Min restock amount"] = "Min montant de réapprovisionnement"
 L["Only restock items I can craft"] = "Ne réapprovisionner que les objets que je peux fabriquer"
