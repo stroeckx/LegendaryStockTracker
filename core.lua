@@ -28,7 +28,7 @@ local LstockLDB = LibStub("LibDataBroker-1.1"):NewDataObject("LegendaryStockTrac
   end
 })
 
-local LSTVersion = "v2.16"
+local LSTVersion = "v2.17"
 --local db = nil
 LST.db = nil
 local LstockIcon = LibStub("LibDBIcon-1.0")
@@ -1221,6 +1221,14 @@ function LST:UpdateRestockList()
 		end
 	end
 	NumVestigesToCraft = NumVestigesToCraft - LST:GetVestigesInBags();
+	table.sort(RestockList, 
+	function(x,y) 
+		if(x.profession > y.profession) then return true;
+		else if(x.profession < y.profession) then return false end;
+		if(x.profit > y.profit) then return true;
+		else return false end;
+	end
+	end)
 end
 
 function LST:AddItemToRestockList(itemID, rank, restockCount)
@@ -1238,7 +1246,8 @@ function LST:AddItemToRestockList(itemID, rank, restockCount)
 		profit = localProfit, 
 		itemID = itemID,
 		profitPercentage = localProfitPercentage,
-		usesVestige = LST:AddVestigeToRestock(rank, itemID)
+		usesVestige = LST:AddVestigeToRestock(rank, itemID),
+		profession = LegendaryItemData[itemID]["profession"]
 	}
 	table.insert(RestockList, itemToRestock);
 end
