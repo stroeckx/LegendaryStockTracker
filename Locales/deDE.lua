@@ -125,6 +125,8 @@ L["Profit R6"] = "Gewinn R6"
 -- Restock
 L["Item"] = "Gegenstand"
 L["Amount"] = "Menge"
+L["craft next"] = "nächste erstellen"
+L["Update list"] = "Liste aktualisieren"
 
 -- Data Sync
 L["LST: Sending data to "] = "LST: Sende Daten an "

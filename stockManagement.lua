@@ -30,6 +30,10 @@ function LST:GetVestigesInBags()
 	return vestigesInBags;
 end
 
+function LST:AddVestigeToCount()
+	vestigesInBags = vestigesInBags + 1;
+end
+
 function LST:GetAllItemsInBank(event)
     local isBankOpenAfterThisFrame = isBankOpen;
 	if(event ~= nil) then
