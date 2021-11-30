@@ -6,7 +6,6 @@ local vestigesInBags = 0;
 local bagUpdateCount = 0;
 function LST:GetAllItemsInBags()
 	bagUpdateCount = bagUpdateCount + 1;
-	--print("LST: Updating bags, #" .. bagUpdateCount)
 	LST.db.factionrealm.characters[LST.playerName].bagItemLegendaryLinks = {}
 	LST.db.factionrealm.characters[LST.playerName].bagItemLegendaryCount = 0
 	vestigesInBags = 0;

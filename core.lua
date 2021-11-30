@@ -28,16 +28,18 @@ local LstockLDB = LibStub("LibDataBroker-1.1"):NewDataObject("LegendaryStockTrac
   end
 })
 
-local LSTVersion = "v2.18"
+local LSTVersion = "v2.19"
 --local db = nil
 LST.db = nil
 local LstockIcon = LibStub("LibDBIcon-1.0")
 LST.LstockMainFrame = nil
 local LSTTableScrollChild = nil
 local LSTRestockScrollChild = nil
+local LSTMaterialRestockListScrollChild = nil
 local tableFrame = nil
 local restockFrame = nil
 local exportFrame = nil
+local materialRestockListFrame = nil;
 
 --all collections of items are stored separately for future expandability
 LST.legendaryLinks = {}
@@ -101,12 +103,14 @@ local leggoProf1 = nil;
 local leggoProf2 = nil;
 
 local IsTSMLoaded = false;
-local fontStringPool = nil
-local backgroundLinePool = nil
-local RestockList = {}
-local SortedRestockList = {}
+local fontStringPool = nil;
+local backgroundLinePool = nil;
+local RestockList = {};
+local SortedRestockList = {};
+local MaterialRestockList = {};
 local NumVestigesToCraft = 0;
-local numRanks = 6
+local numRanks = 6;
+local ShouldUpdateMaterialListOnBagUpdate = false;
 
 local activeTab = nil
 local exportTab = nil
@@ -262,7 +266,7 @@ function LST:OnInitialize()
 	LST:RegisterEvent("TRADE_SKILL_LIST_UPDATE", "UpdateLegendaryRecipes")
 	LST:RegisterEvent("NEW_RECIPE_LEARNED", "UpdateLegendaryRecipes")
 	LST:RegisterEvent("TRADE_SKILL_CLOSE", "OnTradeskillClosed")
-	--LST:RegisterEvent("BAG_UPDATE", "OnBagsUpdated")
+	LST:RegisterEvent("BAG_UPDATE", "OnBagsUpdated")
 	LST:RegisterEvent("CHAT_MSG_LOOT", "OnItemLooted")
 
 	self:RegisterComm("LST")
@@ -321,7 +325,7 @@ function LST:OnInitialize()
 end
 
 function LST:tst()
-	print(tostring(openedProfession))
+	print(GetItemCount(172089, true, false, true));
 	return nil;
 end
 
@@ -702,6 +706,22 @@ function LST:GetMainFrame(parent)
 		LST:AddCraftButtonToRestock(restockFrame);
 		LST:AddUpdateButtonToRestock(restockFrame);
 
+		--material list frame
+		materialRestockListFrame = LST:CreateOptionsContentFrame("LSTMaterialRestockListFrame", contentFrame, Backdrop)
+		materialRestockListFrame.title:SetText(L["Material list"])
+		materialRestockListFrame.scrollframe = materialRestockListFrame.scrollframe or CreateFrame("ScrollFrame", "LSTMaterialRestockListScrollFrame", materialRestockListFrame, BackdropTemplateMixin and "UIPanelScrollFrameTemplate");
+		materialRestockListFrame.scrollframe:SetPoint("LEFT")
+		materialRestockListFrame.scrollframe:SetPoint("RIGHT", -22, 0)
+		materialRestockListFrame.scrollframe:SetPoint("TOP")
+		materialRestockListFrame.scrollframe:SetPoint("BOTTOM")
+		materialRestockListFrame:SetScript("OnShow", function()
+			LST:CreateMaterialRestockListSheet(LSTMaterialRestockListScrollChild)
+		end)
+
+		LSTMaterialRestockListScrollChild = materialRestockListFrame.scrollframe.scrollchild or CreateFrame("Frame", "LSTMaterialRestockListScrollChild", materialRestockListFrame.scrollframe);
+		LSTMaterialRestockListScrollChild:SetSize(materialRestockListFrame.scrollframe:GetSize())
+		materialRestockListFrame.scrollframe:SetScrollChild(LSTMaterialRestockListScrollChild)
+
 		--FAQ frame
 		local faqFrame = LST:CreateOptionsContentFrame("LSTFAQFrame", contentFrame, Backdrop);
 		faqFrame.title:SetText(L["FAQ"]);
@@ -725,7 +745,8 @@ function LST:GetMainFrame(parent)
 		LST:AddTab(tabList, tabWidth, 24, 2, settingsFrame, L["Settings"])
 		local tab = LST:AddTab(tabList, tabWidth, 24, 1, tableFrame, L["Table"])
 		LST:AddTab(tabList, tabWidth, 24, 4, restockFrame, L["Restock"])
-		LST:AddTab(tabList, tabWidth, 24, 5, faqFrame, L["FAQ"])
+		LST:AddTab(tabList, tabWidth, 24, 5, materialRestockListFrame, L["Material list"])
+		LST:AddTab(tabList, tabWidth, 24, 6, faqFrame, L["FAQ"])
 		LST:TabOnClick(tab)
 
 		local closeButton = CreateFrame("Button", "LSTMainFrameCloseButton", f)
@@ -1035,35 +1056,6 @@ end
 function LST:AddCraftButtonToRestock(restockFrame)
 	local button = LST:CreateButton("LSTCraftNextButton", restockFrame, 100, 24, "craft next");
 	button:SetScript("OnClick", function(self) LST:CraftNextRestockItem() end)
-
-	--local craftButton = CreateFrame("Button", "LSTCraftNextButton", restockFrame, BackdropTemplateMixin and "BackdropTemplate");
-	--Backdrop = {
-	--	bgFile = "Interface\\AddOns\\LegendaryStockTracker\\Assets\\Plain.tga",
-	--	edgeFile = "Interface/Buttons/WHITE8X8",
-	--	tile = true, tileSize = 0, edgeSize = 1,
-	--	insets = {left = 0, right = 0, top = 0, bottom = 0},
-	--}
-	--craftButton:SetBackdrop(Backdrop)
-	--craftButton:SetBackdropColor(0.25,0.25,0.25,0.9)
-	--craftButton:SetBackdropBorderColor(0,0,0,1)
-	--craftButton:SetSize(100,24)
-	--craftButton.HighlightTexture = craftButton:CreateTexture()
-	--craftButton.HighlightTexture:SetColorTexture(1,1,1,.3)
-	--craftButton.HighlightTexture:SetPoint("TOPLEFT")
-	--craftButton.HighlightTexture:SetPoint("BOTTOMRIGHT")
-	--craftButton:SetHighlightTexture(craftButton.HighlightTexture)
-	--craftButton.PushedTexture = craftButton:CreateTexture()
-	--craftButton.PushedTexture:SetColorTexture(.9,.8,.1,.3)
-	--craftButton.PushedTexture:SetPoint("TOPLEFT")
-	--craftButton.PushedTexture:SetPoint("BOTTOMRIGHT")
-	--craftButton:SetPushedTexture(craftButton.PushedTexture)
-	--craftButton:SetPoint("TOPLEFT", restockFrame, "BOTTOMLEFT", 0, 0);
-	--craftButton:SetScript("OnClick", function(self) LST:CraftNextRestockItem() end)
---
-	--local text = craftButton:CreateFontString(nil,"ARTWORK", "GameFontHighlight") 
-	--text:SetPoint("TOPLEFT")
-	--text:SetPoint("BOTTOMRIGHT")
-	--text:SetText(L["craft next"])
 end
 
 function LST:AddUpdateButtonToRestock(restockFrame)
@@ -1112,9 +1104,13 @@ function LST:OnDisable()
 end
 
 function LST:OnBagsUpdated(bagIndex)
-	if(HaveBagsBeenUpdatedThisFrame == true) then return end;
+	if(ShouldUpdateMaterialListOnBagUpdate == true) then
+			LST:CreateMaterialRestockListSheet(LSTMaterialRestockListScrollChild);
+			ShouldUpdateMaterialListOnBagUpdate = false;
+	end;
+	--if(HaveBagsBeenUpdatedThisFrame == true) then return end;
 	--LST:UpdateShownTab();
-	HaveBagsBeenUpdatedThisFrame = true;
+	--HaveBagsBeenUpdatedThisFrame = true;
 end
 
 function LST:UpdateShownTab()
@@ -1129,6 +1125,9 @@ function LST:UpdateShownTab()
 	end
 	if(restockFrame:IsVisible()) then
 		LST:CreateRestockSheet(LSTRestockScrollChild);
+	end
+	if(materialRestockListFrame:IsVisible()) then
+		LST:CreateMaterialRestockListSheet(LSTMaterialRestockListScrollChild)
 	end
 end
 
@@ -1229,6 +1228,7 @@ end
 
 function LST:UpdateRestockList()
 	RestockList = {};
+	MaterialRestockList = {};
 	local nameTable = LST:createNameTable();
 	local restockAmount = {};
 	NumVestigesToCraft = 0;
@@ -1266,6 +1266,7 @@ function LST:UpdateRestockList()
 		end
 	end
 	NumVestigesToCraft = NumVestigesToCraft - LST:GetVestigesInBags();
+	LST:AddVestigesToMaterialList(NumVestigesToCraft);
 end
 
 function LST:UpdateSortedRestockList()
@@ -1299,8 +1300,48 @@ function LST:AddItemToRestockList(itemID, rank, restockCount)
 		usesVestige = LST:AddVestigeToRestock(rank, itemID),
 		profession = LegendaryItemData[itemID]["profession"]
 	}
+	if(LST:DoesThisCharacterHaveProfession(LegendaryItemData[itemID].profession)) then
+		if(rank <= 4) then
+			LST:AddMaterialsToMaterialRestockList(LST.db.factionrealm.recipeData.recipes[itemID]["ranks"][rank]);
+		else
+			LST:AddMaterialsToMaterialRestockList(LST.db.factionrealm.recipeData.recipes[itemID]["ranks"][rank - 2]);
+		end
+	end
 	RestockList[itemID .. rank] = itemToRestock;
-	--table.insert(RestockList, itemID, itemToRestock);
+end
+
+function LST:AddMaterialsToMaterialRestockList(table)
+	for materialID, data in pairs(table) do
+		if(MaterialRestockList[materialID] == nil) then MaterialRestockList[materialID] = 0; end;
+		MaterialRestockList[materialID] = MaterialRestockList[materialID] + data["numRequired"];
+	end
+end
+
+function LST:RemoveMaterialsFromRestockList(table)
+	for materialID, data in pairs(table) do
+		MaterialRestockList[materialID] = MaterialRestockList[materialID] - data["numRequired"];
+		if(MaterialRestockList[materialID] == 0) then MaterialRestockList[materialID] = nil; end;
+	end
+end
+
+function LST:AddVestigesToMaterialList(numVestiges)
+	if(numVestiges <= 0) then return; end;
+	local _, vestigeProfession = LST:GetCheapestVestige();
+	if(LST:DoesThisCharacterHaveProfession(vestigeProfession) == false) then return; end;
+	for materialID, data in pairs(LST.db.factionrealm.recipeData.vestiges[vestigeProfession]) do
+		if(MaterialRestockList[materialID] == nil) then MaterialRestockList[materialID] = 0; end;
+		MaterialRestockList[materialID] = MaterialRestockList[materialID] + (data["numRequired"] * numVestiges);
+	end
+end
+
+function LST:RemoveVestigesFromMaterialList(numVestiges)
+	if(numVestiges <= 0) then return; end;
+	local _, vestigeProfession = LST:GetCheapestVestige();
+	if(LST:DoesThisCharacterHaveProfession(vestigeProfession) == false) then return; end;
+	for materialID, data in pairs(LST.db.factionrealm.recipeData.vestiges[vestigeProfession]) do
+		MaterialRestockList[materialID] = MaterialRestockList[materialID] - (data["numRequired"] * numVestiges);
+		if(MaterialRestockList[materialID] == 0) then MaterialRestockList[materialID] = nil; end;
+	end
 end
 
 function LST:AddVestigeToRestock(rank, itemID) 
@@ -1377,18 +1418,8 @@ function LST:CreateRestockSheet(frame)
 	LST:UpdateSortedRestockList();
 	if(frame == nil) then return end;
 	local NameTable = LST:createNameTable()
-	if(fontStringPool == nil) then
-		fontStringPool = CreateFontStringPool(frame, "OVERLAY", nil, "GameFontNormal", FontStringPool_Hide)
-	else
-		fontStringPool:ReleaseAll()
-	end
-	if(backgroundLinePool == nil) then
-		backgroundLinePool = CreateFramePool("Frame", nil, BackdropTemplateMixin and "BackdropTemplate")
-	else
-		backgroundLinePool:ReleaseAll()
-	end
+	LST:PrepareTablePools(frame);
 	local sheet = {}
-	--
 	local titles = {LST:CreateTableTitle(frame, L["Item"]), LST:CreateTableTitle(frame, L["Amount"]), LST:CreateTableTitle(frame, L["Vestige"]), LST:CreateTableTitle(frame, L["Profit"]), LST:CreateTableTitle(frame, L["Profit"] .. " (%)")}
 	table.insert(sheet, titles)
 	if(NumVestigesToCraft > 0) then
@@ -1426,6 +1457,29 @@ function LST:CreateRestockSheet(frame)
 	LST:CreateFrameSheet(frame, sheet, 5)
 end
 
+function LST:CreateMaterialRestockListSheet(frame)
+	if(frame == nil) then return end;
+	LST:PrepareTablePools(frame);
+	local sheet = {}
+	local titles = {LST:CreateTableTitle(frame, L["Item"]), LST:CreateTableTitle(frame, L["needed"]), LST:CreateTableTitle(frame, L["available"]), LST:CreateTableTitle(frame, L["missing"])}--, LST:CreateTableTitle(frame, L["Profit"] .. " (%)")}
+	table.insert(sheet, titles)
+	for materialID, count in pairs(MaterialRestockList) do
+		local numOwned = GetItemCount(materialID, true, false, true);
+		local numMissing = MaterialRestockList[materialID] - numOwned;
+		if(numMissing < 0) then numMissing = 0; end; 
+		row = 
+		{
+			LST:CreateTableElement(frame, LST.db.factionrealm.recipeData.materialList[materialID], 1, 1, 1, 1),
+			LST:CreateTableElement(frame, MaterialRestockList[materialID], 1, 1, 1, 1),
+			LST:CreateTableElement(frame, numOwned, 1, 1, 1, 1),
+			LST:CreateTableElement(frame, numMissing, 1, 1, 1, 1)
+			--LST:CreateTableElement(frame, LST:RoundToInt(MaterialRestockList[i]["profitPercentage"]) .. "%", 1, 1, 1, 1)
+		}
+		table.insert(sheet, row)
+	end
+	LST:CreateFrameSheet(frame, sheet, 4)
+end
+
 function LST:GetUsesVestigeCheckmark(usesVestige)
 	if(usesVestige) then
 		return "v";
@@ -1436,16 +1490,7 @@ end
 
 function LST:CreateTableSheet(frame)
 	local NameTable = LST:createNameTable()
-	if(fontStringPool == nil) then
-		fontStringPool = CreateFontStringPool(frame, "OVERLAY", nil, "GameFontNormal", FontStringPool_Hide)
-	else
-		fontStringPool:ReleaseAll()
-	end
-	if(backgroundLinePool == nil) then
-		backgroundLinePool = CreateFramePool("Frame", nil, BackdropTemplateMixin and "BackdropTemplate")
-	else
-		backgroundLinePool:ReleaseAll()
-	end
+	LST:PrepareTablePools(frame);
 	local sheet = {}
 	local maxwidth = {};
 	if(IsTSMLoaded == false or LST.db.profile.settings.showPricing == false) then
@@ -1588,6 +1633,19 @@ function LST:CreateTableSheet(frame)
 		table.insert(sheet, LST:CreateTablePriceRowWhite(frame, L["Total (min price): "], (stockSum[1] + stockSum[2] + stockSum[3] + stockSum[4] + stockSum[5] + stockSum[6]), LST:AddDecimalSeparator(LST:RoundToInt(priceSum[1] + priceSum[2] + priceSum[3] + priceSum[4] + priceSum[5] + priceSum[6])), "","","","","","","","","",""))
 	end
 	LST:CreateFrameSheet(frame, sheet, #maxWidth)
+end
+
+function LST:PrepareTablePools(frame)
+	if(fontStringPool == nil) then
+		fontStringPool = CreateFontStringPool(frame, "OVERLAY", nil, "GameFontNormal", FontStringPool_Hide)
+	else
+		fontStringPool:ReleaseAll()
+	end
+	if(backgroundLinePool == nil) then
+		backgroundLinePool = CreateFramePool("Frame", nil, BackdropTemplateMixin and "BackdropTemplate")
+	else
+		backgroundLinePool:ReleaseAll()
+	end
 end
 
 function LST:GetColorWhite()
@@ -2041,27 +2099,38 @@ end
 function LST:OnItemLooted(_, lootstring, player, _, _, player2)
 	if ((UnitName("player") .. "-" .. GetRealmName()) == player) then 
 		local itemLink = string.match(lootstring,"|%x+|Hitem:.-|h.-|h|r");
-		local itemString = string.match(itemLink, "item[%-?%d:]+")
+		if(itemLink == nil) then return; end;
+		local itemString = string.match(itemLink, "item[%-?%d:]+");
+		if(itemString == nil) then return; end;
 		local itemID = LST:GetItemIDFromItemLink(itemString);
+		if(itemID == nil) then return; end;
 		local detailedItemLevel = GetDetailedItemLevelInfo(itemLink);
-		if(detailedItemLevel == nil) then
-			print(L["Incorrect itemlevel data received for item "] .. itemID .. L[", skipping data for this rank."])
-			return;
-		end
-		local rank = LST:GetLegendaryRankByItemLevel(detailedItemLevel);
-		LST:IsLootRelevant(itemID, rank);
+		LST:IsLootRelevant(itemID, detailedItemLevel);
 	end
 end
 
-function LST:IsLootRelevant(itemID, rank) 
+function LST:IsLootRelevant(itemID, itemLevel) 
 	if(itemID == "185960") then -- vestige
 		NumVestigesToCraft = NumVestigesToCraft - 1;
 		LST:AddVestigeToCount();
-		LST:UpdateShownTab()
-		--LST:CreateRestockSheet(LSTRestockScrollChild);
+		LST:RemoveVestigesFromMaterialList(1);
+		if(restockFrame:IsVisible()) then
+			LST:CreateRestockSheet(LSTRestockScrollChild);
+		end
+		if(materialRestockListFrame:IsVisible()) then
+			ShouldUpdateMaterialListOnBagUpdate = true;
+		end
 	elseif(LegendaryItemData[itemID] ~= nil) then 
-		LST:CheckForRestockUpdate(itemID, rank);
+		if(itemLevel == nil) then
+			print(L["Incorrect itemlevel data received for item "] .. itemID .. L[", skipping data for this rank."])
+		else
+			LST:CheckForRestockUpdate(itemID, LST:GetLegendaryRankByItemLevel(itemLevel));
+		end
 		return true;
+	elseif(MaterialRestockList[itemID] ~= nil) then
+		if(materialRestockListFrame:IsVisible()) then
+			ShouldUpdateMaterialListOnBagUpdate = true;
+		end
 	end;
 	return false;
 end
@@ -2070,8 +2139,14 @@ function LST:CheckForRestockUpdate(itemID, rank)
 	if(RestockList[itemID..rank] ~= nil) then
 		RestockList[itemID..rank].amountToRestock = RestockList[itemID..rank].amountToRestock - 1;
 		if(RestockList[itemID..rank].amountToRestock <= 0) then RestockList[itemID..rank] = nil end;
+		if(LST:DoesThisCharacterHaveProfession(LegendaryItemData[itemID].profession)) then
+			if(rank <= 4) then
+				LST:RemoveMaterialsFromRestockList(LST.db.factionrealm.recipeData.recipes[itemID]["ranks"][rank]);
+			else
+				LST:RemoveMaterialsFromRestockList(LST.db.factionrealm.recipeData.recipes[itemID]["ranks"][rank - 2]);
+			end
+		end
 		LST:UpdateShownTab()
-		--LST:CreateRestockSheet(LSTRestockScrollChild);
 	end
 end
 

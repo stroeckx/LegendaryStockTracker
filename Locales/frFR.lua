@@ -52,6 +52,7 @@ L["Export"] =  "Exporter"
 L["Settings"] =  "Paramètres"
 L["Table"] =  "Table"
 L["Restock"] =  "Restock"
+L["Material list"] = "Liste des matériaux"
 L["Rank"] =  "Rank"
 L["Profit"] =  "Profit"
 L["Total"] =  "Total: "
@@ -126,6 +127,11 @@ L["Item"] = "Objet"
 L["Amount"] = "Montant"
 L["craft next"] = "créer le prochain"
 L["Update list"] = "rafraîchir la liste"
+
+-- Material list
+L["needed"] = "nécessaire"
+L["available"] = "disponible"
+L["missing"] = "pénurie"
 
 -- Data Sync
 L["LST: Sending data to "] = "LST : Envoi de données vers "
