@@ -28,7 +28,7 @@ local LstockLDB = LibStub("LibDataBroker-1.1"):NewDataObject("LegendaryStockTrac
   end
 })
 
-local LSTVersion = "v2.19"
+local LSTVersion = "v2.19.1"
 --local db = nil
 LST.db = nil
 local LstockIcon = LibStub("LibDBIcon-1.0")
@@ -50,8 +50,8 @@ local Rank1BonusIDs = "::2:1487:6716"
 local Rank2BonusIDs = "::2:1507:6717"
 local Rank3BonusIDs = "::2:1522:6718"
 local Rank4BonusIDs = "::2:1532:6758"
-local Rank5BonusIDs = "::1:1546"
-local Rank6BonusIDs = "::1:1559"
+local Rank5BonusIDs = "::2:1546:7450"
+local Rank6BonusIDs = "::2:1559:7451"
 
 local LegendaryItemData = 
 {
@@ -254,6 +254,7 @@ function LST:OnInitialize()
 	LST:RegisterChatCommand("lstockscan", "ScanAhPrices")
 	LST:RegisterChatCommand("lstsetrestock", "SetRestockFromChat")
 	LST:RegisterChatCommand("lstprintrestock", "PrintRestockAmountByRank")
+	LST:RegisterChatCommand("lstsenddata", "SendDataToPlayerCommand")
 	--events
 	LST:RegisterEvent("BANKFRAME_OPENED", "GetAllItemsInBank")
 	LST:RegisterEvent("OWNED_AUCTIONS_UPDATED", "GetAllItemsInAH")
@@ -811,6 +812,10 @@ function LST:PopulateFAQFrame(frame, frame2)
 	verticalOffset = -5;
 	lastTextElement = LST:AddAnchoredFontString("FAQ_Restock_Description", frame, frame2, horizontalPadding, verticalOffset, "FAQ_Restock_Description", lastTextElement);
 	verticalOffset = -10;
+	lastTextElement = LST:AddAnchoredFontString("FAQ_Vestiges_Title", frame, frame2, horizontalPadding, verticalOffset, "FAQ_Vestiges_Title", lastTextElement, "GameFontNormal");
+	verticalOffset = -5;
+	lastTextElement = LST:AddAnchoredFontString("FAQ_Vestiges_Description", frame, frame2, horizontalPadding, verticalOffset, "FAQ_Vestiges_Description", lastTextElement);
+	verticalOffset = -10;
 	lastTextElement = LST:AddAnchoredFontString("FAQ_Export_Title", frame, frame2, horizontalPadding, verticalOffset, "FAQ_Export_Title", lastTextElement, "GameFontNormal");
 	verticalOffset = -5;
 	lastTextElement = LST:AddAnchoredFontString("FAQ_Export_Description", frame, frame2, horizontalPadding, verticalOffset, "FAQ_Export_Description", lastTextElement);
@@ -1255,7 +1260,6 @@ function LST:UpdateRestockList()
 								end	
 							else
 								if tonumber(LST:GetMinBuyoutMinusAuctionOpMin(nameTable[item], rank, true)) > LST:GetMinProfit(LST:GetCraftCost(nameTable[item], rank), nameTable[item]) then
-									
 										LST:AddItemToRestockList(nameTable[item], rank, restockAmount[rank] - currentStock);
 								end
 							end
@@ -2348,12 +2352,19 @@ function LST:OnCommReceived(prefix, payload, distribution, sender)
 	end
 end
 
+function LST:SendDataToPlayerCommand(player)
+	if(player == nil or player == "") then print("LST: make sure to add a character name, e.g. '/lstsenddata charactername'"); return; end;
+	LST:SendDataToPlayer(player);
+end
+
 function LST:SendDataToSyncTarget()
 	LST:SendDataToPlayer(LST.db.profile.settings.syncTarget)
 end
 
 function LST:SendDataToPlayer(player)
 	print(L["LST: Sending data to "] .. player)
+	LST:UpdateAllAvailableItemSources();
+	LST:GetLegendariesFromItems();
 	LST:CountLegendariesByRankWithoutSyncdata();
 	local syncData = {
 		["accID"] = LST.db.factionrealm.accountUUID,

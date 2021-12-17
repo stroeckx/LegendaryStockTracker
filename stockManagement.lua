@@ -85,7 +85,7 @@ function LST:GetAllItemsInAH()
 			if(auctionInfo.status == 0) then 
                 local itemLink = auctionInfo.itemLink;
                 if(LST:IsItemASLLegendary(itemLink) == true) then
-				    LST.db.factionrealm.characters[LST.playerName].ahItemLegendaryLinks[#LST.db.factionrealm.characters[LST.playerName].ahItemLegendaryLinks + 1] = itemLink;
+					LST.db.factionrealm.characters[LST.playerName].ahItemLegendaryLinks[#LST.db.factionrealm.characters[LST.playerName].ahItemLegendaryLinks + 1] = itemLink;
 				    LST.db.factionrealm.characters[LST.playerName].ahItemLegendaryCount = LST.db.factionrealm.characters[LST.playerName].ahItemLegendaryCount + 1;
                 end
 			end
