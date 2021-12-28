@@ -28,7 +28,7 @@ local LstockLDB = LibStub("LibDataBroker-1.1"):NewDataObject("LegendaryStockTrac
   end
 })
 
-local LSTVersion = "v2.19.1"
+local LSTVersion = "v2.19.2"
 --local db = nil
 LST.db = nil
 local LstockIcon = LibStub("LibDBIcon-1.0")
@@ -108,7 +108,13 @@ local backgroundLinePool = nil;
 local RestockList = {};
 local SortedRestockList = {};
 local MaterialRestockList = {};
-local NumVestigesToCraft = 0;
+local NumVestigesToCraft = 
+{
+	[1418] = 0,
+	[1311] = 0,
+	[1395] = 0,
+	[1334] = 0
+}
 local numRanks = 6;
 local ShouldUpdateMaterialListOnBagUpdate = false;
 
@@ -179,6 +185,7 @@ function LST:OnInitialize()
 				{
 					characterName = "",
 					classNameBase = "",
+					professions = {},
 					bagItemLegendaryLinks = {},
 					bagItemLegendaryCount = 0,
 					bankItemLegendaryLinks = {},
@@ -277,6 +284,7 @@ function LST:OnInitialize()
 	--guildName = select(1,GetGuildInfo("player")); --doesn't work on login, only on reloads
 	LST.db.factionrealm.characters[LST.playerName].characterName = LST.playerName;
 	LST.db.factionrealm.characters[LST.playerName].classNameBase = select(1,UnitClassBase("player"));
+
 	LST:GetAllItemsInBags();
 	local item = {};
 	for id,data in pairs(LegendaryItemData) do
@@ -368,6 +376,7 @@ function LST:CheckLegendaryProfessions()
 			leggoProf2 = slid;
 		end
 	end
+	LST.db.factionrealm.characters[LST.playerName].professions = {leggoProf1, leggoProf2};
 end
 
 function LST:GetTSMitemIDs()
@@ -1196,19 +1205,22 @@ function LST:GetUnlockedCraftRank(itemID, includeSyncData)
 		includeSyncData = true;
 	end
 	local unlockedRank  = 0;
+	local crafter = nil;
 	for key,val in pairs(LST.db.factionrealm.characters) do
 		if(LST.db.factionrealm.characters[key].unlockedLegendaryCraftRanks[itemID] ~= nil and LST.db.factionrealm.characters[key].unlockedLegendaryCraftRanks[itemID] > unlockedRank) then
 			unlockedRank = LST.db.factionrealm.characters[key].unlockedLegendaryCraftRanks[itemID];
+			crafter = key;
 		end
 	end
 	if(includeSyncData == true) then
 		for account,data in pairs(LST.db.factionrealm.syncData) do
 			if(data ~= nil and data["legendaries"] ~= nil and data["legendaries"][itemID] ~= nil and data["legendaries"][itemID]["canCraft"] > unlockedRank) then
 				unlockedRank = data["legendaries"][itemID]["canCraft"];
+				crafter = data["legendaries"][itemID]["crafter"];
 			end
 		end
 	end
-	return unlockedRank;
+	return unlockedRank, crafter;
 end
 
 function LST:CanCraft(itemID, rank)
@@ -1236,7 +1248,13 @@ function LST:UpdateRestockList()
 	MaterialRestockList = {};
 	local nameTable = LST:createNameTable();
 	local restockAmount = {};
-	NumVestigesToCraft = 0;
+	NumVestigesToCraft = 
+	{
+		[1418] = 0,
+		[1311] = 0,
+		[1395] = 0,
+		[1334] = 0
+	}
 	restockAmount[1] = tonumber(LST.db.profile.settings.restockAmountByRank[1]);
 	restockAmount[2] = tonumber(LST.db.profile.settings.restockAmountByRank[2]);
 	restockAmount[3] = tonumber(LST.db.profile.settings.restockAmountByRank[3]);
@@ -1269,8 +1287,11 @@ function LST:UpdateRestockList()
 			end
 		end
 	end
-	NumVestigesToCraft = NumVestigesToCraft - LST:GetVestigesInBags();
-	LST:AddVestigesToMaterialList(NumVestigesToCraft);
+	local price, profession = LST:GetCheapestVestige();
+	if(profession ~= 0) then
+		NumVestigesToCraft[profession] = NumVestigesToCraft[profession] - LST:GetVestigesInBags();
+		LST:AddVestigesToMaterialList(NumVestigesToCraft[profession], profession);
+	end
 end
 
 function LST:UpdateSortedRestockList()
@@ -1350,18 +1371,24 @@ end
 
 function LST:AddVestigeToRestock(rank, itemID) 
 	if(rank < 3 or rank > 6) then return false end;
+	local unlockedRank, crafter = LST:GetUnlockedCraftRank(itemID);
+	if(crafter == nil) then
+		print(L["error_unknown_crafter"] .. itemID);
+		return false;
+	end;
+	local price, profession = LST:GetCheapestVestigeForCrafter(crafter)
+	if(profession == 0) then
+		print("LST: " .. crafter .. L["error_crafter_can't_make_vestige"]);
+		return false;
+	end
 	if(rank == 3 or rank == 4) then
-		if(LST:IsVestigeCraftCheaper(itemID, rank) or LST:GetUnlockedCraftRank(itemID) < rank) then
-			if(LST:DoesThisCharacterHaveProfession(LegendaryItemData[itemID].profession)) then
-				NumVestigesToCraft = NumVestigesToCraft + 1;
-			end
+		if(LST:IsVestigeCraftCheaper(itemID, rank) or unlockedRank < rank) then
+			NumVestigesToCraft[profession] = NumVestigesToCraft[profession] + 1;
 			return true;
 		end
 	end
 	if(rank >= 5) then
-		if(LST:DoesThisCharacterHaveProfession(LegendaryItemData[itemID].profession)) then
-			NumVestigesToCraft = NumVestigesToCraft + 1;
-		end
+		NumVestigesToCraft[profession] = NumVestigesToCraft[profession] + 1;
 		return true;
 	end
 	return false;
@@ -1421,24 +1448,39 @@ end
 function LST:CreateRestockSheet(frame)
 	LST:UpdateSortedRestockList();
 	if(frame == nil) then return end;
-	local NameTable = LST:createNameTable()
+	local NameTable = LST:createNameTable();
+	local CurrentProfession = 0;
+	local PastProfessions = {}
 	LST:PrepareTablePools(frame);
 	local sheet = {}
 	local titles = {LST:CreateTableTitle(frame, L["Item"]), LST:CreateTableTitle(frame, L["Amount"]), LST:CreateTableTitle(frame, L["Vestige"]), LST:CreateTableTitle(frame, L["Profit"]), LST:CreateTableTitle(frame, L["Profit"] .. " (%)")}
 	table.insert(sheet, titles)
-	if(NumVestigesToCraft > 0) then
-		row = 
-		{
-			LST:CreateTableElement(frame, L["Vestige"], 1, 1, 1, 1),
-			LST:CreateTableElement(frame, NumVestigesToCraft, 1, 1, 1, 1),
-			LST:CreateTableElement(frame, "", 1, 1, 1, 1),
-			LST:CreateTableElement(frame, "", 1, 1, 1, 1),
-			LST:CreateTableElement(frame, "", 1, 1, 1, 1)
-		}
-		table.insert(sheet, row)
-	end
 	for i, restockData in ipairs(SortedRestockList) do
-	--for i=1, #RestockList do 
+		if(restockData["profession"] ~= CurrentProfession) then
+			CurrentProfession = restockData["profession"];
+			PastProfessions[CurrentProfession] = 1;
+			row = 
+			{
+				LST:CreateTableElement(frame, SLProfessionsIds[CurrentProfession]["name"], 1, 1, 1, 1),
+				LST:CreateTableElement(frame, "", 1, 1, 1, 1),
+				LST:CreateTableElement(frame, "", 1, 1, 1, 1),
+				LST:CreateTableElement(frame, "", 1, 1, 1, 1),
+				LST:CreateTableElement(frame, "", 1, 1, 1, 1),
+			}
+			table.insert(sheet, row)
+
+			if(NumVestigesToCraft[CurrentProfession] > 0) then 
+				row = 
+				{
+					LST:CreateTableElement(frame, L["Vestige"], 1, 1, 1, 1),
+					LST:CreateTableElement(frame, NumVestigesToCraft[CurrentProfession], 1, 1, 1, 1),
+					LST:CreateTableElement(frame, "", 1, 1, 1, 1),
+					LST:CreateTableElement(frame, "", 1, 1, 1, 1),
+					LST:CreateTableElement(frame, "", 1, 1, 1, 1)
+				}
+				table.insert(sheet, row)
+			end
+		end
 		row = 
 		{
 			LST:CreateTableElement(frame, SortedRestockList[i]["name"] .. " - " .. L["Rank"] .. " " .. SortedRestockList[i]["rank"], 1, 1, 1, 1),
@@ -1457,7 +1499,33 @@ function LST:CreateRestockSheet(frame)
 		--texture:SetSize(36, 36)
 		table.insert(sheet, row)
 	end
+	for prof, count in pairs(NumVestigesToCraft) do
+		if(count > 0) then 
+			if(PastProfessions[prof] == nil) then
+				row = 
+				{
+					LST:CreateTableElement(frame, SLProfessionsIds[prof]["name"], 1, 1, 1, 1),
+					LST:CreateTableElement(frame, "", 1, 1, 1, 1),
+					LST:CreateTableElement(frame, "", 1, 1, 1, 1),
+					LST:CreateTableElement(frame, "", 1, 1, 1, 1),
+					LST:CreateTableElement(frame, "", 1, 1, 1, 1),
+				}
+				table.insert(sheet, row)
 
+				if(NumVestigesToCraft[prof] > 0) then 
+					row = 
+					{
+						LST:CreateTableElement(frame, L["Vestige"], 1, 1, 1, 1),
+						LST:CreateTableElement(frame, NumVestigesToCraft[prof], 1, 1, 1, 1),
+						LST:CreateTableElement(frame, "", 1, 1, 1, 1),
+						LST:CreateTableElement(frame, "", 1, 1, 1, 1),
+						LST:CreateTableElement(frame, "", 1, 1, 1, 1)
+					}
+					table.insert(sheet, row)
+				end
+			end
+		end
+	end
 	LST:CreateFrameSheet(frame, sheet, 5)
 end
 
@@ -1970,6 +2038,48 @@ function LST:GetCheapestVestige()
 	return price, professionID;
 end
 
+function LST:GetCheapestVestigeForCrafter(crafter)
+	local price = 9999999;
+	local professionID = 0;
+	local prof1, prof2 = nil,nil;
+	if(LST.db.factionrealm.characters[crafter].professions[1] ~= nil or LST.db.factionrealm.characters[crafter].professions[2] ~= nil) then
+		prof1 = LST.db.factionrealm.characters[crafter].professions[1];
+		prof2 = LST.db.factionrealm.characters[crafter].professions[2];
+	else
+		for acc, data in pairs(LST.db.factionrealm.syncData) do
+			if(LST.db.factionrealm.syncData[acc].characters == nil) then
+				print(L["error_please_resync"] .. crafter);
+				return 0, 0;
+			end
+			if(LST.db.factionrealm.syncData[acc].characters[crafter] == nil) then
+				print(L["error_character_missing_data"] .. crafter);
+				return 0, 0;
+			end
+			if(LST.db.factionrealm.syncData[acc].characters[crafter]["professions"][1] ~= nil or LST.db.factionrealm.syncData[acc].characters[crafter]["professions"][2] ~= nil) then
+				prof1 = LST.db.factionrealm.syncData[acc].characters[crafter]["professions"][1];
+				prof2 = LST.db.factionrealm.syncData[acc].characters[crafter]["professions"][2];
+			end
+		end
+	end;
+	if(IsTSMLoaded == false or LST.db.profile.settings.showPricing == false) then
+		if(prof1 ~= nil) then return 0, prof1;
+		else return 0, prof2;
+		end
+	end
+	if (prof1 ~= nil) then
+		price = LST:GetMaterialPriceSum(LST.db.factionrealm.recipeData.vestiges[prof1]);
+		professionID = prof1;
+	end
+	if(prof2 ~= nil) then
+		local tempPrice = LST:GetMaterialPriceSum(LST.db.factionrealm.recipeData.vestiges[prof2]);
+		if(tempPrice < price) then
+			price = LST:GetMaterialPriceSum(LST.db.factionrealm.recipeData.vestiges[prof2]);
+			professionID = prof2;
+		end
+	end
+	return price, professionID;
+end
+
 function LST:GetLSTCraftCostForVestige(professionID)
 	if(LST.db.factionrealm.recipeData.vestiges[professionID] == nil) then
 		return L["not scanned"];
@@ -2115,9 +2225,10 @@ end
 
 function LST:IsLootRelevant(itemID, itemLevel) 
 	if(itemID == "185960") then -- vestige
-		NumVestigesToCraft = NumVestigesToCraft - 1;
+		local price, professionID = LST:GetCheapestVestige();
+		NumVestigesToCraft[professionID] = NumVestigesToCraft[professionID] - 1;
 		LST:AddVestigeToCount();
-		LST:RemoveVestigesFromMaterialList(1);
+		LST:RemoveVestigesFromMaterialList(1, professionID);
 		if(restockFrame:IsVisible()) then
 			LST:CreateRestockSheet(LSTRestockScrollChild);
 		end
@@ -2266,24 +2377,22 @@ function LST:CraftNextRestockItem()
 		print(L["LST: You need to open your profession first"]);
 		return nil 
 	end;
-	if(NumVestigesToCraft > 0) then
-		local vestigeProfession = select(2,LST:GetCheapestVestige());
-		if(vestigeProfession == openedProfession) then
-			local recipeID = SLProfessionsIds[vestigeProfession].VestigeID;
-			local recipeInfo = C_TradeSkillUI.GetRecipeInfo(recipeID, 1);
-			local availableCraftCount = recipeInfo["numAvailable"];
-			local craftCount = 0;
-			if(availableCraftCount >= NumVestigesToCraft) then
-				craftCount = NumVestigesToCraft;
-			elseif(availableCraftCount > 0) then
-				craftCount = availableCraftCount;
-			end
-			if(craftCount > 0) then
-				C_TradeSkillUI.CraftRecipe(recipeID, craftCount, nil, 1);
-				return nil;
-			else
-				print(L["LST: Not enough materials to craft "] .. L["Vestige"])
-			end
+	if(NumVestigesToCraft[openedProfession] > 0) then
+		--local vestigeProfession = select(2,LST:GetCheapestVestige());
+		local recipeID = SLProfessionsIds[openedProfession].VestigeID;
+		local recipeInfo = C_TradeSkillUI.GetRecipeInfo(recipeID, 1);
+		local availableCraftCount = recipeInfo["numAvailable"];
+		local craftCount = 0;
+		if(availableCraftCount >= NumVestigesToCraft[openedProfession]) then
+			craftCount = NumVestigesToCraft[openedProfession];
+		elseif(availableCraftCount > 0) then
+			craftCount = availableCraftCount;
+		end
+		if(craftCount > 0) then
+			C_TradeSkillUI.CraftRecipe(recipeID, craftCount, nil, 1);
+			return nil;
+		else
+			print(L["LST: Not enough materials to craft "] .. L["Vestige"])
 		end
 	end
 	for index, restockData in ipairs(SortedRestockList) do
@@ -2329,16 +2438,22 @@ function LST:OnCommReceived(prefix, payload, distribution, sender)
 	if not decompressed then return end
 	local success, data = LibSerialize:Deserialize(decompressed)
 	if not success then return end
-	print(L["LST: Received item data from "] .. sender)
-	LST.db.factionrealm.syncData[data["accID"]] = {}
-	LST.db.factionrealm.syncData[data["accID"]]["legendaries"] = {}
-	local table = LST.db.factionrealm.syncData[data["accID"]]["legendaries"]
+	print(L["LST: Received item data from "] .. sender);
+	LST.db.factionrealm.syncData[data["accID"]] = {};
+	LST.db.factionrealm.syncData[data["accID"]]["legendaries"] = {};
+	LST.db.factionrealm.syncData[data["accID"]]["characters"] = {};
+	local table = LST.db.factionrealm.syncData[data["accID"]]["legendaries"];
 	for id, data in pairs(data["legendaries"]) do
 		table[id] = 
 		{
 			["canCraft"] = data[1],
+			["crafter"] = data[8],
 			["stock"] = {data[2],  data[3], data[4], data[5], data[6], data[7]}
 		}
+	end
+	table = LST.db.factionrealm.syncData[data["accID"]]["characters"];
+	for char, professions in pairs(data["characters"]) do
+		table[char] = professions;
 	end
 	LST.db.factionrealm.recipeData.materialList = data.recipeData["materialList"];
 	for materialId, materialName in pairs(data.recipeData.materialList) do
@@ -2369,17 +2484,26 @@ function LST:SendDataToPlayer(player)
 	local syncData = {
 		["accID"] = LST.db.factionrealm.accountUUID,
 		["legendaries"] = {},
-		["recipeData"] = LST.db.factionrealm.recipeData
+		["recipeData"] = LST.db.factionrealm.recipeData,
+		["characters"] = {}
 	}
+
+	for char, data in pairs(LST.db.factionrealm.characters) do
+		if(data["professions"] ~= nil) then
+			local temp = {};
+			temp["professions"] = data["professions"]
+			syncData["characters"][char] = temp;
+		end
+	end
 
 	for id, data in pairs (LegendaryItemData) do
 		local count = 0;
 		for rank, data in pairs(LegendaryItemData[id]["stock"]) do
 			count = count + data;
 		end
-		count = count + LST:GetUnlockedCraftRank(id, false); --save in separate var if "count" is ever used
-		if(count > 0 ) then
-			syncData["legendaries"][id] = {LST:GetUnlockedCraftRank(id, false), LegendaryItemData[id]["stock"][1], LegendaryItemData[id]["stock"][2], LegendaryItemData[id]["stock"][3], LegendaryItemData[id]["stock"][4], LegendaryItemData[id]["stock"][5], LegendaryItemData[id]["stock"][6]}
+		local unlockedRank, crafter = LST:GetUnlockedCraftRank(id, false);
+		if(count > 0 or unlockedRank > 0) then
+			syncData["legendaries"][id] = {unlockedRank, LegendaryItemData[id]["stock"][1], LegendaryItemData[id]["stock"][2], LegendaryItemData[id]["stock"][3], LegendaryItemData[id]["stock"][4], LegendaryItemData[id]["stock"][5], LegendaryItemData[id]["stock"][6], crafter}
 		end
 	end
 

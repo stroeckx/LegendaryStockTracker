@@ -173,3 +173,7 @@ L["Incorrect itemlevel data received for item "] = "LST: Données de niveau d'é
 L[", skipping data for this rank."] = ", en sautant les données pour ce rang."
 L["LST: Error, incorrect input"] = "LST: Erreur, entrée incorrecte"
 L["LST: Crafting is not yet supported for rank 5 and 6, please craft these manually for now"] = "LST : L'artisanat n'est pas encore supporté pour les rangs 5 et 6, veuillez les fabriquer manuellement pour le moment"
+L["error_unknown_crafter"] = "LST: LST doesn't know which character can craft this item, please resync your data so LST knows which character can craft "
+L["error_crafter_can't_make_vestige"] = " doesn't have any professions to make a vestige. If this is wrong please log in on that character and resync lst data"
+L["error_please_resync"] = "LST is missing necessary sync data, please resync account with character "
+L["error_character_missing_data"] = "LST is missing necessary data, please update character "
