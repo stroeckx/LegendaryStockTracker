@@ -87,6 +87,8 @@ L["clear cache"] = "clear cache"
 L["LST: Cleared item cache"] = "LST: Cleared item cache"
 L["Restock domination slots"] = "Restock domination slots"
 L["Show ranks"] = "Show ranks: "
+L["Show other crafters items in material list"] = "Show other crafters items in material list"
+L["Use TSM Material Counts"] = "Use TSM Material Counts"
 
 -- Minimap Icon
 L["Click or type /lst to show the main panel"] =  "Click or type /lst to show the main panel"

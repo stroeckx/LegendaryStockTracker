@@ -87,6 +87,8 @@ L["clear cache"] = "effacer le cache"
 L["LST: Cleared item cache"] = "LST: Effacement du cache des éléments"
 L["Restock domination slots"] = "Réapprovisionnement des créneaux de domination"
 L["Show ranks"] = "Afficher les rangs: "
+L["Show other crafters items in material list"] = "Afficher les articles d'autres artisans dans la liste des matériaux"
+L["Use TSM Material Counts"] = "Utiliser les comptages de matériaux TSM"
 
 -- Minimap Icon
 L["Click or type /lst to show the main panel"] =  "Cliquer ou saisir /lst pour montrer le panneau principal"

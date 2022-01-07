@@ -28,7 +28,7 @@ local LstockLDB = LibStub("LibDataBroker-1.1"):NewDataObject("LegendaryStockTrac
   end
 })
 
-local LSTVersion = "v2.19.2"
+local LSTVersion = "v2.19.3"
 --local db = nil
 LST.db = nil
 local LstockIcon = LibStub("LibDBIcon-1.0")
@@ -175,6 +175,8 @@ function LST:OnInitialize()
 				onlyRestockCraftable = true,
 				priceSource = L["LST Crafting"],
 				restockDominationSlots = true,
+				ShowOtherCraftersMaterialRestockList = false,
+				UseTSMMaterialCounts = false,
 			}
 		},
 		factionrealm = {
@@ -334,8 +336,6 @@ function LST:OnInitialize()
 end
 
 function LST:tst()
-	print(GetItemCount(172089, true, false, true));
-	return nil;
 end
 
 function LST:ProcessItemInfo(itemID, success)
@@ -650,8 +650,10 @@ function LST:GetMainFrame(parent)
 		heightOffset = LST:AddOptionEditbox("RestockAmountEditBox", LSTSettingsScrollChild, "restockAmount", L["Restock amount"], heightOffset, 25)
 		heightOffset = LST:AddOptionEditbox("MinRestockAmountEditBox", LSTSettingsScrollChild, "minrestockAmount", L["Min restock amount"], heightOffset, 25)
 		heightOffset = LST:AddOptionCheckbox("onlyRestockCraftableEditBox", LSTSettingsScrollChild, "onlyRestockCraftable", L["Only restock items I can craft"], heightOffset, 25)
-		heightOffset = LST:AddOptionCheckbox("restockDominationSlots", LSTSettingsScrollChild, "restockDominationSlots", L["Restock domination slots"], heightOffset, 25)
-		heightOffset = LST:AddOptionCheckboxList("restockDominationSlots", LSTSettingsScrollChild, "IsRankEnabled", L["Show ranks"], heightOffset, {L["R1"], L["R2"], L["R3"], L["R4"], L["R5"], L["R6"]}, 6)
+		heightOffset = LST:AddOptionCheckbox("restockDominationSlotsCheckBox", LSTSettingsScrollChild, "restockDominationSlots", L["Restock domination slots"], heightOffset, 25)
+		heightOffset = LST:AddOptionCheckboxList("IsRankEnabledCheckBoxList", LSTSettingsScrollChild, "IsRankEnabled", L["Show ranks"], heightOffset, {L["R1"], L["R2"], L["R3"], L["R4"], L["R5"], L["R6"]}, 6)
+		heightOffset = LST:AddOptionCheckbox("ShowOtherCraftersMaterialRestockListCheckBox", LSTSettingsScrollChild, "ShowOtherCraftersMaterialRestockList", L["Show other crafters items in material list"], heightOffset, 25)
+		heightOffset = LST:AddOptionCheckbox("UseTSMMaterialCountsCheckBox", LSTSettingsScrollChild, "UseTSMMaterialCounts", L["Use TSM Material Counts"], heightOffset, 25)
 		--heightOffset = LST:AddDropdownMenu("LSTPriceSourceDropdown", LSTSettingsScrollChild, heightOffset);
 		heightOffset = heightOffset - 25
 		local text = LSTSettingsScrollChild:CreateFontString(nil,"ARTWORK", "GameFontHighlight") 
@@ -1287,10 +1289,16 @@ function LST:UpdateRestockList()
 			end
 		end
 	end
-	local price, profession = LST:GetCheapestVestige();
-	if(profession ~= 0) then
-		NumVestigesToCraft[profession] = NumVestigesToCraft[profession] - LST:GetVestigesInBags();
-		LST:AddVestigesToMaterialList(NumVestigesToCraft[profession], profession);
+	if(LST.db.profile.settings.ShowOtherCraftersMaterialRestockList == true) then
+		for prof, count in pairs(NumVestigesToCraft) do
+			LST:AddVestigesToMaterialList(count, prof);
+		end
+	else
+		local price, profession = LST:GetCheapestVestige();
+		if(profession ~= 0) then
+			NumVestigesToCraft[profession] = NumVestigesToCraft[profession] - LST:GetVestigesInBags();
+			LST:AddVestigesToMaterialList(NumVestigesToCraft[profession], profession);
+		end
 	end
 end
 
@@ -1325,8 +1333,8 @@ function LST:AddItemToRestockList(itemID, rank, restockCount)
 		usesVestige = LST:AddVestigeToRestock(rank, itemID),
 		profession = LegendaryItemData[itemID]["profession"]
 	}
-	if(LST:DoesThisCharacterHaveProfession(LegendaryItemData[itemID].profession)) then
-		if(rank <= 4) then
+	if(LST:DoesThisCharacterHaveProfession(LegendaryItemData[itemID].profession) or LST.db.profile.settings.ShowOtherCraftersMaterialRestockList == true) then
+		if(itemToRestock.usesVestige == false) then
 			LST:AddMaterialsToMaterialRestockList(LST.db.factionrealm.recipeData.recipes[itemID]["ranks"][rank]);
 		else
 			LST:AddMaterialsToMaterialRestockList(LST.db.factionrealm.recipeData.recipes[itemID]["ranks"][rank - 2]);
@@ -1349,10 +1357,9 @@ function LST:RemoveMaterialsFromRestockList(table)
 	end
 end
 
-function LST:AddVestigesToMaterialList(numVestiges)
+function LST:AddVestigesToMaterialList(numVestiges, vestigeProfession)
 	if(numVestiges <= 0) then return; end;
-	local _, vestigeProfession = LST:GetCheapestVestige();
-	if(LST:DoesThisCharacterHaveProfession(vestigeProfession) == false) then return; end;
+	if(LST:DoesThisCharacterHaveProfession(vestigeProfession) == false and LST.db.profile.settings.ShowOtherCraftersMaterialRestockList == false) then return; end;
 	for materialID, data in pairs(LST.db.factionrealm.recipeData.vestiges[vestigeProfession]) do
 		if(MaterialRestockList[materialID] == nil) then MaterialRestockList[materialID] = 0; end;
 		MaterialRestockList[materialID] = MaterialRestockList[materialID] + (data["numRequired"] * numVestiges);
@@ -1536,7 +1543,14 @@ function LST:CreateMaterialRestockListSheet(frame)
 	local titles = {LST:CreateTableTitle(frame, L["Item"]), LST:CreateTableTitle(frame, L["needed"]), LST:CreateTableTitle(frame, L["available"]), LST:CreateTableTitle(frame, L["missing"])}--, LST:CreateTableTitle(frame, L["Profit"] .. " (%)")}
 	table.insert(sheet, titles)
 	for materialID, count in pairs(MaterialRestockList) do
-		local numOwned = GetItemCount(materialID, true, false, true);
+		local numOwned = 0;
+		if(LST.db.profile.settings.UseTSMMaterialCounts == true) then
+			local num1, num2, num3, num4 = TSM_API.GetPlayerTotals("i:" .. materialID);
+			local num5 = TSM_API.GetGuildTotal("i:" .. materialID);
+			numOwned = num1 + num2 + num3 + num4 + num5;
+		else
+			numOwned = GetItemCount(materialID, true, false, true);
+		end
 		local numMissing = MaterialRestockList[materialID] - numOwned;
 		if(numMissing < 0) then numMissing = 0; end; 
 		row = 
@@ -2167,8 +2181,13 @@ function LST:ConvertTsmPriceToValue(value)
 	local gold = 0;
 	local silver = 0;
 	if(string ~= "0" and string ~= nil) then
+		if(string.len(string) > 4) then
 		gold = tonumber(string:sub(1, #string - 4));
 		silver = tonumber(string.sub(string, -4)) / 10000;
+		else
+			gold = 0;
+			silver = tonumber(string / 10000);
+		end
 	end
 	--if(gold == nil or silver == nil) then
 	--	print("LST: incorrect price for value: " .. value .. ", defaulting to 0");
@@ -2226,9 +2245,11 @@ end
 function LST:IsLootRelevant(itemID, itemLevel) 
 	if(itemID == "185960") then -- vestige
 		local price, professionID = LST:GetCheapestVestige();
-		NumVestigesToCraft[professionID] = NumVestigesToCraft[professionID] - 1;
-		LST:AddVestigeToCount();
-		LST:RemoveVestigesFromMaterialList(1, professionID);
+		if(NumVestigesToCraft[professionID] ~= nil and NumVestigesToCraft[professionID] > 0) then
+			NumVestigesToCraft[professionID] = NumVestigesToCraft[professionID] - 1;
+			LST:AddVestigeToCount();
+			LST:RemoveVestigesFromMaterialList(1, professionID);
+		end
 		if(restockFrame:IsVisible()) then
 			LST:CreateRestockSheet(LSTRestockScrollChild);
 		end
