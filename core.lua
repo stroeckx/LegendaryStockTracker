@@ -28,7 +28,7 @@ local LstockLDB = LibStub("LibDataBroker-1.1"):NewDataObject("LegendaryStockTrac
   end
 })
 
-local LSTVersion = "v2.19.3"
+local LSTVersion = "v2.19.4"
 --local db = nil
 LST.db = nil
 local LstockIcon = LibStub("LibDBIcon-1.0")
@@ -336,6 +336,10 @@ function LST:OnInitialize()
 end
 
 function LST:tst()
+	print(LST.db.factionrealm.recipeData.materialList["172439"] ~= nil);
+	print(LST.db.factionrealm.recipeData.materialList["172439"].itemName ~= nil);
+	print(LST.db.factionrealm.recipeData.materialList["172439"].itemQuality ~= nil);
+
 end
 
 function LST:ProcessItemInfo(itemID, success)
@@ -1378,6 +1382,12 @@ end
 
 function LST:AddVestigeToRestock(rank, itemID) 
 	if(rank < 3 or rank > 6) then return false end;
+	if(IsTSMLoaded == false or LST.db.profile.settings.showPricing == false) then
+		if(rank == 5 or rank == 6 ) then 
+			NumVestigesToCraft[LegendaryItemData[itemID]["profession"]] = NumVestigesToCraft[LegendaryItemData[itemID]["profession"]] + 1;
+			return true;
+		else return false end;
+	end;
 	local unlockedRank, crafter = LST:GetUnlockedCraftRank(itemID);
 	if(crafter == nil) then
 		print(L["error_unknown_crafter"] .. itemID);
@@ -1553,17 +1563,44 @@ function LST:CreateMaterialRestockListSheet(frame)
 		end
 		local numMissing = MaterialRestockList[materialID] - numOwned;
 		if(numMissing < 0) then numMissing = 0; end; 
+		
+		local itemText = ""
+		if(LST.db.factionrealm.recipeData.materialList[materialID] ~= nil and LST.db.factionrealm.recipeData.materialList[materialID].itemName ~= nil and LST.db.factionrealm.recipeData.materialList[materialID].itemQuality ~= nil) then
+			local r, g, b, hex = GetItemQualityColor(LST.db.factionrealm.recipeData.materialList[materialID].itemQuality)
+			itemText = "|c" .. hex .. LST.db.factionrealm.recipeData.materialList[materialID].itemName
+		else
+			print(L["error_missing_material_info"])
+			if(LST.db.factionrealm.recipeData.materialList[materialID] ~= nil) then
+				itemText = LST.db.factionrealm.recipeData.materialList[materialID]; --show legacy data if present
+			end
+			LST:UpdateMaterialInfo(materialID);
+		end
 		row = 
 		{
-			LST:CreateTableElement(frame, LST.db.factionrealm.recipeData.materialList[materialID], 1, 1, 1, 1),
+			LST:CreateTableElement(frame, itemText, 1, 1, 1, 1),
 			LST:CreateTableElement(frame, MaterialRestockList[materialID], 1, 1, 1, 1),
 			LST:CreateTableElement(frame, numOwned, 1, 1, 1, 1),
 			LST:CreateTableElement(frame, numMissing, 1, 1, 1, 1)
-			--LST:CreateTableElement(frame, LST:RoundToInt(MaterialRestockList[i]["profitPercentage"]) .. "%", 1, 1, 1, 1)
 		}
 		table.insert(sheet, row)
 	end
 	LST:CreateFrameSheet(frame, sheet, 4)
+end
+
+function LST:UpdateMaterialInfo(materialID)
+	local currentData = LST.db.factionrealm.recipeData.materialList[materialID];
+	if(currentData == nil or currentData["itemName"] == nil or currentData["itemLink"] == nil or currentData["itemQuality"] == nil or currentData["itemIcon"] == nil) then
+		local item = Item:CreateFromItemID(tonumber(materialID));
+
+		item:ContinueOnItemLoad(function()
+			local newData = {};
+			newData["itemName"] = item:GetItemName();
+			newData["itemLink"] = item:GetItemLink();
+			newData["itemQuality"] = item:GetItemQuality();
+			newData["itemIcon"] = item:GetItemIcon();
+			LST.db.factionrealm.recipeData.materialList[tostring(item:GetItemID())] = newData;
+		end)
+	end
 end
 
 function LST:GetUsesVestigeCheckmark(usesVestige)
@@ -2243,6 +2280,9 @@ function LST:OnItemLooted(_, lootstring, player, _, _, player2)
 end
 
 function LST:IsLootRelevant(itemID, itemLevel) 
+	if not restockFrame then
+		return nil
+	end
 	if(itemID == "185960") then -- vestige
 		local price, professionID = LST:GetCheapestVestige();
 		if(NumVestigesToCraft[professionID] ~= nil and NumVestigesToCraft[professionID] > 0) then
@@ -2346,7 +2386,7 @@ function LST:GetMaterialListFromRecipe(recipeID)
 			itemid = materialID,
 			numRequired = reagentNumRequired
 		}
-		LST.db.factionrealm.recipeData.materialList[materialID] = reagentName;
+		LST:UpdateMaterialInfo(materialID);
 	end
 	return materials;
 end
@@ -2477,9 +2517,9 @@ function LST:OnCommReceived(prefix, payload, distribution, sender)
 		table[char] = professions;
 	end
 	LST.db.factionrealm.recipeData.materialList = data.recipeData["materialList"];
-	for materialId, materialName in pairs(data.recipeData.materialList) do
-		LST.db.factionrealm.recipeData.materialList[materialId] = materialName;
-	end
+	--for materialId, materialName in pairs(data.recipeData.materialList) do
+	--	LST.db.factionrealm.recipeData.materialList[materialId] = materialName;
+	--end
 	for recipeID, recipeData in pairs(data.recipeData.recipes) do
 		LST.db.factionrealm.recipeData.recipes[recipeID] = recipeData;
 	end

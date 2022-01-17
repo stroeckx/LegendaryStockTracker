@@ -179,3 +179,4 @@ L["error_unknown_crafter"] = "LST: LST doesn't know which character can craft th
 L["error_crafter_can't_make_vestige"] = " doesn't have any professions to make a vestige. If this is wrong please log in on that character and resync lst data"
 L["error_please_resync"] = "LST is missing necessary sync data, please resync account with character "
 L["error_character_missing_data"] = "LST is missing necessary data, please update character "
+L["error_missing_material_info"] = "LST is missing material info, please open the material restock list again"
