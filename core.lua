@@ -28,7 +28,7 @@ local LstockLDB = LibStub("LibDataBroker-1.1"):NewDataObject("LegendaryStockTrac
   end
 })
 
-local LSTVersion = "v2.19.4"
+local LSTVersion = "v2.19.5"
 --local db = nil
 LST.db = nil
 local LstockIcon = LibStub("LibDBIcon-1.0")
@@ -1334,23 +1334,23 @@ function LST:AddItemToRestockList(itemID, rank, restockCount)
 		profit = localProfit, 
 		itemID = itemID,
 		profitPercentage = localProfitPercentage,
-		usesVestige = LST:AddVestigeToRestock(rank, itemID),
+		usesVestige = LST:AddVestigeToRestock(rank, itemID, restockCount),
 		profession = LegendaryItemData[itemID]["profession"]
 	}
 	if(LST:DoesThisCharacterHaveProfession(LegendaryItemData[itemID].profession) or LST.db.profile.settings.ShowOtherCraftersMaterialRestockList == true) then
 		if(itemToRestock.usesVestige == false) then
-			LST:AddMaterialsToMaterialRestockList(LST.db.factionrealm.recipeData.recipes[itemID]["ranks"][rank]);
+			LST:AddMaterialsToMaterialRestockList(LST.db.factionrealm.recipeData.recipes[itemID]["ranks"][rank], restockCount);
 		else
-			LST:AddMaterialsToMaterialRestockList(LST.db.factionrealm.recipeData.recipes[itemID]["ranks"][rank - 2]);
+			LST:AddMaterialsToMaterialRestockList(LST.db.factionrealm.recipeData.recipes[itemID]["ranks"][rank - 2], restockCount);
 		end
 	end
 	RestockList[itemID .. rank] = itemToRestock;
 end
 
-function LST:AddMaterialsToMaterialRestockList(table)
+function LST:AddMaterialsToMaterialRestockList(table, count)
 	for materialID, data in pairs(table) do
 		if(MaterialRestockList[materialID] == nil) then MaterialRestockList[materialID] = 0; end;
-		MaterialRestockList[materialID] = MaterialRestockList[materialID] + data["numRequired"];
+		MaterialRestockList[materialID] = MaterialRestockList[materialID] + (data["numRequired"] * count);
 	end
 end
 
@@ -1380,11 +1380,11 @@ function LST:RemoveVestigesFromMaterialList(numVestiges)
 	end
 end
 
-function LST:AddVestigeToRestock(rank, itemID) 
+function LST:AddVestigeToRestock(rank, itemID, count) 
 	if(rank < 3 or rank > 6) then return false end;
 	if(IsTSMLoaded == false or LST.db.profile.settings.showPricing == false) then
 		if(rank == 5 or rank == 6 ) then 
-			NumVestigesToCraft[LegendaryItemData[itemID]["profession"]] = NumVestigesToCraft[LegendaryItemData[itemID]["profession"]] + 1;
+			NumVestigesToCraft[LegendaryItemData[itemID]["profession"]] = NumVestigesToCraft[LegendaryItemData[itemID]["profession"]] + count;
 			return true;
 		else return false end;
 	end;
@@ -1400,12 +1400,12 @@ function LST:AddVestigeToRestock(rank, itemID)
 	end
 	if(rank == 3 or rank == 4) then
 		if(LST:IsVestigeCraftCheaper(itemID, rank) or unlockedRank < rank) then
-			NumVestigesToCraft[profession] = NumVestigesToCraft[profession] + 1;
+			NumVestigesToCraft[profession] = NumVestigesToCraft[profession] + count;
 			return true;
 		end
 	end
 	if(rank >= 5) then
-		NumVestigesToCraft[profession] = NumVestigesToCraft[profession] + 1;
+		NumVestigesToCraft[profession] = NumVestigesToCraft[profession] + count;
 		return true;
 	end
 	return false;
@@ -2010,6 +2010,7 @@ end
 
 function LST:GetCraftCostWithVestige(itemID, rank)
 	local vestigePrice, VestigeProfession = LST:GetCheapestVestige();
+	if(VestigeProfession == 0) then return L["not scanned"] end;
 	return LST:GetMaterialPriceSum(LST.db.factionrealm.recipeData.recipes[itemID]["ranks"][rank - 2]) + vestigePrice;
 end
 
@@ -2020,6 +2021,7 @@ function LST:IsVestigeCraftCheaper(itemID, rank)
 	else
 		local defaultCraftCost = LST:GetLSTCraftCostForLegendary(itemID, rank);
 		local vestigeCraftCost = LST:GetCraftCostWithVestige(itemID, rank)
+		if(vestigeCraftCost == L["not scanned"]) then return false end;
 		if(vestigeCraftCost < defaultCraftCost) then return true;
 		else return false end;
 	end
@@ -2056,6 +2058,7 @@ function LST:GetLSTCraftCostForLegendary(itemID, rank)
 end
 
 function LST:GetMaterialPriceSum(table)
+	if(table == nil) then return 0 end;
 	local price = 0;
 	for materialID, data in pairs(table) do
 		if(materialPrices[materialID] == nil) then
@@ -2075,11 +2078,11 @@ function LST:GetCheapestVestige()
 		else return 0,leggoProf2;
 		end
 	end
-	if (leggoProf1 ~= nil) then
+	if (leggoProf1 ~= nil and LST.db.factionrealm.recipeData.vestiges[leggoProf1] ~= nil) then
 		price = LST:GetMaterialPriceSum(LST.db.factionrealm.recipeData.vestiges[leggoProf1]);
 		professionID = leggoProf1;
 	end
-	if(leggoProf2 ~= nil) then
+	if(leggoProf2 ~= nil and LST.db.factionrealm.recipeData.vestiges[leggoProf2] ~= nil) then
 		local tempPrice = LST:GetMaterialPriceSum(LST.db.factionrealm.recipeData.vestiges[leggoProf2]);
 		if(tempPrice < price) then
 			price = LST:GetMaterialPriceSum(LST.db.factionrealm.recipeData.vestiges[leggoProf2]);
@@ -2120,6 +2123,10 @@ function LST:GetCheapestVestigeForCrafter(crafter)
 	if (prof1 ~= nil) then
 		price = LST:GetMaterialPriceSum(LST.db.factionrealm.recipeData.vestiges[prof1]);
 		professionID = prof1;
+		if(price == 0 or price == L["not scanned"]) then
+			price = 9999999;
+			professionID = 0;
+		end;
 	end
 	if(prof2 ~= nil) then
 		local tempPrice = LST:GetMaterialPriceSum(LST.db.factionrealm.recipeData.vestiges[prof2]);
@@ -2127,6 +2134,10 @@ function LST:GetCheapestVestigeForCrafter(crafter)
 			price = LST:GetMaterialPriceSum(LST.db.factionrealm.recipeData.vestiges[prof2]);
 			professionID = prof2;
 		end
+		if(price == 0 or price == L["not scanned"]) then
+			price = 9999999;
+			professionID = 0;
+		end;
 	end
 	return price, professionID;
 end
@@ -2439,7 +2450,6 @@ function LST:CraftNextRestockItem()
 		return nil 
 	end;
 	if(NumVestigesToCraft[openedProfession] > 0) then
-		--local vestigeProfession = select(2,LST:GetCheapestVestige());
 		local recipeID = SLProfessionsIds[openedProfession].VestigeID;
 		local recipeInfo = C_TradeSkillUI.GetRecipeInfo(recipeID, 1);
 		local availableCraftCount = recipeInfo["numAvailable"];
