@@ -30,6 +30,7 @@ function LST:SetRestockAmountByRank(r1, r2, r3, r4, r5, r6)
 		LST.db.profile.settings.restockAmountByRank[5] = r5;
 		LST.db.profile.settings.restockAmountByRank[6] = r6;
 	end
+	LST:PrintRestockAmountByRank();
 end
 
 function LST:PrintRestockAmountByRank()

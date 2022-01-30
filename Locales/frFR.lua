@@ -180,3 +180,4 @@ L["error_crafter_can't_make_vestige"] = " doesn't have any professions to make a
 L["error_please_resync"] = "LST is missing necessary sync data, please resync account with character "
 L["error_character_missing_data"] = "LST is missing necessary data, please update character "
 L["error_missing_material_info"] = "LST is missing material info, please open the material restock list again"
+L["error_ah_not_updated_after_posting"] = "LST : de nouvelles enchères ont été postées mais la liste de l'AH n'a pas été mise à jour, veuillez ouvrir l'AH pour mettre à jour le stock"

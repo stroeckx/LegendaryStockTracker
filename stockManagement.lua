@@ -2,6 +2,10 @@ local addonName, globalTable = ...
 local GUILD_BANK_SLOTS_PER_TAB = 98
 
 local vestigesInBags = 0;
+local isBankOpen = false;
+local isAhOpen = false;
+local areOwnedAuctionsUpdatedSinceCreation = true;
+local L = LibStub("AceLocale-3.0"):GetLocale("LegendaryStockTracker")
 
 local bagUpdateCount = 0;
 function LST:GetAllItemsInBags()
@@ -75,20 +79,45 @@ function LST:GetAllItemsInBank(event)
     isBankOpen = isBankOpenAfterThisFrame;
 end
 
+function LST:OnAhOpened()
+	isAhOpen = true;
+end
+
+function LST:OnAhClosed()
+	if(areOwnedAuctionsUpdatedSinceCreation == false and isAhOpen == true) then
+		print(L["error_ah_not_updated_after_posting"]);
+	end
+	isAhOpen = false;
+end
+
+function LST:OnOwnedAuctionsUpdated()
+	areOwnedAuctionsUpdatedSinceCreation = true;
+	LST:GetAllItemsInAH();
+end
+
 function LST:GetAllItemsInAH()
-	if(C_AuctionHouse.GetNumOwnedAuctions() ~= 0) then
+	if(isAhOpen and C_AuctionHouse.GetNumOwnedAuctions() ~= nil) then
 		LST.db.factionrealm.characters[LST.playerName].ahItemLegendaryLinks = {}
 		LST.db.factionrealm.characters[LST.playerName].ahItemLegendaryCount = 0
 		local numOwnedAuctions = C_AuctionHouse.GetNumOwnedAuctions()
 		for i=1, numOwnedAuctions do
-			local auctionInfo = C_AuctionHouse.GetOwnedAuctionInfo(i)
-			if(auctionInfo.status == 0) then 
-                local itemLink = auctionInfo.itemLink;
-                if(LST:IsItemASLLegendary(itemLink) == true) then
-					LST.db.factionrealm.characters[LST.playerName].ahItemLegendaryLinks[#LST.db.factionrealm.characters[LST.playerName].ahItemLegendaryLinks + 1] = itemLink;
-				    LST.db.factionrealm.characters[LST.playerName].ahItemLegendaryCount = LST.db.factionrealm.characters[LST.playerName].ahItemLegendaryCount + 1;
-                end
-			end
+			LST:CheckOwnedAuction(i);
+		end
+	end
+end
+
+function LST:OnAuctionCreated(event, auctionID)
+	--LST:CheckOwnedAuction(auctionID);
+	areOwnedAuctionsUpdatedSinceCreation = false;
+end
+
+function LST:CheckOwnedAuction(auctionID)
+	local auctionInfo = C_AuctionHouse.GetOwnedAuctionInfo(auctionID);
+	if(auctionInfo.status == 0) then 
+		local itemLink = auctionInfo.itemLink;
+		if(LST:IsItemASLLegendary(itemLink) == true) then
+			LST.db.factionrealm.characters[LST.playerName].ahItemLegendaryLinks[#LST.db.factionrealm.characters[LST.playerName].ahItemLegendaryLinks + 1] = itemLink;
+			LST.db.factionrealm.characters[LST.playerName].ahItemLegendaryCount = LST.db.factionrealm.characters[LST.playerName].ahItemLegendaryCount + 1;
 		end
 	end
 end

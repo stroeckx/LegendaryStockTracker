@@ -28,7 +28,7 @@ local LstockLDB = LibStub("LibDataBroker-1.1"):NewDataObject("LegendaryStockTrac
   end
 })
 
-local LSTVersion = "v2.19.5"
+local LSTVersion = "v2.19.6"
 --local db = nil
 LST.db = nil
 local LstockIcon = LibStub("LibDBIcon-1.0")
@@ -43,7 +43,6 @@ local materialRestockListFrame = nil;
 
 --all collections of items are stored separately for future expandability
 LST.legendaryLinks = {}
-local isBankOpen = false
 local PriceDataByRank = {}
 local materialPrices = {}
 local Rank1BonusIDs = "::2:1487:6716"
@@ -266,7 +265,10 @@ function LST:OnInitialize()
 	LST:RegisterChatCommand("lstsenddata", "SendDataToPlayerCommand")
 	--events
 	LST:RegisterEvent("BANKFRAME_OPENED", "GetAllItemsInBank")
-	LST:RegisterEvent("OWNED_AUCTIONS_UPDATED", "GetAllItemsInAH")
+	LST:RegisterEvent("OWNED_AUCTIONS_UPDATED", "OnOwnedAuctionsUpdated")
+	LST:RegisterEvent("AUCTION_HOUSE_SHOW", "OnAhOpened")
+	LST:RegisterEvent("AUCTION_HOUSE_CLOSED", "OnAhClosed")
+	LST:RegisterEvent("AUCTION_HOUSE_AUCTION_CREATED", "OnAuctionCreated")
 	LST:RegisterEvent("MAIL_INBOX_UPDATE", "GetAllItemsInMailbox")
 	LST:RegisterEvent("MAIL_CLOSED", "GetAllItemsInMailbox")
 	LST:RegisterEvent("GUILDBANKFRAME_CLOSED", "GetAllItemsInGuildBank")
@@ -482,9 +484,9 @@ function LST:UpdateRestock()
 end
 
 function LST:UpdateAllAvailableItemSources()
-	LST:GetAllItemsInAH()
+	LST:GetAllItemsInAH();
 	LST:GetAllItemsInBags();
-	LST:GetAllItemsInBank() --if the bank is open at the time of command, update bank as well
+	LST:GetAllItemsInBank(); --if the bank is open at the time of command, update bank as well
 	--LST:GetAllItemsInAH() auctions specifically not updated on command, as we don't know if the ah is closed or the player has no auctions. relying on OWNED_AUCTIONS_UPDATED to update those.
 	--LST:GetAllItemsInMailbox() mailbox is updated anytime the mailbox is updated, no need to update on command 
 	--LST:GetAllItemsInGuildBank()
@@ -1870,6 +1872,9 @@ end
 
 function LST:GetMinProfit(price, itemID)
 	local minProfit = 1;
+	if(price == L["not scanned"]) then 
+		price = 1;
+	end
 	if(LST.db.profile.settings.UsePercentages == true) then
 		if(LST:IsRecipeMaxLevel(itemID) == true) then
 			minProfit = (tonumber(LST.db.profile.settings.percentageMinProfit) / 100) * price;
@@ -1976,7 +1981,12 @@ function LST:GetMinBuyoutMinusAuctionOpMin(name, rank, useSubTsmCraftCost)
 		return L["not scanned"];
 	end
 	if(useSubTsmCraftCost == true) then
-		return tonumber(PriceDataByRank[name][rank]["dbminbuyout"] - LST:GetCraftCost(name, rank));
+		local craftCost = LST:GetCraftCost(name, rank);
+		if(craftCost == L["not scanned"]) then
+			return L["not scanned"];
+		else
+			return tonumber(PriceDataByRank[name][rank]["dbminbuyout"] - craftCost);
+		end
 	else
 		return tonumber(PriceDataByRank[name][rank]["dbminbuyout"] - PriceDataByRank[name][rank]["craftCost"]);
 	end
@@ -2326,6 +2336,7 @@ function LST:CheckForRestockUpdate(itemID, rank)
 	if(RestockList[itemID..rank] ~= nil) then
 		RestockList[itemID..rank].amountToRestock = RestockList[itemID..rank].amountToRestock - 1;
 		if(RestockList[itemID..rank].amountToRestock <= 0) then RestockList[itemID..rank] = nil end;
+		LST:UpdateSortedRestockList();
 		if(LST:DoesThisCharacterHaveProfession(LegendaryItemData[itemID].profession)) then
 			if(rank <= 4) then
 				LST:RemoveMaterialsFromRestockList(LST.db.factionrealm.recipeData.recipes[itemID]["ranks"][rank]);
