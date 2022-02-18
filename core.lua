@@ -28,7 +28,7 @@ local LstockLDB = LibStub("LibDataBroker-1.1"):NewDataObject("LegendaryStockTrac
   end
 })
 
-local LSTVersion = "v2.19.6"
+local LSTVersion = "v2.19.7"
 --local db = nil
 LST.db = nil
 local LstockIcon = LibStub("LibDBIcon-1.0")
@@ -1271,7 +1271,7 @@ function LST:UpdateRestockList()
 	restockAmount[6] = tonumber(LST.db.profile.settings.restockAmountByRank[6]);
 	for item=1, #nameTable do
 		for rank=1, numRanks do
-			if(not LST.db.profile.settings.onlyRestockCraftable or (LST.db.profile.settings.onlyRestockCraftable and LST:CanCraft(nameTable[item], rank)) and LST.db.profile.settings.IsRankEnabled[rank] == true) then
+			if((not LST.db.profile.settings.onlyRestockCraftable or (LST.db.profile.settings.onlyRestockCraftable and LST:CanCraft(nameTable[item], rank))) and LST.db.profile.settings.IsRankEnabled[rank] == true) then
 				local currentStock = tonumber(LST:GetStockCount(nameTable[item], rank))
 				if currentStock < restockAmount[rank] and restockAmount[rank] - currentStock >= tonumber(LST.db.profile.settings.minrestockAmount) then 
 					if(IsTSMLoaded == false or LST.db.profile.settings.showPricing == false) then
@@ -2288,7 +2288,7 @@ function LST:OnItemAdded(self, event, itemKey)
 end
 
 function LST:OnItemLooted(_, lootstring, player, _, _, player2)
-	if ((UnitName("player") .. "-" .. GetRealmName()) == player) then 
+	if ((UnitName("player") .. "-" .. GetNormalizedRealmName()) == player) then 
 		local itemLink = string.match(lootstring,"|%x+|Hitem:.-|h.-|h|r");
 		if(itemLink == nil) then return; end;
 		local itemString = string.match(itemLink, "item[%-?%d:]+");
@@ -2300,7 +2300,7 @@ function LST:OnItemLooted(_, lootstring, player, _, _, player2)
 	end
 end
 
-function LST:IsLootRelevant(itemID, itemLevel) 
+function LST:IsLootRelevant(itemID, itemLevel)
 	if not restockFrame then
 		return nil
 	end
