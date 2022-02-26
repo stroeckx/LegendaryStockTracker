@@ -1,7 +1,11 @@
 local addonName, globalTable = ...
 local GUILD_BANK_SLOTS_PER_TAB = 98
 
-local vestigesInBags = 0;
+local vestigesInBags =
+{
+	["185960"] = 0,
+	["187784"] = 0
+}
 local isBankOpen = false;
 local isAhOpen = false;
 local areOwnedAuctionsUpdatedSinceCreation = true;
@@ -12,7 +16,11 @@ function LST:GetAllItemsInBags()
 	bagUpdateCount = bagUpdateCount + 1;
 	LST.db.factionrealm.characters[LST.playerName].bagItemLegendaryLinks = {}
 	LST.db.factionrealm.characters[LST.playerName].bagItemLegendaryCount = 0
-	vestigesInBags = 0;
+	vestigesInBags =
+	{
+		["185960"] = 0,
+		["187784"] = 0
+	}
     for bag=0,NUM_BAG_SLOTS do
         for slot=1,GetContainerNumSlots(bag) do
 			if not (GetContainerItemID(bag,slot) == nil) then 
@@ -21,20 +29,20 @@ function LST:GetAllItemsInBags()
                 if(LST:IsItemASLLegendary(itemLink) == true) then
 				    LST.db.factionrealm.characters[LST.playerName].bagItemLegendaryLinks[#LST.db.factionrealm.characters[LST.playerName].bagItemLegendaryLinks + 1] = itemLink;
 				    LST.db.factionrealm.characters[LST.playerName].bagItemLegendaryCount = LST.db.factionrealm.characters[LST.playerName].bagItemLegendaryCount + 1;
-				elseif(itemID == "185960") then
-					vestigesInBags = vestigesInBags + select(2,GetContainerItemInfo(bag,slot));
+				elseif(itemID == LST.VestigeOfOriginID) then
+					vestigesInBags[LST.VestigeOfOriginID] = vestigesInBags[LST.VestigeOfOriginID] + select(2,GetContainerItemInfo(bag,slot));
                 end
 			end
         end
 	end
 end
 
-function LST:GetVestigesInBags()
-	return vestigesInBags;
+function LST:GetVestigesInBags(reagentID)
+	return vestigesInBags[reagentID];
 end
 
-function LST:AddVestigeToCount()
-	vestigesInBags = vestigesInBags + 1;
+function LST:AddVestigeToCount(reagentID)
+	vestigesInBags[reagentID] = vestigesInBags[reagentID] + 1;
 end
 
 function LST:GetAllItemsInBank(event)

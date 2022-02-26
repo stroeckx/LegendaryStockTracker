@@ -1,9 +1,9 @@
-## Interface: 90105
+## Interface: 90200
 ## Title: LegendaryStockTracker
 ## Notes: Helps keeping track of your stock of shadowlands legendaries
 ## Author: Stroeckx
 ## Contributors: Bullseye, Andran, Voldoroc
-## Version: v2.19.7
+## Version: v2.20
 ## SavedVariables: LegendaryStockTrackerDB
 ## OptionalDeps: TradeSkillMaster
 
@@ -30,4 +30,5 @@ init.lua
 settings.lua
 UIComponents.lua
 stockManagement.lua
+CraftPricing.lua
 core.lua

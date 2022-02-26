@@ -61,6 +61,8 @@ L["Total (min price): "] =  "Total (prix min.): "
 L["Total per rank (profit): "] =  "Total par rang (profit): "
 L["Total per rank (min price): "] =  "Total par rang (prix min): "
 L["Vestige"] = "Vestige"
+L["185960"] = "Vestige of Origins"
+L["187784"] = "Vestige of Eternal"
 
 -- Export Frame
 L["Paste this data into your copy of the spreadsheet"] = "Coller les données dans votre copie du tableur"
@@ -89,6 +91,7 @@ L["Restock domination slots"] = "Réapprovisionnement des créneaux de dominatio
 L["Show ranks"] = "Afficher les rangs: "
 L["Show other crafters items in material list"] = "Afficher les articles d'autres artisans dans la liste des matériaux"
 L["Use TSM Material Counts"] = "Utiliser les comptages de matériaux TSM"
+L["LST restock amounts"] = "LST Paramètres actuels de réapprovisionnement: "
 
 -- Minimap Icon
 L["Click or type /lst to show the main panel"] =  "Cliquer ou saisir /lst pour montrer le panneau principal"
@@ -100,8 +103,8 @@ L["Mail: "] = "Mail: "
 L["Guild: "] = "Guilde: "
 
 -- Data Export
-L["Item name, Rank 1, Rank 2, Rank 3, Rank 4, Rank 5, Rank 6\n"] = "Nom de l'objet, Rank 1, Rank 2, Rank 3, Rank 4, Rank 5, Rank 6\n"
-L["Item name, Rank 1, Profit Rank 1, Rank 2, Profit Rank 2, Rank 3, Profit Rank 3, Rank 4, Profit Rank 4, Rank 5, Profit Rank 5, Rank 6, Profit Rank 6\n"] = "Nom de l'objet, Rank 1, Profit Rank 1, Rank 2, Profit Rank 2, Rank 3, Profit Rank 3, Rank 4, Profit Rank 4, Rank 5, Profit Rank 5, Rank 6, Profit Rank 6\n"
+L["Item name, Rank 1, Rank 2, Rank 3, Rank 4, Rank 5, Rank 6\n"] = "Nom de l'objet, Rank 1, Rank 2, Rank 3, Rank 4, Rank 5, Rank 6, Rank 7\n"
+L["Item name, Rank 1, Profit Rank 1, Rank 2, Profit Rank 2, Rank 3, Profit Rank 3, Rank 4, Profit Rank 4, Rank 5, Profit Rank 5, Rank 6, Profit Rank 6\n"] = "Nom de l'objet, Rank 1, Profit Rank 1, Rank 2, Profit Rank 2, Rank 3, Profit Rank 3, Rank 4, Profit Rank 4, Rank 5, Profit Rank 5, Rank 6, Profit Rank 6, Rank 7, Profit Rank 7\n"
 
 -- Table view
 L["Item name"] = "Nom de l'objet"
@@ -117,12 +120,14 @@ L["R3"] = "R3"
 L["R4"] = "R4"
 L["R5"] = "R5"
 L["R6"] = "R6"
+L["R7"] = "R7"
 L["Profit R1"] = "Profit R1"
 L["Profit R2"] = "Profit R2"
 L["Profit R3"] = "Profit R3"
 L["Profit R4"] = "Profit R4"
 L["Profit R5"] = "Profit R5"
 L["Profit R6"] = "Profit R6"
+L["Profit R7"] = "Profit R7"
 
 -- Restock
 L["Item"] = "Objet"
