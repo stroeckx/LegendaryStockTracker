@@ -3,7 +3,7 @@
 ## Notes: Helps keeping track of your stock of shadowlands legendaries
 ## Author: Stroeckx
 ## Contributors: Bullseye, Andran, Voldoroc
-## Version: v2.20
+## Version: v2.20.1
 ## SavedVariables: LegendaryStockTrackerDB
 ## OptionalDeps: TradeSkillMaster
 
@@ -31,4 +31,5 @@ settings.lua
 UIComponents.lua
 stockManagement.lua
 CraftPricing.lua
+Extensions.lua
 core.lua
