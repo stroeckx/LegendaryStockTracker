@@ -28,7 +28,7 @@ local LstockLDB = LibStub("LibDataBroker-1.1"):NewDataObject("LegendaryStockTrac
   end
 })
 
-local LSTVersion = "v2.20.1"
+local LSTVersion = "v2.20.2"
 --local db = nil
 LST.db = nil
 local LstockIcon = LibStub("LibDBIcon-1.0")
@@ -107,7 +107,7 @@ local fontStringPool = nil;
 local backgroundLinePool = nil;
 local RestockList = {};
 local SortedRestockList = {};
-local MaterialRestockList = {};
+LST.MaterialRestockList = {};
 
 LST.VestigeOfOriginID = "185960";
 LST.VestigeOfEternalID = "187784";
@@ -683,7 +683,7 @@ function LST:GetMainFrame(parent)
 		heightOffset = LST:AddOptionCheckbox("onlyRestockCraftableEditBox", LSTSettingsScrollChild, "onlyRestockCraftable", L["Only restock items I can craft"], heightOffset, 25)
 		heightOffset = LST:AddOptionCheckbox("restockDominationSlotsCheckBox", LSTSettingsScrollChild, "restockDominationSlots", L["Restock domination slots"], heightOffset, 25)
 		heightOffset = LST:AddOptionCheckboxList("IsRankEnabledCheckBoxList", LSTSettingsScrollChild, "IsRankEnabled", L["Show ranks"], heightOffset, {L["R1"], L["R2"], L["R3"], L["R4"], L["R5"], L["R6"], L["R7"]}, 7)
-		heightOffset = LST:AddOptionCheckbox("ShowOtherCraftersMaterialRestockListCheckBox", LSTSettingsScrollChild, "ShowOtherCraftersMaterialRestockList", L["Show other crafters items in material list"], heightOffset, 25)
+		heightOffset = LST:AddOptionCheckbox("ShowOtherCraftersCheckBox", LSTSettingsScrollChild, "ShowOtherCraftersMaterialRestockList", L["Show other crafters items in material list"], heightOffset, 25)
 		heightOffset = LST:AddOptionCheckbox("UseTSMMaterialCountsCheckBox", LSTSettingsScrollChild, "UseTSMMaterialCounts", L["Use TSM Material Counts"], heightOffset, 25)
 		--heightOffset = LST:AddDropdownMenu("LSTPriceSourceDropdown", LSTSettingsScrollChild, heightOffset);
 		heightOffset = heightOffset - 25
@@ -1286,7 +1286,7 @@ end
 
 function LST:UpdateRestockList()
 	RestockList = {};
-	MaterialRestockList = {};
+	LST.MaterialRestockList = {};
 	local nameTable = LST:createNameTable();
 	local restockAmount = {};
 	NumReagentsToCraft = 
@@ -1404,15 +1404,15 @@ end
 
 function LST:AddMaterialsToMaterialRestockList(table, count)
 	for materialID, data in pairs(table) do
-		if(MaterialRestockList[materialID] == nil) then MaterialRestockList[materialID] = 0; end;
-		MaterialRestockList[materialID] = MaterialRestockList[materialID] + (data["numRequired"] * count);
+		if(LST.MaterialRestockList[materialID] == nil) then LST.MaterialRestockList[materialID] = 0; end;
+		LST.MaterialRestockList[materialID] = LST.MaterialRestockList[materialID] + (data["numRequired"] * count);
 	end
 end
 
 function LST:RemoveMaterialsFromRestockList(table)
 	for materialID, data in pairs(table) do
-		MaterialRestockList[materialID] = MaterialRestockList[materialID] - data["numRequired"];
-		if(MaterialRestockList[materialID] == 0) then MaterialRestockList[materialID] = nil; end;
+		LST.MaterialRestockList[materialID] = LST.MaterialRestockList[materialID] - data["numRequired"];
+		if(LST.MaterialRestockList[materialID] == 0) then LST.MaterialRestockList[materialID] = nil; end;
 	end
 end
 
@@ -1420,8 +1420,8 @@ function LST:AddReagentToMaterialList(numVestiges, vestigeProfession, vestigeID)
 	if(numVestiges <= 0) then return; end;
 	if(LST:DoesThisCharacterHaveProfession(vestigeProfession) == false and LST.db.profile.settings.ShowOtherCraftersMaterialRestockList == false) then return; end;
 	for materialID, data in pairs(LST.db.factionrealm.recipeData.OptionalReagents[vestigeID][vestigeProfession]) do
-		if(MaterialRestockList[materialID] == nil) then MaterialRestockList[materialID] = 0; end;
-		MaterialRestockList[materialID] = MaterialRestockList[materialID] + (data["numRequired"] * numVestiges);
+		if(LST.MaterialRestockList[materialID] == nil) then LST.MaterialRestockList[materialID] = 0; end;
+		LST.MaterialRestockList[materialID] = LST.MaterialRestockList[materialID] + (data["numRequired"] * numVestiges);
 	end
 end
 
@@ -1430,8 +1430,8 @@ function LST:RemoveReagentFromMaterialList(numVestiges, professionID, vestigeID)
 	local _, vestigeProfession = LST:GetCheapestReagentProfession(LST.VestigeOfOriginID);
 	if(LST:DoesThisCharacterHaveProfession(vestigeProfession) == false) then return; end;
 	for materialID, data in pairs(LST.db.factionrealm.recipeData.OptionalReagents[vestigeID][vestigeProfession]) do
-		MaterialRestockList[materialID] = MaterialRestockList[materialID] - (data["numRequired"] * numVestiges);
-		if(MaterialRestockList[materialID] == 0) then MaterialRestockList[materialID] = nil; end;
+		LST.MaterialRestockList[materialID] = LST.MaterialRestockList[materialID] - (data["numRequired"] * numVestiges);
+		if(LST.MaterialRestockList[materialID] == 0) then LST.MaterialRestockList[materialID] = nil; end;
 	end
 end
 
@@ -1635,7 +1635,7 @@ function LST:CreateMaterialRestockListSheet(frame)
 	local sheet = {}
 	local titles = {LST:CreateTableTitle(frame, L["Item"]), LST:CreateTableTitle(frame, L["needed"]), LST:CreateTableTitle(frame, L["available"]), LST:CreateTableTitle(frame, L["missing"])}--, LST:CreateTableTitle(frame, L["Profit"] .. " (%)")}
 	table.insert(sheet, titles)
-	for materialID, count in pairs(MaterialRestockList) do
+	for materialID, count in pairs(LST.MaterialRestockList) do
 		local numOwned = 0;
 		if(LST.db.profile.settings.UseTSMMaterialCounts == true) then
 			local num1, num2, num3, num4 = TSM_API.GetPlayerTotals("i:" .. materialID);
@@ -1644,7 +1644,7 @@ function LST:CreateMaterialRestockListSheet(frame)
 		else
 			numOwned = GetItemCount(materialID, true, false, true);
 		end
-		local numMissing = MaterialRestockList[materialID] - numOwned;
+		local numMissing = LST.MaterialRestockList[materialID] - numOwned;
 		if(numMissing < 0) then numMissing = 0; end; 
 		
 		local itemText = ""
@@ -1661,7 +1661,7 @@ function LST:CreateMaterialRestockListSheet(frame)
 		row = 
 		{
 			LST:CreateTableElement(frame, itemText, 1, 1, 1, 1),
-			LST:CreateTableElement(frame, MaterialRestockList[materialID], 1, 1, 1, 1),
+			LST:CreateTableElement(frame, LST.MaterialRestockList[materialID], 1, 1, 1, 1),
 			LST:CreateTableElement(frame, numOwned, 1, 1, 1, 1),
 			LST:CreateTableElement(frame, numMissing, 1, 1, 1, 1)
 		}
@@ -2129,7 +2129,7 @@ function LST:UpdateTsmPrices(itemName, rank)
 		craftCost = LST:RoundToInt(craftCost);
 	end
 	ItemPrices[rank]["craftCost"] = craftCost;
-	if(ItemPrices[rank]["dbminbuyout"] == nil or ItemPrices[rank]["dbminbuyout"] == 0) then
+	if(ItemPrices[rank]["dbminbuyout"] == nil or ItemPrices[rank]["dbminbuyout"] == 0 or (rank == 7 and ItemPrices[rank]["dbminbuyout"] < LST:ConvertTsmPriceToValue(TSM_API.GetCustomPriceValue("DBMarket", "i:187707")))) then
 		ItemPrices[rank]["dbminbuyout"] = LST:ConvertTsmPriceToValue(TSM_API.GetCustomPriceValue("AuctioningOpNormal", tsmString));
 	end
 	if(ItemPrices[rank]["dbminbuyout"] == nil or ItemPrices[rank]["craftCost"] == nil) then
@@ -2261,7 +2261,7 @@ function LST:IsLootRelevant(itemID, itemLevel)
 			LST:CheckForRestockUpdate(itemID, LST:GetLegendaryRankByItemLevel(itemLevel));
 		end
 		return true;
-	elseif(MaterialRestockList[itemID] ~= nil) then
+	elseif(LST.MaterialRestockList[itemID] ~= nil) then
 		if(materialRestockListFrame:IsVisible()) then
 			ShouldUpdateMaterialListOnBagUpdate = true;
 		end
