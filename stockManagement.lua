@@ -31,6 +31,8 @@ function LST:GetAllItemsInBags()
 				    LST.db.factionrealm.characters[LST.playerName].bagItemLegendaryCount = LST.db.factionrealm.characters[LST.playerName].bagItemLegendaryCount + 1;
 				elseif(itemID == LST.VestigeOfOriginID) then
 					vestigesInBags[LST.VestigeOfOriginID] = vestigesInBags[LST.VestigeOfOriginID] + select(2,GetContainerItemInfo(bag,slot));
+				elseif(itemID == LST.VestigeOfEternalID) then
+					vestigesInBags[LST.VestigeOfEternalID] = vestigesInBags[LST.VestigeOfEternalID] + select(2,GetContainerItemInfo(bag,slot));
                 end
 			end
         end
