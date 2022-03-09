@@ -28,7 +28,7 @@ local LstockLDB = LibStub("LibDataBroker-1.1"):NewDataObject("LegendaryStockTrac
   end
 })
 
-local LSTVersion = "v2.20.3"
+local LSTVersion = "v2.20.4"
 --local db = nil
 LST.db = nil
 local LstockIcon = LibStub("LibDBIcon-1.0")
@@ -1427,7 +1427,7 @@ end
 
 function LST:RemoveReagentFromMaterialList(numVestiges, professionID, vestigeID)
 	if(numVestiges <= 0) then return; end;
-	local _, vestigeProfession = LST:GetCheapestReagentProfession(LST.VestigeOfOriginID);
+	local _, vestigeProfession = LST:GetCheapestReagentProfession(vestigeID);
 	if(LST:DoesThisCharacterHaveProfession(vestigeProfession) == false) then return; end;
 	for materialID, data in pairs(LST.db.factionrealm.recipeData.OptionalReagents[vestigeID][vestigeProfession]) do
 		LST.MaterialRestockList[materialID] = LST.MaterialRestockList[materialID] - (data["numRequired"] * numVestiges);
@@ -2085,8 +2085,6 @@ function LST:UpdateMaterialPrices()
 	--isMaterialPriceUpdated = true;
 end
 
-
-
 function LST:UpdateTsmPriceForAllRanks(itemName)
 	LST:UpdateTsmPrices(itemName, 1)
 	LST:UpdateTsmPrices(itemName, 2)
@@ -2487,8 +2485,8 @@ function LST:OnCommReceived(prefix, payload, distribution, sender)
 	for recipeID, recipeData in pairs(data.recipeData.recipes) do
 		LST.db.factionrealm.recipeData.recipes[recipeID] = recipeData;
 	end
-	for professionID, vestigeData in pairs(data.recipeData.vestiges) do
-		LST.db.factionrealm.recipeData.OptionalReagents[LST.VestigeOfOriginID][professionID] = vestigeData;
+	for vestigeID, data in pairs(data.recipeData.OptionalReagents) do
+		LST.db.factionrealm.recipeData.OptionalReagents[vestigeID] = data;
 	end
 end
 
