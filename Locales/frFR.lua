@@ -87,11 +87,11 @@ L["Include Synced Data"] = "Inclure les données synchronisées"
 L["Send data to this alt"] = "Send data to this alt"
 L["clear cache"] = "effacer le cache"
 L["LST: Cleared item cache"] = "LST: Effacement du cache des éléments"
-L["Restock domination slots"] = "Réapprovisionnement des créneaux de domination"
 L["Show ranks"] = "Afficher les rangs: "
 L["Show other crafters items in material list"] = "Afficher les articles d'autres artisans dans la liste des matériaux"
 L["Use TSM Material Counts"] = "Utiliser les comptages de matériaux TSM"
 L["LST restock amounts"] = "LST Paramètres actuels de réapprovisionnement: "
+L["Show other crafters in restock list"] = "Montrer les autres artisans dans la liste de réapprovisionnement"
 
 -- Minimap Icon
 L["Click or type /lst to show the main panel"] =  "Cliquer ou saisir /lst pour montrer le panneau principal"

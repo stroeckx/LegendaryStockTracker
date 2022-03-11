@@ -28,7 +28,7 @@ local LstockLDB = LibStub("LibDataBroker-1.1"):NewDataObject("LegendaryStockTrac
   end
 })
 
-local LSTVersion = "v2.20.4"
+local LSTVersion = "v2.20.5"
 --local db = nil
 LST.db = nil
 local LstockIcon = LibStub("LibDBIcon-1.0")
@@ -55,41 +55,41 @@ LST.Rank7BonusIDs = "::2:1588:7882"
 
 LST.LegendaryItemData = 
 {
-	["171419"] = {["profession"] = 1311, ["recipeUnlocked"] = 0, ["stock"] = {0,0,0,0,0,0,0}, ["recipeID"] = {0,0,0,0,0,0,0}, ["dominationSlot"] = true},
-	["171412"] = {["profession"] = 1311, ["recipeUnlocked"] = 0, ["stock"] = {0,0,0,0,0,0,0}, ["recipeID"] = {0,0,0,0,0,0,0}, ["dominationSlot"] = true},
-	["171414"] = {["profession"] = 1311, ["recipeUnlocked"] = 0, ["stock"] = {0,0,0,0,0,0,0}, ["recipeID"] = {0,0,0,0,0,0,0}, ["dominationSlot"] = true},
+	["171419"] = {["profession"] = 1311, ["recipeUnlocked"] = 0, ["stock"] = {0,0,0,0,0,0,0}, ["recipeID"] = {0,0,0,0,0,0,0}},
+	["171412"] = {["profession"] = 1311, ["recipeUnlocked"] = 0, ["stock"] = {0,0,0,0,0,0,0}, ["recipeID"] = {0,0,0,0,0,0,0}},
+	["171414"] = {["profession"] = 1311, ["recipeUnlocked"] = 0, ["stock"] = {0,0,0,0,0,0,0}, ["recipeID"] = {0,0,0,0,0,0,0}},
 	["171416"] = {["profession"] = 1311, ["recipeUnlocked"] = 0, ["stock"] = {0,0,0,0,0,0,0}, ["recipeID"] = {0,0,0,0,0,0,0}},
-	["171415"] = {["profession"] = 1311, ["recipeUnlocked"] = 0, ["stock"] = {0,0,0,0,0,0,0}, ["recipeID"] = {0,0,0,0,0,0,0}, ["dominationSlot"] = true},
-	["171417"] = {["profession"] = 1311, ["recipeUnlocked"] = 0, ["stock"] = {0,0,0,0,0,0,0}, ["recipeID"] = {0,0,0,0,0,0,0}, ["dominationSlot"] = true},
+	["171415"] = {["profession"] = 1311, ["recipeUnlocked"] = 0, ["stock"] = {0,0,0,0,0,0,0}, ["recipeID"] = {0,0,0,0,0,0,0}},
+	["171417"] = {["profession"] = 1311, ["recipeUnlocked"] = 0, ["stock"] = {0,0,0,0,0,0,0}, ["recipeID"] = {0,0,0,0,0,0,0}},
 	["171413"] = {["profession"] = 1311, ["recipeUnlocked"] = 0, ["stock"] = {0,0,0,0,0,0,0}, ["recipeID"] = {0,0,0,0,0,0,0}},
 	["171418"] = {["profession"] = 1311, ["recipeUnlocked"] = 0, ["stock"] = {0,0,0,0,0,0,0}, ["recipeID"] = {0,0,0,0,0,0,0}},
 	["178927"] = {["profession"] = 1418, ["recipeUnlocked"] = 0, ["stock"] = {0,0,0,0,0,0,0}, ["recipeID"] = {0,0,0,0,0,0,0}},
 	["178926"] = {["profession"] = 1418, ["recipeUnlocked"] = 0, ["stock"] = {0,0,0,0,0,0,0}, ["recipeID"] = {0,0,0,0,0,0,0}},
-	["173248"] = {["profession"] = 1395, ["recipeUnlocked"] = 0, ["stock"] = {0,0,0,0,0,0,0}, ["recipeID"] = {0,0,0,0,0,0,0}, ["dominationSlot"] = true},
-	["173249"] = {["profession"] = 1395, ["recipeUnlocked"] = 0, ["stock"] = {0,0,0,0,0,0,0}, ["recipeID"] = {0,0,0,0,0,0,0}, ["dominationSlot"] = true},
+	["173248"] = {["profession"] = 1395, ["recipeUnlocked"] = 0, ["stock"] = {0,0,0,0,0,0,0}, ["recipeID"] = {0,0,0,0,0,0,0}},
+	["173249"] = {["profession"] = 1395, ["recipeUnlocked"] = 0, ["stock"] = {0,0,0,0,0,0,0}, ["recipeID"] = {0,0,0,0,0,0,0}},
 	["173242"] = {["profession"] = 1395, ["recipeUnlocked"] = 0, ["stock"] = {0,0,0,0,0,0,0}, ["recipeID"] = {0,0,0,0,0,0,0}},
-	["173245"] = {["profession"] = 1395, ["recipeUnlocked"] = 0, ["stock"] = {0,0,0,0,0,0,0}, ["recipeID"] = {0,0,0,0,0,0,0}, ["dominationSlot"] = true},
+	["173245"] = {["profession"] = 1395, ["recipeUnlocked"] = 0, ["stock"] = {0,0,0,0,0,0,0}, ["recipeID"] = {0,0,0,0,0,0,0}},
 	["173244"] = {["profession"] = 1395, ["recipeUnlocked"] = 0, ["stock"] = {0,0,0,0,0,0,0}, ["recipeID"] = {0,0,0,0,0,0,0}},
 	["173246"] = {["profession"] = 1395, ["recipeUnlocked"] = 0, ["stock"] = {0,0,0,0,0,0,0}, ["recipeID"] = {0,0,0,0,0,0,0}},
-	["173241"] = {["profession"] = 1395, ["recipeUnlocked"] = 0, ["stock"] = {0,0,0,0,0,0,0}, ["recipeID"] = {0,0,0,0,0,0,0}, ["dominationSlot"] = true},
+	["173241"] = {["profession"] = 1395, ["recipeUnlocked"] = 0, ["stock"] = {0,0,0,0,0,0,0}, ["recipeID"] = {0,0,0,0,0,0,0}},
 	["173243"] = {["profession"] = 1395, ["recipeUnlocked"] = 0, ["stock"] = {0,0,0,0,0,0,0}, ["recipeID"] = {0,0,0,0,0,0,0}},
-	["173247"] = {["profession"] = 1395, ["recipeUnlocked"] = 0, ["stock"] = {0,0,0,0,0,0,0}, ["recipeID"] = {0,0,0,0,0,0,0}, ["dominationSlot"] = true},
+	["173247"] = {["profession"] = 1395, ["recipeUnlocked"] = 0, ["stock"] = {0,0,0,0,0,0,0}, ["recipeID"] = {0,0,0,0,0,0,0}},
 	["172321"] = {["profession"] = 1334, ["recipeUnlocked"] = 0, ["stock"] = {0,0,0,0,0,0,0}, ["recipeID"] = {0,0,0,0,0,0,0}},
-	["172316"] = {["profession"] = 1334, ["recipeUnlocked"] = 0, ["stock"] = {0,0,0,0,0,0,0}, ["recipeID"] = {0,0,0,0,0,0,0}, ["dominationSlot"] = true},
-	["172317"] = {["profession"] = 1334, ["recipeUnlocked"] = 0, ["stock"] = {0,0,0,0,0,0,0}, ["recipeID"] = {0,0,0,0,0,0,0}, ["dominationSlot"] = true},
+	["172316"] = {["profession"] = 1334, ["recipeUnlocked"] = 0, ["stock"] = {0,0,0,0,0,0,0}, ["recipeID"] = {0,0,0,0,0,0,0}},
+	["172317"] = {["profession"] = 1334, ["recipeUnlocked"] = 0, ["stock"] = {0,0,0,0,0,0,0}, ["recipeID"] = {0,0,0,0,0,0,0}},
 	["172318"] = {["profession"] = 1334, ["recipeUnlocked"] = 0, ["stock"] = {0,0,0,0,0,0,0}, ["recipeID"] = {0,0,0,0,0,0,0}},
-	["172319"] = {["profession"] = 1334, ["recipeUnlocked"] = 0, ["stock"] = {0,0,0,0,0,0,0}, ["recipeID"] = {0,0,0,0,0,0,0}, ["dominationSlot"] = true},
-	["172315"] = {["profession"] = 1334, ["recipeUnlocked"] = 0, ["stock"] = {0,0,0,0,0,0,0}, ["recipeID"] = {0,0,0,0,0,0,0}, ["dominationSlot"] = true},
-	["172314"] = {["profession"] = 1334, ["recipeUnlocked"] = 0, ["stock"] = {0,0,0,0,0,0,0}, ["recipeID"] = {0,0,0,0,0,0,0}, ["dominationSlot"] = true},
+	["172319"] = {["profession"] = 1334, ["recipeUnlocked"] = 0, ["stock"] = {0,0,0,0,0,0,0}, ["recipeID"] = {0,0,0,0,0,0,0}},
+	["172315"] = {["profession"] = 1334, ["recipeUnlocked"] = 0, ["stock"] = {0,0,0,0,0,0,0}, ["recipeID"] = {0,0,0,0,0,0,0}},
+	["172314"] = {["profession"] = 1334, ["recipeUnlocked"] = 0, ["stock"] = {0,0,0,0,0,0,0}, ["recipeID"] = {0,0,0,0,0,0,0}},
 	["172320"] = {["profession"] = 1334, ["recipeUnlocked"] = 0, ["stock"] = {0,0,0,0,0,0,0}, ["recipeID"] = {0,0,0,0,0,0,0}},
 	["172329"] = {["profession"] = 1334, ["recipeUnlocked"] = 0, ["stock"] = {0,0,0,0,0,0,0}, ["recipeID"] = {0,0,0,0,0,0,0}},
 	["172324"] = {["profession"] = 1334, ["recipeUnlocked"] = 0, ["stock"] = {0,0,0,0,0,0,0}, ["recipeID"] = {0,0,0,0,0,0,0}},
 	["172326"] = {["profession"] = 1334, ["recipeUnlocked"] = 0, ["stock"] = {0,0,0,0,0,0,0}, ["recipeID"] = {0,0,0,0,0,0,0}},
-	["172325"] = {["profession"] = 1334, ["recipeUnlocked"] = 0, ["stock"] = {0,0,0,0,0,0,0}, ["recipeID"] = {0,0,0,0,0,0,0}, ["dominationSlot"] = true},
-	["172327"] = {["profession"] = 1334, ["recipeUnlocked"] = 0, ["stock"] = {0,0,0,0,0,0,0}, ["recipeID"] = {0,0,0,0,0,0,0}, ["dominationSlot"] = true},
-	["172323"] = {["profession"] = 1334, ["recipeUnlocked"] = 0, ["stock"] = {0,0,0,0,0,0,0}, ["recipeID"] = {0,0,0,0,0,0,0}, ["dominationSlot"] = true},
-	["172322"] = {["profession"] = 1334, ["recipeUnlocked"] = 0, ["stock"] = {0,0,0,0,0,0,0}, ["recipeID"] = {0,0,0,0,0,0,0}, ["dominationSlot"] = true},
-	["172328"] = {["profession"] = 1334, ["recipeUnlocked"] = 0, ["stock"] = {0,0,0,0,0,0,0}, ["recipeID"] = {0,0,0,0,0,0,0}, ["dominationSlot"] = true}
+	["172325"] = {["profession"] = 1334, ["recipeUnlocked"] = 0, ["stock"] = {0,0,0,0,0,0,0}, ["recipeID"] = {0,0,0,0,0,0,0}},
+	["172327"] = {["profession"] = 1334, ["recipeUnlocked"] = 0, ["stock"] = {0,0,0,0,0,0,0}, ["recipeID"] = {0,0,0,0,0,0,0}},
+	["172323"] = {["profession"] = 1334, ["recipeUnlocked"] = 0, ["stock"] = {0,0,0,0,0,0,0}, ["recipeID"] = {0,0,0,0,0,0,0}},
+	["172322"] = {["profession"] = 1334, ["recipeUnlocked"] = 0, ["stock"] = {0,0,0,0,0,0,0}, ["recipeID"] = {0,0,0,0,0,0,0}},
+	["172328"] = {["profession"] = 1334, ["recipeUnlocked"] = 0, ["stock"] = {0,0,0,0,0,0,0}, ["recipeID"] = {0,0,0,0,0,0,0}}
 }
 local SLProfessionsIds =
 {
@@ -183,12 +183,12 @@ function LST:OnInitialize()
 				percentageMinProfitWhenLeveling = 1,
 				restockAmount = 1,
 				restockAmountByRank = {1,1,1,1,1,1,1},
-				IsRankEnabled = {true, true, true, true, true, true},
+				IsRankEnabled = {true, true, true, true, true, true, true},
 				minrestockAmount = 1,
 				syncTarget = "charactername",
 				onlyRestockCraftable = true,
+				ShowOtherCraftersInRestockList = true,
 				priceSource = L["LST Crafting"],
-				restockDominationSlots = true,
 				ShowOtherCraftersMaterialRestockList = false,
 				UseTSMMaterialCounts = false,
 			}
@@ -675,13 +675,12 @@ function LST:GetMainFrame(parent)
 				LST.db.profile.settings[cb.setting] = false;
 				LST:RebindOptionEditbox(minProfitEditBox, "minProfit");
 				LST:RebindOptionEditbox(minProfitWhenLevelingEditBox, "minProfitWhenLeveling");
-
 			end
 		end)
 		heightOffset = LST:AddOptionEditbox("RestockAmountEditBox", LSTSettingsScrollChild, "restockAmount", L["Restock amount"], heightOffset, 25)
 		heightOffset = LST:AddOptionEditbox("MinRestockAmountEditBox", LSTSettingsScrollChild, "minrestockAmount", L["Min restock amount"], heightOffset, 25)
 		heightOffset = LST:AddOptionCheckbox("onlyRestockCraftableEditBox", LSTSettingsScrollChild, "onlyRestockCraftable", L["Only restock items I can craft"], heightOffset, 25)
-		heightOffset = LST:AddOptionCheckbox("restockDominationSlotsCheckBox", LSTSettingsScrollChild, "restockDominationSlots", L["Restock domination slots"], heightOffset, 25)
+		heightOffset = LST:AddOptionCheckbox("ShowOtherCraftersInRestockListEditBox", LSTSettingsScrollChild, "ShowOtherCraftersInRestockList", L["Show other crafters in restock list"], heightOffset, 25)
 		heightOffset = LST:AddOptionCheckboxList("IsRankEnabledCheckBoxList", LSTSettingsScrollChild, "IsRankEnabled", L["Show ranks"], heightOffset, {L["R1"], L["R2"], L["R3"], L["R4"], L["R5"], L["R6"], L["R7"]}, 7)
 		heightOffset = LST:AddOptionCheckbox("ShowOtherCraftersCheckBox", LSTSettingsScrollChild, "ShowOtherCraftersMaterialRestockList", L["Show other crafters items in material list"], heightOffset, 25)
 		heightOffset = LST:AddOptionCheckbox("UseTSMMaterialCountsCheckBox", LSTSettingsScrollChild, "UseTSMMaterialCounts", L["Use TSM Material Counts"], heightOffset, 25)
@@ -1227,7 +1226,7 @@ function LST:CountLegendariesByRankWithoutSyncdata()
 		local itemID = select(3, strfind(LST.legendaryLinks[i], "item:(%d+)"));
 		local detailedItemLevel = GetDetailedItemLevelInfo(LST.legendaryLinks[i]);
 		if(detailedItemLevel == nil) then
-			print(L["Incorrect itemlevel data received for item "] .. itemID .. L[", skipping data for this rank."])
+			print(L["Incorrect itemlevel data received for item "] .. LST.LegendaryItemData[itemID]["name"] .. L[", skipping data for this rank."])
 			return;
 		end
 		local rank = LST:GetLegendaryRankByItemLevel(detailedItemLevel);
@@ -1259,21 +1258,21 @@ function LST:GetUnlockedCraftRank(itemID, includeSyncData)
 end
 
 function LST:CanCraft(itemID, rank)
-	local unlockedRank = LST:GetUnlockedCraftRank(itemID);
+	local unlockedRank, crafter = LST:GetUnlockedCraftRank(itemID);
 	if(unlockedRank >= rank) then 
-		return true;
+		return true, crafter;
 	end
 	if(LST.db.factionrealm.recipeData.OptionalReagents[LST.VestigeOfOriginID][LST.LegendaryItemData[itemID]["profession"]] ~= nil) then
 		if(unlockedRank + 2 >= rank) then 
-			return true;
+			return true, crafter;
 		end
 	end
 	if(LST.db.factionrealm.recipeData.OptionalReagents[LST.VestigeOfEternalID][LST.LegendaryItemData[itemID]["profession"]] ~= nil) then
 		if(unlockedRank + 3 >= rank) then 
-			return true;
+			return true, crafter;
 		end
 	end
-	return false;
+	return false, crafter;
 end
 
 function LST:IsRecipeMaxLevel(itemID)
@@ -1315,20 +1314,15 @@ function LST:UpdateRestockList()
 	restockAmount[7] = tonumber(LST.db.profile.settings.restockAmountByRank[7]);
 	for item=1, #nameTable do
 		for rank=1, numRanks do
-			if((not LST.db.profile.settings.onlyRestockCraftable or (LST.db.profile.settings.onlyRestockCraftable and LST:CanCraft(nameTable[item], rank))) and LST.db.profile.settings.IsRankEnabled[rank] == true) then
-				local currentStock = tonumber(LST:GetStockCount(nameTable[item], rank))
-				if currentStock < restockAmount[rank] and restockAmount[rank] - currentStock >= tonumber(LST.db.profile.settings.minrestockAmount) then 
-					if(IsTSMLoaded == false or LST.db.profile.settings.showPricing == false) then
-						LST:AddItemToRestockList(nameTable[item], rank, restockAmount[rank] - currentStock);
-					else
-						if(LST:GetProfit(nameTable[item], rank, true) ~= L["not scanned"] ) then
-							if(not LST.db.profile.settings.restockDominationSlots) then
-								if(not LST:IsDominationSlot(nameTable[item])) then
-									if tonumber(LST:GetProfit(nameTable[item], rank, true)) > LST:GetMinProfit(LST:GetCheapestCraftCost(nameTable[item], rank, true), nameTable[item]) then
-										LST:AddItemToRestockList(nameTable[item], rank, restockAmount[rank] - currentStock);
-									end
-								end	
-							else
+			local canCraft, crafter = LST:CanCraft(nameTable[item], rank)
+			if((not LST.db.profile.settings.onlyRestockCraftable or (LST.db.profile.settings.onlyRestockCraftable and canCraft)) and LST.db.profile.settings.IsRankEnabled[rank] == true) then
+				if LST.db.profile.settings.ShowOtherCraftersInRestockList == true or crafter == LST.playerName then
+					local currentStock = tonumber(LST:GetStockCount(nameTable[item], rank))
+					if currentStock < restockAmount[rank] and restockAmount[rank] - currentStock >= tonumber(LST.db.profile.settings.minrestockAmount) then 
+						if(IsTSMLoaded == false or LST.db.profile.settings.showPricing == false) then
+							LST:AddItemToRestockList(nameTable[item], rank, restockAmount[rank] - currentStock);
+						else
+							if(LST:GetProfit(nameTable[item], rank, true) ~= L["not scanned"] ) then
 								if tonumber(LST:GetProfit(nameTable[item], rank, true)) > LST:GetMinProfit(LST:GetCheapestCraftCost(nameTable[item], rank, true), nameTable[item]) then
 									LST:AddItemToRestockList(nameTable[item], rank, restockAmount[rank] - currentStock);
 								end
@@ -1995,15 +1989,7 @@ function LST:GetTableStockFont(rank, value, profit, price, itemID)
 	if(value < tonumber(LST.db.profile.settings.restockAmountByRank[rank])) then
 		if(LST.db.profile.settings.showPricing == true and profit ~= nil) then
 			if(tonumber(profit) > LST:GetMinProfit(price, itemID)) then 
-				if(LST.db.profile.settings.restockDominationSlots == true) then 
-					return 0, 0.75, 1, 1
-				else
-					if(LST:IsDominationSlot(itemID)) then
-						return 1, 1, 1, 1
-					else
-						return 0, 0.75, 1, 1
-					end
-				end
+				return 0, 0.75, 1, 1
 			else 
 				return 1, 1, 1, 1
 			end
@@ -2192,16 +2178,6 @@ function LST:GetStockCount(itemID, rank)
 	return count;
 end
 
-function LST:IsDominationSlot(itemID)
-	local isDominationSlot = false
-	if (LST.LegendaryItemData[itemID] ~= nil) then
-		if (LST.LegendaryItemData[itemID]["dominationSlot"] ~= nil) then 
-			isDominationSlot = LST.LegendaryItemData[itemID].dominationSlot
-		end
-	end
-	return isDominationSlot
-end
-
 function LST:CheckIfTSMIsRunning()
 	IsTSMLoaded = select(1,IsAddOnLoaded("TradeSkillMaster"))
 end
@@ -2254,7 +2230,7 @@ function LST:IsLootRelevant(itemID, itemLevel)
 		end
 	elseif(LST.LegendaryItemData[itemID] ~= nil) then 
 		if(itemLevel == nil) then
-			print(L["Incorrect itemlevel data received for item "] .. itemID .. L[", skipping data for this rank."])
+			print(L["Incorrect itemlevel data received for item "] .. LST.LegendaryItemData[itemID] .. L[", skipping data for this rank."])
 		else
 			LST:CheckForRestockUpdate(itemID, LST:GetLegendaryRankByItemLevel(itemLevel));
 		end

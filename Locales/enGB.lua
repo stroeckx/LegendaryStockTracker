@@ -87,11 +87,11 @@ L["Include Synced Data"] = "Include Synced Data"
 L["Send data to this alt"] = "Send data to this alt"
 L["clear cache"] = "clear cache"
 L["LST: Cleared item cache"] = "LST: Cleared item cache"
-L["Restock domination slots"] = "Restock domination slots"
 L["Show ranks"] = "Show ranks: "
 L["Show other crafters items in material list"] = "Show other crafters items in material list"
 L["Use TSM Material Counts"] = "Use TSM Material Counts"
 L["LST restock amounts"] = "LST current restock settings: "
+L["Show other crafters in restock list"] = "Show other crafters in restock list"
 
 -- Minimap Icon
 L["Click or type /lst to show the main panel"] =  "Click or type /lst to show the main panel"

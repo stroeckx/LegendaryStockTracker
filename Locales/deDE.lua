@@ -88,11 +88,11 @@ L["Include Synced Data"] = "Synchrone Daten berücksichtigen"
 L["Send data to this alt"] = "Daten an diesen Twink senden"
 L["clear cache"] = "Cache löschen"
 L["LST: Cleared item cache"] = "LST: Artikel-Cache geleert"
-L["Restock domination slots"] = "Dominanz-Slots wieder auffüllen"
 L["Show ranks"] = "Ränge zeigen: "
 L["Show other crafters items in material list"] = "Artikel von anderen Handwerkern in der Materialliste anzeigen"
 L["Use TSM Material Counts"] = "TSM-Materialzähler verwenden"
 L["LST restock amounts"] = "LST aktuelle Wiederauffüllungseinstellungen: "
+L["Show other crafters in restock list"] = "Andere Handwerker in der Wiederauffüllungsliste anzeigen"
 
 -- Minimap Icon
 L["Click or type /lst to show the main panel"] =  "Klicken Sie oder geben Sie /lst ein, um das Hauptfenster anzuzeigen"
