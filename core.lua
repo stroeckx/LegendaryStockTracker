@@ -28,7 +28,7 @@ local LstockLDB = LibStub("LibDataBroker-1.1"):NewDataObject("LegendaryStockTrac
   end
 })
 
-local LSTVersion = "v2.20.5"
+local LSTVersion = "v2.20.6"
 --local db = nil
 LST.db = nil
 local LstockIcon = LibStub("LibDBIcon-1.0")
@@ -96,7 +96,7 @@ local SLProfessionsIds =
 	[1418] = {["name"] = "Jewelcrafting", ["skillIndex"] = 755, ["185960"] = 352443, ["187784"] = 359701},
 	[1311] = {["name"] = "Blacksmithing", ["skillIndex"] = 164, ["185960"] = 352439, ["187784"] = 359700},
 	[1395] = {["name"] = "Tailoring", ["skillIndex"] = 197, ["185960"] = 352445, ["187784"] = 359703},
-	[1334] = {["name"] = "LeatherWorking", ["skillIndex"] = 165, ["185960"] = 352444, ["187784"] = 359702}
+	[1334] = {["name"] = "Leatherworking", ["skillIndex"] = 165, ["185960"] = 352444, ["187784"] = 359702}
 }
 local openedProfession = 0;
 LST.leggoProf1 = nil;
@@ -355,10 +355,10 @@ function LST:OnInitialize()
 		LST.db.profile.settings.restockAmount = 1;
 	end
 	if(LST.db.profile.settings.restockAmountByRank[1] == 0 and LST.db.profile.settings.restockAmountByRank[2] == 0 and LST.db.profile.settings.restockAmountByRank[3] == 0 and LST.db.profile.settings.restockAmountByRank[4] == 0 and LST.db.profile.settings.restockAmountByRank[5] == 0 and LST.db.profile.settings.restockAmountByRank[6] == 0 and LST.db.profile.settings.restockAmountByRank[7] == 0) then
-		LST:SetRestockAmountByRank(LST.db.profile.settings.restockAmount, nil, nil, nil);
+		LST:SetRestockAmountByRank(LST.db.profile.settings.restockAmount, nil, nil, nil, nil, nil, nil);
 	end
 	if(LST.db.profile.settings.restockAmountByRank[1] == nil or LST.db.profile.settings.restockAmountByRank[2] == nil or LST.db.profile.settings.restockAmountByRank[3] == nil or LST.db.profile.settings.restockAmountByRank[4] == nil or LST.db.profile.settings.restockAmountByRank[5] == nil or LST.db.profile.settings.restockAmountByRank[6] == nil or LST.db.profile.settings.restockAmountByRank[7] == nil) then
-		LST:SetRestockAmountByRank(LST.db.profile.settings.restockAmount, nil, nil, nil);
+		LST:SetRestockAmountByRank(LST.db.profile.settings.restockAmount, nil, nil, nil, nil, nil, nil);
 	end
 	LST:InitExtensions();
 end
@@ -1012,7 +1012,7 @@ function LST:AddOptionEditbox(name, parent, setting, description, heightOffset, 
 	eb:SetSize(width,22)
 	eb:SetPoint("TOPLEFT", parent, "TOPLEFT", 0, heightOffset)
 	eb:SetFontObject("GameFontNormal")
-	eb:SetTextColor(1,1,1,1)
+	eb:SetTextColor(LST:GetTextColor("white"))
 	eb.setting = setting
 	eb:SetText(LST.db.profile.settings[eb.setting])
 	eb:SetScript("OnTextChanged", function(self)
@@ -1022,7 +1022,7 @@ function LST:AddOptionEditbox(name, parent, setting, description, heightOffset, 
 				isfirstRestockAmountInputChange = false;
 				return;
 			else
-				LST:SetRestockAmountByRank(LST.db.profile.settings.restockAmount, nil, nil, nil);
+				LST:SetRestockAmountByRank(LST.db.profile.settings.restockAmount, nil, nil, nil, nil, nil, nil);
 			end
 		end
 	end)
@@ -1047,7 +1047,7 @@ function LST:RebindOptionEditbox(editBox, newSetting)
 				isfirstRestockAmountInputChange = false;
 				return;
 			else
-				LST:SetRestockAmountByRank(LST.db.profile.settings.restockAmount, nil, nil, nil);
+				LST:SetRestockAmountByRank(LST.db.profile.settings.restockAmount, nil, nil, nil, nil, nil, nil);
 			end
 		end
 	end)
@@ -1458,28 +1458,6 @@ function LST:AddVestigeToRestock(rank, itemID, count)
 	end
 	NumReagentsToCraft[vestigeID][prof] = NumReagentsToCraft[vestigeID][prof] + count;
 	return vestigeID;
-
-	--local unlockedRank, crafter = LST:GetUnlockedCraftRank(itemID);
-	--if(crafter == nil) then
-	--	print(L["error_unknown_crafter"] .. itemID);
-	--	return false;
-	--end;
-	--local price, profession = LST:GetCheapestReagentProfessionForCrafter(crafter, LST.VestigeOfOriginID)
-	--if(profession == 0) then
-	--	print("LST: " .. crafter .. L["error_crafter_can't_make_vestige"]);
-	--	return false;
-	--end
-	--if(rank == 3 or rank == 4) then
-	--	if(LST:IsVestigeCraftCheaper(itemID, rank) or unlockedRank < rank) then
-	--		NumVestigesToCraft[profession] = NumVestigesToCraft[profession] + count;
-	--		return true;
-	--	end
-	--end
-	--if(rank >= 5) then
-	--	NumVestigesToCraft[profession] = NumVestigesToCraft[profession] + count;
-	--	return true;
-	--end
-	--return false;
 end
 
 function LST:DoesThisCharacterHaveProfession(slid)
@@ -1551,7 +1529,7 @@ function LST:CreateRestockSheet(frame)
 			PastProfessions[CurrentProfession] = 1;
 			row = 
 			{
-				LST:CreateTableElement(frame, SLProfessionsIds[CurrentProfession]["name"], 1, 1, 1, 1),
+				LST:CreateTableElement(frame, SLProfessionsIds[CurrentProfession]["name"], LST:GetTextColor("yellow")),
 				LST:CreateTableElement(frame, "", 1, 1, 1, 1),
 				LST:CreateTableElement(frame, "", 1, 1, 1, 1),
 				LST:CreateTableElement(frame, "", 1, 1, 1, 1),
@@ -1563,7 +1541,7 @@ function LST:CreateRestockSheet(frame)
 				if(NumReagentsToCraft[reagent][CurrentProfession] > 0) then 
 					row = 
 					{
-						LST:CreateTableElement(frame, L[reagent], 1, 1, 1, 1),
+						LST:CreateTableElement(frame, L[reagent], LST:GetTextColor("legendary")),
 						LST:CreateTableElement(frame, NumReagentsToCraft[reagent][CurrentProfession], 1, 1, 1, 1),
 						LST:CreateTableElement(frame, "", 1, 1, 1, 1),
 						LST:CreateTableElement(frame, "", 1, 1, 1, 1),
@@ -1597,7 +1575,7 @@ function LST:CreateRestockSheet(frame)
 				if(PastProfessions[prof] == nil) then
 					row = 
 					{
-						LST:CreateTableElement(frame, SLProfessionsIds[prof]["name"], 1, 1, 1, 1),
+						LST:CreateTableElement(frame, SLProfessionsIds[prof]["name"], LST:GetTextColor("yellow")),
 						LST:CreateTableElement(frame, "", 1, 1, 1, 1),
 						LST:CreateTableElement(frame, "", 1, 1, 1, 1),
 						LST:CreateTableElement(frame, "", 1, 1, 1, 1),
@@ -1608,7 +1586,7 @@ function LST:CreateRestockSheet(frame)
 					if(NumReagentsToCraft[reagent][prof] > 0) then 
 						row = 
 						{
-							LST:CreateTableElement(frame, L[reagent], 1, 1, 1, 1),
+							LST:CreateTableElement(frame, L[reagent], LST:GetTextColor("legendary")),
 							LST:CreateTableElement(frame, NumReagentsToCraft[reagent][prof], 1, 1, 1, 1),
 							LST:CreateTableElement(frame, "", 1, 1, 1, 1),
 							LST:CreateTableElement(frame, "", 1, 1, 1, 1),
@@ -1839,8 +1817,8 @@ function LST:CreateTableSheet(frame)
 			totalPriceSum = totalPriceSum + priceSum[r];
 			totalProfitSum = totalProfitSum + profitSum[r];
 		end
-		table.insert(sheet, LST:CreateTablePriceRowWhite(frame, L["Total (profit): "], totalStockSum, LST:AddDecimalSeparator(LST:RoundToInt(totalProfitSum)), "","","","","","","","","",""))
-		table.insert(sheet, LST:CreateTablePriceRowWhite(frame, L["Total (min price): "], totalStockSum, LST:AddDecimalSeparator(LST:RoundToInt(totalPriceSum)), "","","","","","","","","",""))
+		table.insert(sheet, LST:CreateTablePriceRowWhite(frame, L["Total (profit): "], totalStockSum, LST:AddDecimalSeparator(LST:RoundToInt(totalProfitSum)), "","","","","","","","","","","",""))
+		table.insert(sheet, LST:CreateTablePriceRowWhite(frame, L["Total (min price): "], totalStockSum, LST:AddDecimalSeparator(LST:RoundToInt(totalPriceSum)), "","","","","","","","","","","",""))
 	end
 	LST:CreateFrameSheet(frame, sheet, #maxWidth)
 end
@@ -1862,7 +1840,7 @@ function LST:GetColorWhite()
 	return 1, 1, 1, 1
 end
 
-function LST:CreateTablePriceRowWhite(frame, title, text1, text2, text3, text4, text5, text6, text7, text8, text9, text10, text11, text12)
+function LST:CreateTablePriceRowWhite(frame, title, text1, text2, text3, text4, text5, text6, text7, text8, text9, text10, text11, text12, text13,text14)
 	row = 
 	{
 		LST:CreateTableElement(frame, title, LST:GetColorWhite()),
@@ -1871,25 +1849,26 @@ function LST:CreateTablePriceRowWhite(frame, title, text1, text2, text3, text4, 
 		LST:CreateTableElement(frame, text5, LST:GetColorWhite()), LST:CreateTableElement(frame, text6, LST:GetColorWhite()),
 		LST:CreateTableElement(frame, text7, LST:GetColorWhite()), LST:CreateTableElement(frame, text8, LST:GetColorWhite()),
 		LST:CreateTableElement(frame, text9, LST:GetColorWhite()), LST:CreateTableElement(frame, text10, LST:GetColorWhite()),
-		LST:CreateTableElement(frame, text11, LST:GetColorWhite()), LST:CreateTableElement(frame, text12, LST:GetColorWhite())
+		LST:CreateTableElement(frame, text11, LST:GetColorWhite()), LST:CreateTableElement(frame, text12, LST:GetColorWhite()),
+		LST:CreateTableElement(frame, text13, LST:GetColorWhite()), LST:CreateTableElement(frame, text14, LST:GetColorWhite())
 	}
 	return row;
 end
 
-function LST:CreateTableRowWhite(frame, title, text1, text2, text3, text4, text5, text6)
-	row = 
-	{
-		LST:CreateTableElement(frame, title, LST:GetColorWhite()),
-		LST:CreateTableElement(frame, text1, LST:GetColorWhite()),
-		LST:CreateTableElement(frame, text2, LST:GetColorWhite()),
-		LST:CreateTableElement(frame, text3, LST:GetColorWhite()),
-		LST:CreateTableElement(frame, text4, LST:GetColorWhite()),
-		LST:CreateTableElement(frame, text5, LST:GetColorWhite()),
-		LST:CreateTableElement(frame, text6, LST:GetColorWhite())
-	}
-	return row;
-
-end
+--function LST:CreateTableRowWhite(frame, title, text1, text2, text3, text4, text5, text6)
+--	row = 
+--	{
+--		LST:CreateTableElement(frame, title, LST:GetColorWhite()),
+--		LST:CreateTableElement(frame, text1, LST:GetColorWhite()),
+--		LST:CreateTableElement(frame, text2, LST:GetColorWhite()),
+--		LST:CreateTableElement(frame, text3, LST:GetColorWhite()),
+--		LST:CreateTableElement(frame, text4, LST:GetColorWhite()),
+--		LST:CreateTableElement(frame, text5, LST:GetColorWhite()),
+--		LST:CreateTableElement(frame, text6, LST:GetColorWhite())
+--	}
+--	return row;
+--
+--end
 
 function LST:CreateFrameSheet(frame, table, numColumns)
 	local sheet  = {}
@@ -2022,7 +2001,7 @@ end
 function LST:CreateTableTitle(frame, text)
 	local fontString = fontStringPool:Acquire()
 	fontString:SetParent(frame)
-	fontString:SetTextColor(1,0.9,0,1)
+	fontString:SetTextColor(LST:GetTextColor("yellow"))
 	--fontString:SetFontObject("GameFontNormal")
 	fontString:SetJustifyH("CENTER")
 	fontString:SetJustifyV("MIDDLE")
@@ -2031,6 +2010,13 @@ function LST:CreateTableTitle(frame, text)
 	fontString:SetText(text)
 	fontString:Show()
 	return {fontString, fontString:GetStringWidth(text)}
+end
+
+function LST:GetTextColor(color)
+	if 		color == "yellow" 	then return 1, 0.9, 0, 1
+	elseif  color == "white" 	then return 1, 1, 1, 1
+	elseif  color == "legendary" 	then return 1, 0.5, 0, 1
+	end
 end
 
 function LST:CompareTableValue(frame, table, index, toCompare)

@@ -7,7 +7,7 @@ function LST:SetRestockFromChat(input)
 		table.insert(values, value);
     end
 	if(#values == 1) then
-		LST:SetRestockAmountByRank(values[1], nil, nil, nil, nil, nil);
+		LST:SetRestockAmountByRank(values[1], nil, nil, nil, nil, nil, nil);
 	elseif(#values == 7) then
 		LST:SetRestockAmountByRank(values[1], values[2], values[3], values[4], values[5], values[6], values[7]);
 	else
