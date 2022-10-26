@@ -615,7 +615,7 @@ function LST:GetMainFrame(parent)
 
 		-- resizing
 		f:SetResizable(true)
-		f:SetMinResize(400, 350)
+		f:SetResizeBounds(400, 350)
 		local rb = CreateFrame("Button", "LSTResizeButton", f)
 		rb:SetPoint("BOTTOMRIGHT", -6, 7)
 		rb:SetSize(16, 16)
@@ -937,7 +937,7 @@ function LST:CreateOptionsContentFrame(name, parent, backdrop)
 end
 
 function LST:AddOptionCheckbox(name, parent, setting, description, heightOffset)
-	local cb = CreateFrame("CheckButton", name, parent, "OptionsCheckButtonTemplate")
+	local cb = CreateFrame("CheckButton", name, parent, "OptionsBaseCheckButtonTemplate")
 	cb:SetSize(20,20)
 	cb:SetPoint("TOPLEFT", parent, "TOPLEFT", 0, heightOffset)
 	cb.setting = setting
@@ -968,7 +968,7 @@ function LST:AddOptionCheckboxList(name, parent, setting, description, heightOff
 
 	local frame = f;
 	for i=1, numItems do
-		local cb = CreateFrame("CheckButton", name .. i, parent, "OptionsCheckButtonTemplate");
+		local cb = CreateFrame("CheckButton", name .. i, parent, "OptionsBaseCheckButtonTemplate");
 		cb:SetSize(20,20);
 		cb:SetPoint("TOPLEFT", frame, "TOPRIGHT", 0, 0);
 		cb.setting = setting;
@@ -1620,13 +1620,17 @@ function LST:CreateMaterialRestockListSheet(frame)
 		if(numMissing < 0) then numMissing = 0; end; 
 		
 		local itemText = ""
-		if(LST.db.factionrealm.recipeData.materialList[materialID] ~= nil and LST.db.factionrealm.recipeData.materialList[materialID].itemName ~= nil and LST.db.factionrealm.recipeData.materialList[materialID].itemQuality ~= nil) then
-			local r, g, b, hex = GetItemQualityColor(LST.db.factionrealm.recipeData.materialList[materialID].itemQuality)
-			itemText = "|c" .. hex .. LST.db.factionrealm.recipeData.materialList[materialID].itemName
+		if(LST.db.factionrealm.recipeData.materialList[tostring(materialID)] ~= nil and LST.db.factionrealm.recipeData.materialList[tostring(materialID)].itemName ~= nil and LST.db.factionrealm.recipeData.materialList[tostring(materialID)].itemQuality ~= nil) then
+			local r, g, b, hex = GetItemQualityColor(LST.db.factionrealm.recipeData.materialList[tostring(materialID)].itemQuality)
+			itemText = "|c" .. hex .. LST.db.factionrealm.recipeData.materialList[tostring(materialID)].itemName
 		else
+			print(materialID);
+			print(tostring(LST.db.factionrealm.recipeData.materialList[materialID]));
+			print(tostring(LST.db.factionrealm.recipeData.materialList[materialID].itemName));
+			print(tostring(LST.db.factionrealm.recipeData.materialList[materialID].itemQuality));
 			print(L["error_missing_material_info"])
-			if(LST.db.factionrealm.recipeData.materialList[materialID] ~= nil) then
-				itemText = LST.db.factionrealm.recipeData.materialList[materialID]; --show legacy data if present
+			if(LST.db.factionrealm.recipeData.materialList[tostring(materialID)] ~= nil) then
+				itemText = LST.db.factionrealm.recipeData.materialList[tostring(materialID)]; --show legacy data if present
 			end
 			LST:UpdateMaterialInfo(materialID);
 		end
@@ -2299,16 +2303,20 @@ end
 
 function LST:GetMaterialListFromRecipe(recipeID)
 	local materials = {};
-	for i = 1, C_TradeSkillUI.GetRecipeNumReagents(recipeID) do
-		local reagentName, reagentIcon, reagentNumRequired, reagentNumOwned = C_TradeSkillUI.GetRecipeReagentInfo(recipeID, i, 1);
-		local materialID = LST:GetItemIDFromItemLink(C_TradeSkillUI.GetRecipeReagentItemLink(recipeID, i));
-		materials[materialID] = 
-		{
-			name = reagentName,
-			itemid = materialID,
-			numRequired = reagentNumRequired
-		}
-		LST:UpdateMaterialInfo(materialID);
+	local schematic = C_TradeSkillUI.GetRecipeSchematic(recipeID, false);
+	for reagentslotIndex, reagentSlotInfo in pairs(schematic.reagentSlotSchematics) do
+		if(reagentSlotInfo.reagentType == 1) then
+			local materialID = reagentSlotInfo.reagents[1].itemID;
+			local reagentNumRequired = reagentSlotInfo.quantityRequired;
+			local reagentName, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _ = GetItemInfo(materialID);
+			materials[materialID] = 
+			{
+				name = reagentName,
+				itemid = tostring(materialID),
+				numRequired = reagentNumRequired
+			}
+			LST:UpdateMaterialInfo(materialID);
+		end
 	end
 	return materials;
 end
@@ -2365,8 +2373,7 @@ function LST:CraftNextRestockItem()
 	for reagent, data in pairs (NumReagentsToCraft) do
 		if(NumReagentsToCraft[reagent][openedProfession] > 0) then
 			local recipeID = SLProfessionsIds[openedProfession][reagent];
-			local recipeInfo = C_TradeSkillUI.GetRecipeInfo(recipeID, 1);
-			local availableCraftCount = recipeInfo["numAvailable"];
+			local availableCraftCount = C_TradeSkillUI.GetCraftableCount(recipeID);
 			local craftCount = 0;
 			if(availableCraftCount >= NumReagentsToCraft[reagent][openedProfession]) then
 				craftCount = NumReagentsToCraft[reagent][openedProfession];
@@ -2391,13 +2398,12 @@ function LST:CraftNextRestockItem()
 			optionalReagents = {{itemID = tonumber(LST.VestigeOfOriginID), count = 1, slot = 1}};
 		elseif(addVestige == LST.VestigeOfEternalID) then 
 			rank = rank - 3;
-			optionalReagents = {{itemID = tonumber(LST.VestigeOfEternalID), count = 1, slot = 1}};
+			optionalReagents = {{itemID = tonumber(LST.VestigeOfEternalID), dataSlotIndex = 1, quantity = 1}};
 		end
 		if(LST.LegendaryItemData[itemID]["profession"] == openedProfession and restockData["rank"]) then
 			local recipeID = LST.LegendaryItemData[tostring(itemID)]["recipeID"][rank];
 			if(recipeID ~= 0) then
-				local recipeInfo = C_TradeSkillUI.GetRecipeInfo(recipeID, 1);
-				local availableCraftCount = recipeInfo["numAvailable"];
+				local availableCraftCount = C_TradeSkillUI.GetCraftableCount(recipeID);
 				local craftCount = 0;
 				if(availableCraftCount >= restockData["amountToRestock"] and (addVestige == nil or LST:GetVestigesInBags(addVestige) > restockData["amountToRestock"])) then
 					craftCount = restockData["amountToRestock"];

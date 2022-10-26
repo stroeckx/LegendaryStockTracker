@@ -54,31 +54,31 @@ function LST:GetLSTCraftCostForLegendary(itemID, rank)
 		if(LST.db.factionrealm.recipeData.recipes[itemID] == nil or LST.db.factionrealm.recipeData.recipes[itemID]["ranks"] == nil or LST.db.factionrealm.recipeData.recipes[itemID]["ranks"][rank] == nil) then
 			return L["not scanned"];
 		else
-			return LST:GetMaterialPriceSum(LST.db.factionrealm.recipeData.recipes[itemID]["ranks"][rank])
+			return LST:GetMaterialPriceSum(LST.db.factionrealm.recipeData.recipes[itemID]["ranks"][rank], itemID)
 		end
 	elseif(rank == 5 or rank == 6) then
 		if(LST.db.factionrealm.recipeData.recipes[itemID] == nil or LST.db.factionrealm.recipeData.recipes[itemID]["ranks"][rank - 2] == nil or LST.db.factionrealm.recipeData.OptionalReagents[LST.VestigeOfOriginID][LST.LegendaryItemData[itemID]["profession"]] == nil) then
 			return L["not scanned"];
 		else
-			return LST:GetMaterialPriceSum(LST.db.factionrealm.recipeData.recipes[itemID]["ranks"][rank - 2]) + LST:GetMaterialPriceSum(LST.db.factionrealm.recipeData.OptionalReagents[LST.VestigeOfOriginID][LST.LegendaryItemData[itemID]["profession"]])
+			return LST:GetMaterialPriceSum(LST.db.factionrealm.recipeData.recipes[itemID]["ranks"][rank - 2], itemID) + LST:GetMaterialPriceSum(LST.db.factionrealm.recipeData.OptionalReagents[LST.VestigeOfOriginID][LST.LegendaryItemData[itemID]["profession"]])
 		end
 	elseif(rank == 7) then
 		if(LST.db.factionrealm.recipeData.recipes[itemID] == nil or LST.db.factionrealm.recipeData.recipes[itemID]["ranks"][rank - 3] == nil or LST.db.factionrealm.recipeData.OptionalReagents[LST.VestigeOfEternalID][LST.LegendaryItemData[itemID]["profession"]] == nil) then
 			return L["not scanned"];
 		else
-			return LST:GetMaterialPriceSum(LST.db.factionrealm.recipeData.recipes[itemID]["ranks"][rank - 3]) + LST:GetMaterialPriceSum(LST.db.factionrealm.recipeData.OptionalReagents[LST.VestigeOfEternalID][LST.LegendaryItemData[itemID]["profession"]])
+			return LST:GetMaterialPriceSum(LST.db.factionrealm.recipeData.recipes[itemID]["ranks"][rank - 3], itemID) + LST:GetMaterialPriceSum(LST.db.factionrealm.recipeData.OptionalReagents[LST.VestigeOfEternalID][LST.LegendaryItemData[itemID]["profession"]])
 		end
 	end
 end
 
-function LST:GetMaterialPriceSum(table)
+function LST:GetMaterialPriceSum(table, itemID)
 	if(table == nil) then return 0 end;
 	local price = 0;
 	for materialID, data in pairs(table) do
-		if(LST.materialPrices[materialID] == nil) then
+		if(LST.materialPrices[tostring(materialID)] == nil) then
 			price = price + 0;
 		else
-			price = price + (LST.materialPrices[materialID] * data["numRequired"]);
+			price = price + (LST.materialPrices[tostring(materialID)] * data["numRequired"]);
 		end
 	end
 	return price;
