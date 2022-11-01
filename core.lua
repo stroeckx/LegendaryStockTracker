@@ -28,7 +28,7 @@ local LstockLDB = LibStub("LibDataBroker-1.1"):NewDataObject("LegendaryStockTrac
   end
 })
 
-local LSTVersion = "v2.20.6"
+local LSTVersion = "v2.21.1"
 --local db = nil
 LST.db = nil
 local LstockIcon = LibStub("LibDBIcon-1.0")
@@ -514,7 +514,7 @@ function LST:UpdateAllAvailableItemSources()
 	LST:GetAllItemsInBank(); --if the bank is open at the time of command, update bank as well
 	--LST:GetAllItemsInAH() auctions specifically not updated on command, as we don't know if the ah is closed or the player has no auctions. relying on OWNED_AUCTIONS_UPDATED to update those.
 	--LST:GetAllItemsInMailbox() mailbox is updated anytime the mailbox is updated, no need to update on command 
-	--LST:GetAllItemsInGuildBank()
+	LST:GetAllItemsInGuildBank()
 end
 
 function LST:GetLegendariesFromItems()
@@ -2303,7 +2303,7 @@ end
 
 function LST:GetMaterialListFromRecipe(recipeID)
 	local materials = {};
-	local schematic = C_TradeSkillUI.GetRecipeSchematic(recipeID, false);
+	local schematic = C_TradeSkillUI.GetRecipeSchematic(recipeID, false, 1);
 	for reagentslotIndex, reagentSlotInfo in pairs(schematic.reagentSlotSchematics) do
 		if(reagentSlotInfo.reagentType == 1) then
 			local materialID = reagentSlotInfo.reagents[1].itemID;
@@ -2403,7 +2403,7 @@ function LST:CraftNextRestockItem()
 		if(LST.LegendaryItemData[itemID]["profession"] == openedProfession and restockData["rank"]) then
 			local recipeID = LST.LegendaryItemData[tostring(itemID)]["recipeID"][rank];
 			if(recipeID ~= 0) then
-				local availableCraftCount = C_TradeSkillUI.GetCraftableCount(recipeID);
+				local availableCraftCount = C_TradeSkillUI.GetCraftableCount(recipeID, 1);
 				local craftCount = 0;
 				if(availableCraftCount >= restockData["amountToRestock"] and (addVestige == nil or LST:GetVestigesInBags(addVestige) > restockData["amountToRestock"])) then
 					craftCount = restockData["amountToRestock"];
