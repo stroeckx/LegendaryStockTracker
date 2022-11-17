@@ -22,7 +22,7 @@ function LST:GetAllItemsInBags()
 		["187784"] = 0
 	}
     for bag=0,NUM_BAG_SLOTS do
-        for slot=1,GetContainerNumSlots(bag) do
+        for slot=1,C_Container.GetContainerNumSlots(bag) do
             local itemID = C_Container.GetContainerItemID(bag,slot);
             if not (itemID == nil) then
                 local itemLink = C_Container.GetContainerItemLink(bag,slot);
