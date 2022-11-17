@@ -22,17 +22,18 @@ function LST:GetAllItemsInBags()
 		["187784"] = 0
 	}
     for bag=0,NUM_BAG_SLOTS do
-        for slot=1,GetContainerNumSlots(bag) do
-			if not (GetContainerItemID(bag,slot) == nil) then 
-                local itemLink = (select(7,GetContainerItemInfo(bag,slot)));
-				local itemID = select(3, strfind(itemLink, "item:(%d+)"));
+        for slot=1,C_Container.GetContainerNumSlots(bag) do
+            local itemID = C_Container.GetContainerItemID(bag,slot);
+            if not (itemID == nil) then
+                local itemLink = C_Container.GetContainerItemLink(bag,slot);
+                local itemInfo = C_Container.GetContainerItemInfo(bag,slot);
                 if(LST:IsItemASLLegendary(itemLink) == true) then
 				    LST.db.factionrealm.characters[LST.playerName].bagItemLegendaryLinks[#LST.db.factionrealm.characters[LST.playerName].bagItemLegendaryLinks + 1] = itemLink;
 				    LST.db.factionrealm.characters[LST.playerName].bagItemLegendaryCount = LST.db.factionrealm.characters[LST.playerName].bagItemLegendaryCount + 1;
 				elseif(itemID == LST.VestigeOfOriginID) then
-					vestigesInBags[LST.VestigeOfOriginID] = vestigesInBags[LST.VestigeOfOriginID] + select(2,GetContainerItemInfo(bag,slot));
+					vestigesInBags[LST.VestigeOfOriginID] = vestigesInBags[LST.VestigeOfOriginID] + itemInfo.stackCount;
 				elseif(itemID == LST.VestigeOfEternalID) then
-					vestigesInBags[LST.VestigeOfEternalID] = vestigesInBags[LST.VestigeOfEternalID] + select(2,GetContainerItemInfo(bag,slot));
+					vestigesInBags[LST.VestigeOfEternalID] = vestigesInBags[LST.VestigeOfEternalID] + itemInfo.stackCount;
                 end
 			end
         end
@@ -65,9 +66,9 @@ function LST:GetAllItemsInBank(event)
 		LST.db.factionrealm.characters[LST.playerName].bankItemLegendaryCount = 0
 		--go through all bank bag slots
 		for bag=NUM_BAG_SLOTS+1,NUM_BAG_SLOTS + NUM_BANKBAGSLOTS do
-			for slot=1,GetContainerNumSlots(bag) do
-				if not (GetContainerItemID(bag,slot) == nil) then 
-                    local itemLink = (select(7,GetContainerItemInfo(bag,slot)));
+			for slot=1,C_Container.GetContainerNumSlots(bag) do
+				if not (C_Container.GetContainerItemID(bag,slot) == nil) then
+                    local itemLink = C_Container.GetContainerItemLink(bag,slot);
                     if(LST:IsItemASLLegendary(itemLink) == true) then
 					    LST.db.factionrealm.characters[LST.playerName].bankItemLegendaryLinks[#LST.db.factionrealm.characters[LST.playerName].bankItemLegendaryLinks + 1] = itemLink;
 					    LST.db.factionrealm.characters[LST.playerName].bankItemLegendaryCount = LST.db.factionrealm.characters[LST.playerName].bankItemLegendaryCount + 1;
@@ -76,9 +77,9 @@ function LST:GetAllItemsInBank(event)
 			end
 		end
 		--go through default 28 bank spaces
-		for slot=1,GetContainerNumSlots(-1) do
-			if not (GetContainerItemID(-1,slot) == nil) then 
-                local itemLink = (select(7,GetContainerItemInfo(-1,slot)));
+		for slot=1,C_Container.GetContainerNumSlots(-1) do
+			if not (C_Container.GetContainerItemID(-1,slot) == nil) then
+                local itemLink = C_Container.GetContainerItemLink(-1,slot);
                 if(LST:IsItemASLLegendary(itemLink) == true) then
 				    LST.db.factionrealm.characters[LST.playerName].bankItemLegendaryLinks[#LST.db.factionrealm.characters[LST.playerName].bankItemLegendaryLinks + 1] = itemLink;
 				    LST.db.factionrealm.characters[LST.playerName].bankItemLegendaryCount = LST.db.factionrealm.characters[LST.playerName].bankItemLegendaryCount + 1;
