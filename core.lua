@@ -28,7 +28,7 @@ local LstockLDB = LibStub("LibDataBroker-1.1"):NewDataObject("LegendaryStockTrac
   end
 })
 
-local LSTVersion = "v2.21.3"
+local LSTVersion = "v2.21.4"
 --local db = nil
 LST.db = nil
 local LstockIcon = LibStub("LibDBIcon-1.0")
@@ -1921,7 +1921,6 @@ function LST:CreateFrameSheet(frame, table, numColumns)
 		yPosition = yPosition - YDIFF;
 		--LST:AddTableLine(frame, yPosition);
 	end
-
 end
 
 function LST:GetTablePriceFont(profit, price, itemID)
