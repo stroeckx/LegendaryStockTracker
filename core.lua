@@ -28,7 +28,7 @@ local LstockLDB = LibStub("LibDataBroker-1.1"):NewDataObject("LegendaryStockTrac
   end
 })
 
-local LSTVersion = "v2.21.5"
+local LSTVersion = "v2.21.6"
 --local db = nil
 LST.db = nil
 local LstockIcon = LibStub("LibDBIcon-1.0")
@@ -2168,7 +2168,7 @@ function LST:GetStockCount(itemID, rank)
 end
 
 function LST:CheckIfTSMIsRunning()
-	IsTSMLoaded = select(1,IsAddOnLoaded("TradeSkillMaster"))
+	IsTSMLoaded = select(1,C_AddOns.IsAddOnLoaded("TradeSkillMaster"))
 end
 
 function LST:OnItemAdded(self, event, itemKey)
