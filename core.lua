@@ -28,7 +28,7 @@ local LstockLDB = LibStub("LibDataBroker-1.1"):NewDataObject("LegendaryStockTrac
   end
 })
 
-local LSTVersion = "v2.21.13"
+local LSTVersion = "v2.22.0"
 --local db = nil
 LST.db = nil
 local LstockIcon = LibStub("LibDBIcon-1.0")
@@ -1193,15 +1193,15 @@ end
 
 function LST:GetLegendaryRankByItemLevel(itemlevel)
 	local rank = 0;
-	if itemlevel == 190 then
+	if itemlevel == 43 then
 		rank = 1;
-	elseif itemlevel == 210 then
+	elseif itemlevel == 46 then
 		rank = 2;
-	elseif itemlevel == 225 then
+	elseif itemlevel == 49 then
 		rank = 3;
-	elseif itemlevel == 235 then
+	elseif itemlevel == 51 then
 		rank = 4;
-	elseif itemlevel == 249 then
+	elseif itemlevel == 249 then --unsure what the new item levels are since TWW, leaving old values for now
 		rank = 5;
 	elseif itemlevel == 262 then
 		rank = 6;
@@ -2254,10 +2254,10 @@ end
 function LST:ScanAhPrices(item)
 	if AuctionHouseFrame and AuctionHouseFrame:IsShown() then
 		local itemKeys = {}
-		itemKeys[1] = C_AuctionHouse.MakeItemKey(171419, 190, nil)
-		itemKeys[2] = C_AuctionHouse.MakeItemKey(171419, 210, nil)
-		itemKeys[3] = C_AuctionHouse.MakeItemKey(171419, 225, nil)
-		itemKeys[4] = C_AuctionHouse.MakeItemKey(171419, 235, nil)
+		itemKeys[1] = C_AuctionHouse.MakeItemKey(171419, 43, nil)
+		itemKeys[2] = C_AuctionHouse.MakeItemKey(171419, 46, nil)
+		itemKeys[3] = C_AuctionHouse.MakeItemKey(171419, 49, nil)
+		itemKeys[4] = C_AuctionHouse.MakeItemKey(171419, 51, nil)
 		C_AuctionHouse.SearchForItemKeys(itemKeys, {})
 	end
 end

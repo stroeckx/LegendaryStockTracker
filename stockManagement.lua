@@ -65,7 +65,7 @@ function LST:GetAllItemsInBank(event)
 		LST.db.factionrealm.characters[LST.playerName].bankItemLegendaryLinks = {}
 		LST.db.factionrealm.characters[LST.playerName].bankItemLegendaryCount = 0
 		--go through all bank bag slots
-		for bag=NUM_BAG_SLOTS+1,NUM_BAG_SLOTS + NUM_BANKBAGSLOTS do
+		for bag=GetInventorySlotInfo("BAG1"),GetInventorySlotInfo("BAG12") do
 			for slot=1,C_Container.GetContainerNumSlots(bag) do
 				if not (C_Container.GetContainerItemID(bag,slot) == nil) then
                     local itemLink = C_Container.GetContainerItemLink(bag,slot);
@@ -176,7 +176,7 @@ function LST:IsItemASLLegendary(itemLink)
     if(itemClass == 4 and itemQuality == 1) then
         local detailedItemLevel = GetDetailedItemLevelInfo(itemLink)
 
-        if (detailedItemLevel > 175) and (detailedItemLevel < 300) then --leaving ilvl room for future upgradres (max 235 at time of writing)
+        if (detailedItemLevel > 40) and (detailedItemLevel < 300) then --leaving ilvl room for future upgradres (max 235 at time of writing)
             return true;
         end
     end
